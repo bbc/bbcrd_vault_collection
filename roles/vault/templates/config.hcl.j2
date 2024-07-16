@@ -1,0 +1,35 @@
+storage "raft" {
+  path = "{{ ansible_vault_data_dir }}/data"
+  node_id = "{{ inventory_hostname }}"
+  
+  {%- for host in groups[ansible_vault_cluster_ansible_group_name] +%}
+    {%- if host != inventory_hostname +%}
+  retry_join {
+    leader_api_addr = "{{ ansible_vault_public_protocol }}://{{ hostvars[host]['ansible_vault_public_address'] }}:{{ ansible_vault_public_port }}"
+      {%- if ansible_vault_ca_path is defined +%}
+    leader_ca_cert_file = "{{ ansible_vault_ca_path }}"
+      {%- endif +%}
+  }
+    {%- endif +%}
+  {%- endfor +%}
+}
+
+listener "tcp" {
+  # Vault API endpoint
+  address = "{{ ansible_vault_listen_address }}:{{ ansible_vault_listen_port }}"
+  
+  # Inter-vault-server clustering API endpoint
+  cluster_address = "{{ ansible_vault_clustering_address }}:{{ ansible_vault_clustering_port }}"
+  
+  # API endpoint TLS config
+  {%- if ansible_vault_listen_protocol == "https" +%}
+  tls_cert_file = "{{ ansible_vault_tls_cert_file }}"
+  tls_key_file = "{{ ansible_vault_tls_key_file }}"
+  {%- else +%}
+  tls_disable = true
+  {%- endif +%}
+}
+
+api_addr = "{{ ansible_vault_public_url }}"
+
+cluster_addr = "{{ ansible_vault_clustering_url }}"

@@ -1,0 +1,54 @@
+---
+# A set of tasks which fetches the encrypted unseal keys into the variable
+# encrypted_unseal_keys. Verifies that all hosts have matching encrypted unseal
+# keys.
+#
+# You can override the filename of the encrypted key bundle loaded from each
+# server by setting the 'encrypted_unseal_keys_filename' variable. It defaults
+# to 'encrypted_unseal_keys.json'.
+
+# NB: Newly added hosts may not have a copy of the encrypted unseal keys
+# available so we should ignore those failures here.
+- name: Fetch encrypted unseal keys
+  slurp:
+    src: "{{ ansible_vault_data_dir }}/{{ encrypted_unseal_keys_filename | default('encrypted_unseal_keys.json') }}"
+  ignore_errors: true
+  register: encrypted_unseal_keys_json
+
+- name: Parse encrypted unseal keys
+  set_fact:
+    encrypted_unseal_keys: "{{ encrypted_unseal_keys_json.content | default('null' | b64encode) | b64decode | from_json }}"
+
+- name: Collect together all encrypted unseal key files
+  run_once: true
+  set_fact:
+    all_encrypted_unseal_keys: |-
+      {{
+        groups[ansible_vault_cluster_ansible_group_name]
+          | map('extract', hostvars)
+          | selectattr("encrypted_unseal_keys", "defined")
+          | rejectattr("encrypted_unseal_keys", "none")
+          | map(attribute="encrypted_unseal_keys")
+      }}
+
+- name: Verify at least one set of encrypted unseal keys exists
+  run_once: true
+  set_fact:
+    encrypted_unseal_keys: "{{ all_encrypted_unseal_keys[0] }}"
+
+- name: Verify encrypted unseal key files on all servers match
+  run_once: true
+  assert:
+    that: "encrypted_unseal_keys == item"
+    fail_msg: >-
+      The encrypted unseal keys read from all vault servers (in {{
+      ansible_vault_data_dir }}/{{ encrypted_unseal_keys_filename |
+      default('encrypted_unseal_keys.json') }}) do not match.  You must
+      manually resolve this conflict by placing matching files on all servers
+      to continue. Take care not to accidentally overwrite or delete the
+      correct files -- make backups!
+    quiet: true
+  loop: "{{ all_encrypted_unseal_keys }}"
+  loop_control:
+    index_var: idx
+    label: "{{ idx }}"

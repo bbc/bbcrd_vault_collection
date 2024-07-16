@@ -1,0 +1,54 @@
+---
+# Ensure an unseal key is present in ansible_vault_unseal_key. If an unseal key
+# is already stored there, do nothing. Otherwise, load the unseal key from an
+# encrypted unseal key bundle.
+#
+# The encrypted unseal keys are read from the file named by
+# encrypted_unseal_keys_filename. See fetch_encrypted_unseal_keys.yml.
+
+- name: Obtain an unseal key
+  any_errors_fatal: true
+  when: ansible_vault_unseal_key is none
+  block:
+    - name: Fetch encrypted unseal keys
+      import_tasks: fetch_encrypted_unseal_keys.yml
+    
+    - name: Create lookup from fingerprint to unseal key
+      run_once: true
+      set_fact:
+        fingerprint_to_encrypted_unseal_key: |-
+          {{
+            encrypted_unseal_keys.shares | items2dict(key_name="fingerprint", value_name="encrypted_unseal_key")
+          }}
+    
+    - name: Look for private key to decrypt an unseal key
+      run_once: true
+      set_fact:
+        decryptable_unseal_keys: |-
+          {{
+            (
+              lookup('bbc_rd.ansible_vault.pgp_private_key_fingerprints', wantlist=True)
+              if ansible_vault_pgp_key_fingerprint is none else
+              [ansible_vault_pgp_key_fingerprint]
+            )
+              | intersect(fingerprint_to_encrypted_unseal_key)
+              | map('extract', fingerprint_to_encrypted_unseal_key)
+          }}
+    
+    - name: Check decryptable key exists
+      run_once: true
+      assert:
+        that: (decryptable_unseal_keys | length) == 1
+        fail_msg: |-
+          {{
+            "Couldn't find any decryptable unseal keys."
+            if (decryptable_unseal_keys | length) == 0 else
+            "Multiple unseal keys were decryptable. Please set ansible_vault_pgp_key_fingerprint."
+          }}
+        quiet: true
+    
+    - name: Decrypt the unseal key
+      run_once: true
+      no_log: "{{ ansible_vault_no_log_sensitive }}"
+      set_fact:
+        ansible_vault_unseal_key: "{{ decryptable_unseal_keys[0] | bbc_rd.ansible_vault.pgp_decrypt | b64decode }}"

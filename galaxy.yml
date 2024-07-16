@@ -1,0 +1,13 @@
+namespace: "bbc_rd"
+name: "ansible_vault"
+version: "0.0.1"
+readme: "README.md"
+authors:
+  - "Jonathan Heathcote <jonathan.heathcote@bbc.co.uk>"
+dependencies:
+license-file: LICENSE
+tags:
+  - collection,
+  - vault,
+  - hashicorp
+repository: "https://www.github.com/bbc/bbc_rd_ansible_vault_collection"

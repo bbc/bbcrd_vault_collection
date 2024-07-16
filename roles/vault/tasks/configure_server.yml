@@ -1,0 +1,45 @@
+---
+
+# Create the vault server configuration
+
+- name: Create data directory
+  file:
+    path: "{{ ansible_vault_data_dir }}"
+    state: directory
+    mode: 0700
+    owner: "{{ ansible_vault_user }}"
+    group: "{{ ansible_vault_group }}"
+
+- name: Create raft database directory
+  file:
+    path: "{{ ansible_vault_data_dir }}/data"
+    state: directory
+    mode: 0700
+    owner: "{{ ansible_vault_user }}"
+    group: "{{ ansible_vault_group }}"
+
+- name: Create config directory
+  file:
+    path: "{{ ansible_vault_config_dir }}"
+    state: directory
+    mode: 0755
+
+- name: Write vault configuration
+  template:
+    src: config.hcl.j2
+    dest: "{{ ansible_vault_config_dir }}/config.hcl"
+  register: write_vault_config
+
+# Note: Vault barely reloads any of its config at runtime. We perform this step
+# here mostly as a placeholder for if we one-day configure something which can
+# be dynamically reloaded.
+#
+# Warning: The following will start the Vault service if it isn't already when
+# the config changes -- but we won't rely on this and make sure to start vault
+# manually!
+- name: Reload vault configuration
+  systemd:
+    name: "{{ ansible_vault_systemd_unit }}"
+    state: reloaded
+  when: write_vault_config.changed
+

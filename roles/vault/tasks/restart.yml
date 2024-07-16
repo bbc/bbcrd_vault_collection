@@ -1,0 +1,55 @@
+---
+# Restart (and unseal) vault servers in a rolling-fashion.
+#
+# By default will only restart servers running out-of-date versions of Vault.
+# Alternatively, a list of servers to restart is set via the
+# ansible_vault_restart_servers variable.
+
+- name: Check vault versions
+  when: ansible_vault_restart_servers is not none
+  block:
+    - name: Discover installed Vault binary version
+      include_tasks: get_vault_command_version.yml
+
+    - name: Get running vault version
+      uri:
+        # vault status
+        url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      register: vault_status
+
+    - name: Check if running and installed versions match
+      set_fact:
+        running_out_of_date_version: "{{ vault_status.json.version != vault_version }}"
+
+- name: Determine which servers need restarting
+  set_fact:
+    to_restart: |-
+      {{
+        ansible_vault_restart_servers
+        if ansible_vault_restart_servers is not none else
+        (
+          groups[ansible_vault_cluster_ansible_group_name]
+          | map("extract", hostvars)
+          | selectattr("running_out_of_date_version", "true")
+          | map(attribute="inventory_hostname")
+        )
+      }}
+
+- name: Restart vault servers as required
+  when: "to_restart | length > 0"
+  block:
+    # Needed to unseal the restarted servers
+    - name: Obtain unseal key
+      import_tasks: obtain_unseal_key.yml
+    
+    # Needed to monitor the cluster's health
+    - name: Obtain root token
+      when: not ansible_vault_allow_loss_of_quorum
+      import_tasks: obtain_root_token.yml
+
+    - name: Restart and unseal vault server
+      include_tasks: restart_one_server.yml
+      loop: "{{ to_restart }}"
+      loop_control:
+        loop_var: target

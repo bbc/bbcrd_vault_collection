@@ -1,0 +1,223 @@
+---
+
+################################################################################
+# Vault installation
+################################################################################
+
+# Extra distribution packages required alongside vault
+ansible_vault_required_packages: []
+
+# The command to run vault. (e.g. 'bao' for OpenBao)
+ansible_vault_binary: vault
+
+# Install dir for vault binary
+ansible_vault_install_dir: /usr/local/bin
+
+# The name (not path) of the vault server systemd service
+ansible_vault_systemd_unit: vault
+
+# The version of vault to be installed
+ansible_vault_version: "1.17.1"
+
+# Architecture name to use (as used in download URL)
+ansible_vault_architecture_name: |-
+  {{
+    "amd64" if ansible_architecture == "x86_64" else
+    "arm64" if ansible_architecture == "aarch64" else
+    ansible_architecture
+  }}
+
+# Vault ZIP download URL
+ansible_vault_download_url: "https://releases.hashicorp.com/vault/{{ ansible_vault_version }}/vault_{{ ansible_vault_version }}_linux_{{ ansible_vault_architecture_name }}.zip"
+
+# Force re-download and reinstall of Vault binary
+ansible_vault_force_reinstall: false
+
+# User and group to run the vault service as
+ansible_vault_user: "vault"
+ansible_vault_group: "vault"
+
+
+################################################################################
+# Vault server configuration
+################################################################################
+
+# Location of the Vault server configuration directory
+#
+# Within this directory, the following files are placed:
+# * config.hcl -- The vault server configuration file
+ansible_vault_config_dir: "/etc/vault"
+
+# Location of the Vault server data directory
+#
+# Within this directory, the following are used
+# * data/ -- The on-disk storage location
+# * encrypted_unseal_keys.json -- PGP encrypted unseal keys
+# * encrypted_unseal_keys.json.candidate -- Candidate PGP encrypted unseal
+#   keys, subject to verification during rekeying.
+# * tls.crt -- Default location of TLS (HTTPS) certificate, see
+#   ansible_vault_tls_cert_file
+# * tls.key -- Default location of TLS (HTTPS) private key, see
+#   ansible_vault_tls_key_file
+ansible_vault_data_dir: "/var/lib/vault"
+
+# The protocol, hostname/IP and port the Vault server should listen on
+#
+# The protocol and port must be the same on all hosts in a cluster.
+ansible_vault_listen_protocol: "https"
+ansible_vault_listen_address: "0.0.0.0"
+ansible_vault_listen_port: 8200
+
+# The protocol, hostname/IP and port the Vault server is reachable from
+# publicly.
+#
+# The protocol and port must be the same on all hosts in a cluster.
+#
+# In a simple setup, this may be the same as the `ansible_vault_listen_*`
+# variables above.
+#
+# By contrast, if you're using a reverse proxy (e.g. haproxy) to do HTTPS
+# termination (for example) then the public address, port and protocol may
+# differ. For example, you may listen on HTTP on 127.0.0.1 but have a public
+# interface using HTTPS on some public IP address.
+ansible_vault_public_protocol: "{{ ansible_vault_listen_protocol }}"
+ansible_vault_public_address: "{{ ansible_host }}"
+ansible_vault_public_port: "{{ ansible_vault_listen_port }}"
+
+# The address and port used for the Vault clustering API endpoint.
+#
+# NB: Regardless of the API protocol selected, Vault always uses HTTPS for its
+# clustering API.
+ansible_vault_clustering_address: "{{ ansible_vault_public_address }}"
+ansible_vault_clustering_port: 8201
+
+
+################################################################################
+# Certificates
+################################################################################
+
+# If ansible_vault_listen_protocol is 'https', a certificate and key file must
+# be specified
+ansible_vault_tls_cert_file: "{{ ansible_vault_data_dir }}/tls.crt"
+ansible_vault_tls_key_file: "{{ ansible_vault_data_dir }}/tls.key"
+
+# Filename on the remote host of the CA PEM file to use to verify the vault
+# server's HTTPS certificate. Omit to use default trust stores.
+#ansible_vault_ca_path: "/path/to/ca.pem"
+
+
+################################################################################
+# Cluster
+################################################################################
+
+# The name of the Ansible group in which all members of the vault cluster are
+# enumerated.
+ansible_vault_cluster_ansible_group_name: vault
+
+
+################################################################################
+# Unseal key management
+################################################################################
+
+# A dictionary enumerating the vault administrators, i.e. the persons who will
+# have access to unseal keys.
+#
+# Each user may have the following entries:
+#
+# * ansible_vault_pgp_public_key: (Required) The base64-encoded PGP public key
+#   of the user. This will be used to encrypt unseal all needed keys.
+#
+# Example:
+#
+#     ansible_vault_administrators:
+#       foo:
+#         ansible_vault_pgp_public_key: "<base64 encoded PGP public key>"
+ansible_vault_administrators: {}
+
+# The number of unseal keys which must be provided to unseal vault.
+ansible_vault_unseal_key_threshold: 1
+
+# Override: The unseal key to use for unsealing vault nodes. If not given, the
+# unseal key will be decrypted automatically using GnuPG.
+ansible_vault_unseal_key: null
+
+# Override: The fingerprint of the PGP key to use to decrypt a secret. You only
+# need to set this if your GnuPG certificate store includes private keys for
+# more than one of the encrypted unseal keys in an encrypted unseal key bundle.
+ansible_vault_pgp_key_fingerprint: null
+
+
+################################################################################
+# Root tokens
+################################################################################
+
+# Override: The vault root token to use. If not provided, one will be created
+# using unseal keys (and automatically revoked).
+ansible_vault_root_token: null
+
+# The lifetime to assign to root tokens generated by ths role. The use of
+# limited-lifetime root tokens is a safety feature. If the role crashes or is
+# interrupted, this ensures that a generated root token will eventually expire
+# anyway.
+#
+# Use the format described at
+# https://developer.hashicorp.com/vault/docs/concepts/duration-format.
+#
+# The default of 8 hours is chosen to match a worst-case of one working day.
+# The hypothetical scenario is that one person starts a playbook and spends
+# most of the day waiting for a colleague to submit extra unseal keys for some
+# other step.
+ansible_vault_root_token_ttl: 8h
+
+
+################################################################################
+# Forced action overrides
+################################################################################
+
+# Set to a list of servers to be restarted (and unsealed again) one-by-one, in
+# the order specified during the execution of the role.
+#
+# If null, only servers running an out-of-date vault binary will be restarted.
+#
+# If an empty list, no servers will be restarted, even if some are running an
+# out-of-date version.
+#
+# If a list, exactly the listed set of servers will be restarted, regardless of
+# what Vault versions are in use.
+ansible_vault_restart_servers: null
+
+# If set to True, rekey the unseal keys even if the set of managers has not
+# changed.
+ansible_vault_force_rekey: false
+
+
+################################################################################
+# Safety overrides
+################################################################################
+
+# Don't log results of sensitive actions
+ansible_vault_no_log_sensitive: true
+
+# If set to False, this role will refuse to remove or restart cluster nodes
+# when it would cause the cluster to fall out of quorum.
+#
+# Only set to True with caution. If nodes are removed (rather than just
+# restarted) recovering the cluster requires adding new nodes until quorum can
+# be achieved again. Alternatively, it involves performing a manual
+# 'peers.json' recovery
+# (https://developer.hashicorp.com/vault/docs/concepts/integrated-storage#manual-recovery-using-peers-json)
+ansible_vault_allow_loss_of_quorum: false
+
+# If set to True, skips the sanity check during new cluster initialisation that
+# the playbook is running against all cluster nodes.
+ansible_vault_skip_cluster_init_sanity_check: false
+
+# When set to True, verify that a new set of unseal keys is decryptable/usable
+# by requiring them to be used for verification before committing to the unseal
+# key change. This check reduces the chances of becoming locked out of Vault
+# due to a misconfiguration.
+ansible_vault_verify_rekey: true
+
+# If set to True, skips the sanity check during cluster rekeying that the
+# playbook is running against all cluster nodes.
+ansible_vault_skip_rekey_sanity_check: false

@@ -1,0 +1,37 @@
+---
+# Create an encrypted unseal key bundle given a list of encrypted unseal keys
+# in the same order as pgp_keys et al in the variable 'encrypted_unseal_keys_base64'.
+#
+# The bundle will be displayed in a debug message and written to all cluster
+# nodes in the file named in the 'encrypted_unseal_keys_filename' variable,
+# defaulting to encrypted_unseal_keys.json.
+
+- name: Create encrypted unseal key bundle
+  run_once: true
+  set_fact:
+    unseal_key_bundle:
+      timestamp: "{{ ansible_date_time.iso8601 }}"
+      shares: |-
+        {{
+          ansible_vault_administrators.keys() | zip(
+            pgp_keys,
+            pgp_key_names,
+            pgp_key_fingerprints,
+            encrypted_unseal_keys_base64,
+          )
+            | map('zip', ["user", "public_key", "name", "fingerprint", "encrypted_unseal_key"])
+            | map('map', 'reverse')
+            | map('community.general.dict')
+        }}
+
+- name: Display encrypted unseal keys
+  run_once: true
+  debug:
+    var: unseal_key_bundle
+
+- name: Store the encrypted unseal keys on all cluster nodes
+  run_once: false  # NB: Make sure we put the secret everywhere!
+  copy:
+    content: "{{ unseal_key_bundle | to_nice_json }}"
+    dest: "{{ ansible_vault_data_dir }}/{{ encrypted_unseal_keys_filename | default('encrypted_unseal_keys.json') }}"
+    backup: true

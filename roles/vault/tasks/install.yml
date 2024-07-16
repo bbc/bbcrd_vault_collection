@@ -1,0 +1,70 @@
+---
+# Install the Vault binary and server systemd configuration.
+#
+# Defers the task of (re)starting the server to later in the role since this is
+# a complex process where unsealing is necessary.
+
+- name: Install system package dependencies for Vault
+  apt:
+    pkg: "{{ ansible_vault_required_packages }}"
+    state: present
+
+- name: Discover installed Vault version (if any)
+  include_tasks: get_vault_command_version.yml
+
+- name: Download and install Vault
+  when: vault_version != ansible_vault_version or ansible_vault_force_reinstall
+  block:
+    - name: Download Vault
+      get_url:
+        url: "{{ ansible_vault_download_url }}"
+        dest: "/tmp/vault_{{ ansible_vault_version }}.zip"
+    
+    - name: Make extraction directory
+      file:
+        path: "/tmp/vault_{{ ansible_vault_version }}"
+        state: directory
+    
+    - name: Extract Vault
+      unarchive:
+        src: "/tmp/vault_{{ ansible_vault_version }}.zip"
+        remote_src: true
+        dest: "/tmp/vault_{{ ansible_vault_version }}"
+    
+    - name: Make install directory
+      file:
+        path: "{{ ansible_vault_install_dir }}"
+        state: directory
+    
+    # NB: We will later explicitly test whether the running Vault server
+    # version matches the installed binary to decide whether to restart a vault
+    # instance. As such, no handler is required here.
+    - name: Install binary
+      copy:
+        src: "/tmp/vault_{{ ansible_vault_version }}/{{ ansible_vault_binary }}"
+        remote_src: true
+        dest: "{{ ansible_vault_install_dir }}/{{ ansible_vault_binary }}"
+        mode: "0755"
+
+- name: Ensure Vault groups exists
+  group:
+    name: "{{ ansible_vault_group }}"
+    state: present
+
+- name: Ensure Vault user exists
+  user:
+    name: "{{ ansible_vault_user }}"
+    groups:
+      - "{{ ansible_vault_group }}"
+    state: present
+    
+- name: Install Vault systemd service
+  template:
+    src: "vault.service.j2"
+    dest: "/etc/systemd/system/{{ ansible_vault_systemd_unit }}.service"
+
+- name: Enable Vault systemd service
+  systemd:
+    name: vault
+    daemon_reload: true
+    enabled: yes

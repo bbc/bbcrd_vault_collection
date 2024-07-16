@@ -1,0 +1,64 @@
+---
+# Remove all nodes from the vault HA cluster which do not appear in the group.
+# This is important since if these are left in the database, the quorum size
+# may be larger than it needs to be.
+
+- name: Obtain root token
+  import_tasks: obtain_root_token.yml
+
+- name: Remove any old nodes from the cluster
+  run_once: true
+  block:
+    - name: Get raft autopilot state
+      no_log: "{{ ansible_vault_no_log_sensitive }}"
+      uri:
+        # vault operator raft autopilot state
+        url: "{{ ansible_vault_public_url }}/v1/sys/storage/raft/autopilot/state"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      register: vault_autopilot_state
+
+    - name: Enumerate cluster members to remove
+      set_fact:
+        healthy_to_remove: |-
+          {{
+            vault_autopilot_state.json.data.servers.values()
+              | selectattr("healthy", "true")
+              | map(attribute="id")
+              | difference(groups[ansible_vault_cluster_ansible_group_name])
+          }}
+        unhealthy_to_remove: |-
+          {{
+            vault_autopilot_state.json.data.servers.values()
+              | selectattr("healthy", "false")
+              | map(attribute="id")
+              | difference(groups[ansible_vault_cluster_ansible_group_name])
+          }}
+
+    - name: Check that removing nodes won't cause the cluster to lose quorum
+      when: "{{ not ansible_vault_allow_loss_of_quorum }}"
+      assert:
+        that: "{{ (healthy_to_remove | length) <= vault_autopilot_state.json.data.failure_tolerance }}"
+        fail_msg: >-
+          The cluster currently has a failure tolerance of
+          {{ vault_autopilot_state.json.data.failure_tolerance }} but there are
+          {{ healthy_to_remove | length }} healthy nodes due for removal
+          ({{ healthy_to_remove | join(',') }}) which would lead to a loss of
+          quorum.
+        quiet: true
+
+    - name: Remove old cluster members
+      no_log: "{{ ansible_vault_no_log_sensitive }}"
+      uri:
+        # vault operator raft remove-peer
+        url: "{{ ansible_vault_public_url }}/v1/sys/storage/raft/remove-peer"
+        method: POST
+        body_format: json
+        body:
+          server_id: "{{ item }}"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+        status_code: [200, 204]  # OK, No Content
+        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      loop: "{{ healthy_to_remove | union(unhealthy_to_remove) }}"

@@ -1,0 +1,42 @@
+{#
+ # Derrived from the service file provided with official Vault Linux packages.
+ # Specifically, it is based on:
+ #
+ # https://raw.githubusercontent.com/hashicorp/vault/v1.17.1/.release/linux/package/usr/lib/systemd/system/vault.service
+ #
+ # It may be sensible to check from time-to-time if the original version has
+ # added/removed/changed any of the many options.
+ #}
+[Unit]
+Description="{{ ansible_vault_binary }} - A tool for managing secrets"
+Requires=network-online.target
+After=network-online.target
+ConditionFileNotEmpty={{ ansible_vault_config_dir }}/config.hcl
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+Type=notify
+User={{ ansible_vault_user }}
+Group={{ ansible_vault_group }}
+ProtectSystem=full
+ProtectHome=read-only
+PrivateTmp=yes
+PrivateDevices=yes
+SecureBits=keep-caps
+AmbientCapabilities=CAP_IPC_LOCK
+CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+NoNewPrivileges=yes
+ExecStart={{ ansible_vault_install_dir }}/{{ ansible_vault_binary }} server -config={{ ansible_vault_config_dir }}/config.hcl
+ExecReload=/bin/kill --signal HUP $MAINPID
+KillMode=process
+KillSignal=SIGINT
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+LimitNOFILE=65536
+LimitMEMLOCK=infinity
+LimitCORE=0
+
+[Install]
+WantedBy=multi-user.target
