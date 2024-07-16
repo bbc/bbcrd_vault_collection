@@ -1,4 +1,4 @@
-namespace: "bbc_rd"
+namespace: "bbcrd"
 name: "ansible_vault"
 version: "0.0.1"
 readme: "README.md"
@@ -11,4 +11,4 @@ tags:
   - collection,
   - vault,
   - hashicorp
-repository: "https://www.github.com/bbc/bbc_rd_ansible_vault_collection"
+repository: "https://www.github.com/bbc/bbcrd_ansible_vault_collection"

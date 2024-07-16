@@ -86,7 +86,7 @@
                     if vault_generate_root_init.json.otp_length != 0 else
                     vault_generate_root_init.json.otp ~ "=="
                 )
-                  | bbc_rd.ansible_vault.xor_b64_bytes(vault_generate_root_update.json.encoded_token ~ '==')
+                  | bbcrd.ansible_vault.xor_b64_bytes(vault_generate_root_update.json.encoded_token ~ '==')
                   | b64decode
               }}
         
@@ -127,4 +127,4 @@
           set_fact:
             ansible_vault_root_token: "{{ vault_create_token.json.auth.client_token }}"
           changed_when: true  # Force handler to run to clean-up
-          notify: "bbc_rd.ansible_vault.vault : ansible_vault_revoke_root_token"
+          notify: "bbcrd.ansible_vault.vault : ansible_vault_revoke_root_token"
