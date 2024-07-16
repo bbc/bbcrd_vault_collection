@@ -1,0 +1,25 @@
+---
+
+# Put the Vault binary's version into the vault_version fact. Sets this to None
+# if not installed.
+
+- name: Get Vault binary version
+  command:
+    argv:
+      - "{{ ansible_vault_binary }}"
+      - version
+  changed_when: false
+  failed_when: false
+  register: vault_binary_version_cmd
+
+- name: Parse Vault binary version
+  set_fact:
+    vault_version: |-
+      {{
+        (vault_binary_version_cmd.stdout | regex_search('^[^ ]+ v([0-9.]+)', '\1'))[0]
+        if (
+          vault_binary_version_cmd.rc == 0 and
+          vault_binary_version_cmd.stdout is search('^[^ ]+ v([0-9.]+)')
+        ) else
+        None
+      }}

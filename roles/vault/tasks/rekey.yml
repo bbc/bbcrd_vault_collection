@@ -1,0 +1,172 @@
+---
+# Rekey the unseal keys if the set of users/PGP keys has changed
+
+- name: Fetch encrypted unseal keys
+  import_tasks: fetch_encrypted_unseal_keys.yml
+
+- name: Enumerate PGP keys used
+  run_once: true
+  set_fact:
+    existing_fingerprints: |-
+      {{
+        encrypted_unseal_keys.shares
+          | map(attribute="fingerprint")
+      }}
+
+- name: Rekey the Vault unseal keys if the keyholders have changed
+  when: (existing_fingerprints | sort) != (pgp_key_fingerprints | sort) or ansible_vault_force_rekey
+  any_errors_fatal: true
+  block:
+    # Sanity check to ensure we're looking at all servers (so the generated
+    # keys also get written to all of those servers!)
+    - name: Sanity check that *all* servers are uninitialised
+      run_once: true
+      when: not ansible_vault_skip_rekey_sanity_check
+      assert:
+        that: |-
+          (ansible_play_hosts | length) == (groups[ansible_vault_cluster_ansible_group_name] | length)
+        quiet: true
+        fail_msg: "All cluster members must be up or ansible_vault_skip_rekey_sanity_check set to true."
+    
+    - name: Sanity check public keys
+      import_tasks: check_public_keys.yml
+    
+    - name: Obtain unseal key
+      import_tasks: obtain_unseal_key.yml
+    
+    - name: Perform rekeying on one host
+      run_once: true
+      block:
+        - name: Cancel any previous rekeying operation
+          uri:
+            # vault operator generate-root -cancel ...
+            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
+            method: DELETE
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            status_code: [200, 204]  # OK or No Content
+        
+        - name: Begin rekeying operation
+          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          uri:
+            # vault operator rekey -init ...
+            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
+            method: POST
+            body_format: json
+            body:
+              secret_threshold: "{{ ansible_vault_unseal_key_threshold }}"
+              secret_shares: "{{ pgp_keys | length }}"
+              pgp_keys: "{{ pgp_keys }}"
+              require_verification: "{{ ansible_vault_verify_rekey }}"
+              # We don't use the backup feature in this playbook (it can only
+              # be reached once vault is unsealed anyway!) but we enable it
+              # anyway since it provides an extra (albeit limited) chance to
+              # not lose the keys, and there is no real reason not to do it!
+              backup: true
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          changed_when: true
+          register: vault_rekey_init
+        
+        - name: Show nonce for use by others to submit their unseal keys
+          when: "vault_rekey_init.json.required - 1 > 0"
+          debug:
+            msg:
+              - "Please submit {{ vault_rekey_init.json.required - 1 }} additional unseal keys using nonce:"
+              - "{{ vault_rekey_init.json.nonce }}"
+        
+        - name: |-
+            Waiting for {{
+              vault_rekey_init.json.required
+              - (vault_rekey_status.json.progress | default(0))
+              - 1
+            }} additional unseal key(s) to be provided for rekeying with nonce {{
+              vault_rekey_init.json.nonce
+            }}
+          uri:
+            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          retries: 9999999  # Forever
+          delay: 10
+          until: vault_rekey_status.status == 200 and vault_rekey_status.json.progress > item
+          loop: "{{ range(vault_rekey_init.json.required - 1) }}"
+          register: vault_rekey_status
+        
+        - name: Submit final unseal key
+          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          uri:
+            # vault operator rekey ...
+            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/update"
+            method: POST
+            body_format: json
+            body:
+              key: "{{ ansible_vault_unseal_key }}"
+              nonce: "{{ vault_rekey_init.json.nonce }}"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          failed_when: vault_rekey_update.status != 200 or not vault_rekey_update.json.complete
+          register: vault_rekey_update
+        
+        - name: Clear now out-of-date ansible_vault_unseal_key
+          set_fact:
+            ansible_vault_unseal_key: null
+        
+        - name: Create encrypted unseal key bundle
+          import_tasks: save_encrypted_unseal_keys.yml
+          vars:
+            encrypted_unseal_keys_base64: "{{ vault_rekey_update.json.keys_base64 }}"
+            encrypted_unseal_keys_filename: |-
+              {{
+                "encrypted_unseal_keys.json.candidate"
+                if ansible_vault_verify_rekey else
+                "encrypted_unseal_keys.json"
+              }}
+    
+    # XXX: We need some way to override this in the same way we can avoid use
+    # of this mechanism elsewhere.
+    - name: "Obtain new candidate unseal key"
+      when: ansible_vault_verify_rekey
+      import_tasks: obtain_unseal_key.yml
+      vars:
+        encrypted_unseal_keys_filename: "encrypted_unseal_keys.json.candidate"
+        
+    - name: Verify new keys
+      when: ansible_vault_verify_rekey
+      run_once: true
+      block:
+        - name: |-
+            Waiting for {{
+              vault_rekey_init.json.required
+              - (vault_rekey_status.json.progress | default(0))
+              - 1
+            }} additional unseal key(s) to be provided for verification with nonce {{
+              vault_rekey_update.json.verification_nonce
+            }}
+          uri:
+            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          retries: 9999999  # Forever
+          delay: 10
+          until: vault_rekey_status.status == 200 and vault_rekey_status.json.progress > item
+          loop: "{{ range(vault_rekey_init.json.required - 1) }}"
+          register: vault_rekey_status
+        
+        - name: Submit final unseal key
+          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          uri:
+            # vault operator rekey -verify ...
+            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+            method: POST
+            body_format: json
+            body:
+              key: "{{ ansible_vault_unseal_key }}"
+              nonce: "{{ vault_rekey_update.json.verification_nonce }}"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          failed_when: vault_rekey_verify.status != 200 or not vault_rekey_verify.json.complete
+          register: vault_rekey_verify
+        
+        - name: "Make candidate unseal keys live"
+          run_once: false  # NB: Make sure we put the keys on every node!
+          copy:
+            src: "{{ ansible_vault_data_dir }}/encrypted_unseal_keys.json.candidate"
+            remote_src: true
+            dest: "{{ ansible_vault_data_dir }}/encrypted_unseal_keys.json"
+            backup: true
+          

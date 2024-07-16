@@ -1,0 +1,130 @@
+---
+# Ensure a vault root token is present in ansible_vault_root_token. If a root
+# token is already stored there, do nothing. Otherwise, produce a new root
+# token using unseal keys.
+#
+# Note: By convention we only count the final assignment of a root token to the
+# ansible_vault_root_token variable as a change to avoid polluting the change
+# count too much.
+
+- name: Obtain root token
+  any_errors_fatal: true
+  when: ansible_vault_root_token is none
+  block:
+    - name: Obtain unseal key
+      import_tasks: obtain_unseal_key.yml
+
+    - name: Only need to perform root generation on one host
+      run_once: true
+      block:
+        - name: Cancel any previous root token generation
+          uri:
+            # vault operator generate-root -cancel ...
+            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+            method: DELETE
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            status_code: [200, 204]  # OK or No Content
+        
+        - name: Begin root token generation
+          no_log: "{{ ansible_vault_no_log_sensitive }}"  # Due to OTP being returned
+          uri:
+            # vault operator generate-root -init ...
+            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+            method: POST
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          register: vault_generate_root_init
+        
+        - name: Show nonce for use by others to submit their unseal keys
+          when: "vault_generate_root_init.json.required - 1 > 0"
+          debug:
+            msg:
+              - "Please submit {{ vault_generate_root_init.json.required - 1 }} additional unseal keys using nonce:"
+              - "{{ vault_generate_root_init.json.nonce }}"
+        
+        - name: |-
+            Waiting for {{
+              vault_generate_root_init.json.required
+              - (vault_generate_root_status.json.progress | default(0))
+              - 1
+            }} additional unseal key(s) to be provided for root token generation with nonce {{
+              vault_generate_root_init.json.nonce
+            }}
+          uri:
+            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          retries: 9999999  # Forever
+          delay: 10
+          until: vault_generate_root_status.status == 200 and vault_generate_root_status.json.progress > item
+          loop: "{{ range(vault_generate_root_init.json.required - 1) }}"
+          register: vault_generate_root_status
+        
+        - name: Submit final unseal key for root token generation
+          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          uri:
+            # vault operator generate-root ...
+            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/update"
+            method: POST
+            body_format: json
+            body:
+              key: "{{ ansible_vault_unseal_key }}"
+              nonce: "{{ vault_generate_root_init.json.nonce }}"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          failed_when: vault_generate_root_update.status != 200 or not vault_generate_root_update.json.complete
+          register: vault_generate_root_update
+        
+        # Note: The Vault API documentation erroneously suggests that the OTP
+        # returned by the initialisation step is base64 encoded. In previous
+        # vault instances, this might have been the case but it certainly isn't
+        # any more.
+        - name: Decrypt generated root token
+          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          set_fact:
+            generated_root_token: |-
+              {{
+                (
+                    vault_generate_root_init.json.otp | b64encode
+                    if vault_generate_root_init.json.otp_length != 0 else
+                    vault_generate_root_init.json.otp ~ "=="
+                )
+                  | bbc_rd.ansible_vault.xor_b64_bytes(vault_generate_root_update.json.encoded_token ~ '==')
+                  | b64decode
+              }}
+        
+        # Use the generated root token to create a new finite-TTL root token to
+        # protect against this playbook failing to exit cleanly.
+        - name: Create a root token with finite lifetime for use in playbook
+          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          uri:
+            # vault token create ...
+            url: "{{ ansible_vault_public_url }}/v1/auth/token/create"
+            method: POST
+            body_format: json
+            body:
+              display_name: "ansible_vault_ephemeral_root"
+              # Expire after a fixed and non-extendable TTL
+              ttl: "{{ ansible_vault_root_token_ttl }}"
+              renewable: false
+              # Don't delete when our generated token is revoked
+              no_parent: true
+            headers:
+              X-Vault-Token: "{{ generated_root_token }}"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          register: vault_create_token
+      
+        - name: Revoke non-expiring root token generated using unseal keys
+          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          uri:
+            # vault token revoke
+            url: "{{ ansible_vault_public_url }}/v1/auth/token/revoke-self"
+            method: POST
+            headers:
+              X-Vault-Token: "{{ generated_root_token }}"
+            status_code: [200, 204]  # OK or No Content
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        
+        - name: Set ansible_vault_root_token fact
+          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          set_fact:
+            ansible_vault_root_token: "{{ vault_create_token.json.auth.client_token }}"
+          changed_when: true  # Force handler to run to clean-up
+          notify: "bbc_rd.ansible_vault.vault : ansible_vault_revoke_root_token"

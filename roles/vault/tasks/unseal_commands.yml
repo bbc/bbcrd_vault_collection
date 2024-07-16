@@ -1,0 +1,39 @@
+---
+
+# Perform the vault commands necessary for unsealing
+#
+# Intended only for importing by unseal.yml
+
+- name: Reset the unseal process
+  uri:
+    # vault operator unseal -reset
+    url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
+    method: POST
+    body_format: json
+    body:
+      reset: true
+    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+  changed_when: true
+
+- name: Provide unseal key
+  no_log: "{{ ansible_vault_no_log_sensitive }}"
+  uri:
+    # vault operator unseal
+    url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
+    method: POST
+    body_format: json
+    body:
+      key: "{{ ansible_vault_unseal_key }}"
+    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+  changed_when: true
+
+
+- name: Waiting for additional unseal keys to be provided
+  uri:
+    # vault status
+    url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+  retries: 9999999  # Forever
+  delay: 10
+  until: vault_status.status == 200 and not vault_status.json.sealed
+  register: vault_status

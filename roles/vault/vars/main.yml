@@ -1,0 +1,24 @@
+---
+# The Vault API URL assembled from the various ansible_vault_public_*
+# variables
+ansible_vault_public_url: "{{ ansible_vault_public_protocol }}://{{ ansible_vault_public_address }}:{{ ansible_vault_public_port }}"
+
+# The Vault clustering API URL assembled from the various
+# ansible_vault_clustering_* variables
+ansible_vault_clustering_url: "https://{{ ansible_vault_clustering_address }}:{{ ansible_vault_clustering_port }}"
+
+# The list of PGP public keys, in the same iteration order as
+# ansible_vault_administrators.
+pgp_keys: |-
+  {{
+    ansible_vault_administrators.values()
+      | map(attribute="ansible_vault_pgp_public_key")
+  }}
+
+# A list of names (and emails and comments) for each PGP public key, in the
+# same iteration order as ansible_vault_administrators.
+pgp_key_names: "{{ pgp_keys | map('bbc_rd.ansible_vault.pgp_public_key_to_name') }}"
+
+# A list of fingerprints for each PGP public key, in the same iteration order
+# as ansible_vault_administrators.
+pgp_key_fingerprints: "{{ pgp_keys | map('bbc_rd.ansible_vault.pgp_public_key_to_fingerprint') }}"

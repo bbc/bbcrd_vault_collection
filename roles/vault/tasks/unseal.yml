@@ -1,0 +1,103 @@
+---
+# Unseal the vault, also causing any brand-new nodes to join the cluster
+
+- name: Determine which hosts require unsealing
+  uri:
+    # vault status
+    url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+  register: vault_status
+
+- name: Check if Vault servers are sealed
+  set_fact:
+    vault_sealed: "{{ vault_status.json.sealed }}"
+
+- name: Unseal hosts
+  when: |-
+    groups[ansible_vault_cluster_ansible_group_name]
+      | map('extract', hostvars)
+      | selectattr("vault_sealed", "defined")
+      | selectattr("vault_sealed", "true")
+      | length
+  block:
+    # NB: We do this *before* asking for other people's unseal keys in later steps
+    # so that we can fail-early.
+    - name: Obtain unseal key
+      import_tasks: obtain_unseal_key.yml
+
+    # Before unsealing a sealed host, we always restart it since its configuration
+    # or binary *could* have changed. There are two reasons for doing this right
+    # now: one important, one just nice-to-have:
+    #
+    # * Important reason to restart now: If the node has not yet been initialised
+    #   (e.g. its a fresh one), it will not be able to join the cluster if its
+    #   config doesn't contain an up-to-date retry_join list. Restarting now
+    #   ensures it sees the latest list (which is not be picked up when SIGHUP
+    #   is used to make Vault reload its config!)
+    #
+    # * Nice-to-have reason to restart now: If the vault binary has been updated
+    #   since the server was started, restarting now saves us unsealing it and then
+    #   having to restart it and unseal it again later.
+    - name: Restart hosts to be unsealed
+      when: vault_sealed
+      systemd:
+        name: "{{ ansible_vault_systemd_unit }}"
+        state: restarted
+
+    # Note: We retry with a generous delay here in case we're accessing Vault
+    # via some kind of proxy which might not immediately notice that the server
+    # has come up.
+    - name: Wait for restarted hosts to come back up
+      uri:
+        # vault status
+        url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      retries: 5
+      delay: 5
+      until: vault_status.status == 200  # i.e. connection successful
+      register: vault_status
+
+    # Note: We must first unseal any initialised (but sealed) hosts: If the
+    # cluster as a whole is down the new hosts will not be able to join the
+    # cluster. As such, our first step must be to get the rest of the cluster
+    # up.
+    - name: Work out which hosts are initialised
+      set_fact:
+        vault_initialised: "{{ vault_status.json.initialized }}"
+
+    - name: Unseal already initialised hosts
+      when: vault_sealed and vault_initialised
+      import_tasks: unseal_commands.yml
+
+    # After the main cluster becomes unsealed, we can start to join new nodes
+    # to the cluster. To do this we must first wait for them to notice the
+    # cluster and enter the initialised state.
+    #
+    # If this fails, it is likely that the existing members of the cluster have
+    # not reached
+    # quorum. In this state new cluster nodes cannot be added. If existing
+    # cluster nodes cannot be brought back online to bring the cluster to
+    # quorum, you may have to manually recover the cluster, e.g. using a
+    # peers.json recovery, before new nodes can be added.
+    #
+    # See: https://developer.hashicorp.com/vault/docs/concepts/integrated-storage#manual-recovery-using-peers-json
+    - name: Wait for all hosts to initialise (and discover the cluster)
+      uri:
+        # vault status
+        url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      retries: 5
+      delay: 1
+      until: |-
+        vault_status.status == 200 and
+        vault_status.json.initialized
+      register: vault_status
+
+    # At this point we can now try and join the remaining (new) cluster members
+    - name: Work out which hosts remain to be unsealed
+      set_fact:
+        vault_sealed: "{{ vault_status.json.sealed }}"
+
+    - name: Unseal and join new hosts to cluster
+      when: vault_sealed
+      import_tasks: unseal_commands.yml

@@ -1,0 +1,50 @@
+---
+- name: Install Vault software and systemd service
+  import_tasks: install.yml
+  tags:
+    - ansible_vault_install
+
+- name: Write Vault server configuration files
+  import_tasks: configure_server.yml
+  tags:
+    - ansible_vault_configure_server
+
+- name: Initialise first vault node
+  import_tasks: init_first_node.yml
+  tags:
+    - ansible_vault_init_first_node
+
+- name: Unseal the cluster (and join new nodes)
+  import_tasks: unseal.yml
+  tags:
+    - ansible_vault_unseal
+
+# TODO: We probably need to make all commands which attempt to poke the API
+# pick a host which is actually up and in the cluster to run the necessary
+# commands against. We probably need to write some tasks to pick such a
+# server...
+
+- name: Remove old nodes from the cluster
+  import_tasks: remove_old_nodes.yml
+  tags:
+    - ansible_vault_remove_old_nodes
+
+# NB: This process is deliberately perormed *after* unsealing and pruning the
+# cluster of old nodes since it maximises the chances that the cluster will be
+# in a state where we can safely restart a server without causing an outage.
+- name: Restart vault servers if required
+  import_tasks: restart.yml
+  tags:
+    - ansible_vault_restart
+
+# TODO: We should auto-rekey if a host doesn't have a copy of the unseal keys.
+# We *could* try and repropagate the file... but rekeying ensures the file we
+# propagate is *definitely* correct!
+
+- name: Rekey unseal keys (e.g. to add/remove admins)
+  import_tasks: rekey.yml
+  tags:
+    - ansible_vault_rekey
+
+# TODO: We should probably provide some facility for deploying vault service
+# configuration at this point (e.g. loading up policies and secrets engines etc.)
