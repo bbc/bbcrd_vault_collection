@@ -5,7 +5,8 @@
 ################################################################################
 
 # Extra distribution packages required alongside vault
-ansible_vault_required_packages: []
+ansible_vault_required_packages:
+  - unzip  # To support extracting downloaded binary
 
 # The command to run vault. (e.g. 'bao' for OpenBao)
 ansible_vault_binary: vault
@@ -81,7 +82,7 @@ ansible_vault_listen_port: 8200
 # differ. For example, you may listen on HTTP on 127.0.0.1 but have a public
 # interface using HTTPS on some public IP address.
 ansible_vault_public_protocol: "{{ ansible_vault_listen_protocol }}"
-ansible_vault_public_address: "{{ ansible_host }}"
+ansible_vault_public_address: "{{ ansible_hostname }}"
 ansible_vault_public_port: "{{ ansible_vault_listen_port }}"
 
 # The address and port used for the Vault clustering API endpoint.
@@ -131,7 +132,7 @@ ansible_vault_cluster_ansible_group_name: vault
 #
 #     ansible_vault_administrators:
 #       foo:
-#         ansible_vault_pgp_public_key: "<base64 encoded PGP public key>"
+#         ansible_vault_pgp_public_key: "<ASCII Armor encoded PGP public key>"
 ansible_vault_administrators: {}
 
 # The number of unseal keys which must be provided to unseal vault.
@@ -174,8 +175,8 @@ ansible_vault_root_token_ttl: 8h
 # Forced action overrides
 ################################################################################
 
-# Set to a list of servers to be restarted (and unsealed again) one-by-one, in
-# the order specified during the execution of the role.
+# Override: Set to a list of servers to be restarted (and unsealed again)
+# one-by-one, in the order specified during the execution of the role.
 #
 # If null, only servers running an out-of-date vault binary will be restarted.
 #
@@ -186,8 +187,8 @@ ansible_vault_root_token_ttl: 8h
 # what Vault versions are in use.
 ansible_vault_restart_servers: null
 
-# If set to True, rekey the unseal keys even if the set of managers has not
-# changed.
+# Override: If set to True, rekey the unseal keys even if the set of managers
+# has not changed.
 ansible_vault_force_rekey: false
 
 

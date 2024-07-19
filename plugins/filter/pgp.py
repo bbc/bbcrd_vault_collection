@@ -1,6 +1,34 @@
 from subprocess import run, PIPE, DEVNULL
 from base64 import b64decode, b64encode
 
+def ascii_armor_to_base64(ascii_armor: str) -> str:
+    """
+    Convert an ASCII Armor formatted string (see RFC 4880 section 6) into a
+    plain base64 string. All metadata is ignored and the checksum is not
+    verified.
+    """
+    lines = ascii_armor.strip().splitlines()
+    
+    header = lines.pop(0)
+    if not (header.startswith("-----") and header.endswith("-----")):
+        raise ValueError("Missing ASCII Armor header line")
+    
+    tail = lines.pop(-1)
+    if not (tail.startswith("-----") and tail.endswith("-----")):
+        raise ValueError("Missing ASCII Armor tail")
+    
+    # Strip (and ignore) headers and the empty line
+    while lines.pop(0):
+        pass
+    
+    # Strip (and don't check) the checksum
+    checksum = lines.pop(-1)
+    if not checksum.startswith("="):
+        raise ValueError("Missing ASCII Armor checksum")
+    
+    # All that's left is glorious base64 data!
+    return "".join(lines)
+
 def _gpg_import_show_only(pgp_key_base64: str) -> list[list[str]]:
     """
     Given a base64-encoded PGP certificate, return the parsed colon-formatted
@@ -68,4 +96,5 @@ class FilterModule(object):
             'pgp_public_key_to_name': pgp_public_key_to_name,
             'pgp_public_key_to_fingerprint': pgp_public_key_to_fingerprint,
             'pgp_decrypt': pgp_decrypt,
+            'ascii_armor_to_base64': ascii_armor_to_base64,
         }

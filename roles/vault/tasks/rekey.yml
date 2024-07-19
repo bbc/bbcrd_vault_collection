@@ -52,16 +52,20 @@
             url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
             method: POST
             body_format: json
-            body:
-              secret_threshold: "{{ ansible_vault_unseal_key_threshold }}"
-              secret_shares: "{{ pgp_keys | length }}"
-              pgp_keys: "{{ pgp_keys }}"
-              require_verification: "{{ ansible_vault_verify_rekey }}"
-              # We don't use the backup feature in this playbook (it can only
-              # be reached once vault is unsealed anyway!) but we enable it
-              # anyway since it provides an extra (albeit limited) chance to
-              # not lose the keys, and there is no real reason not to do it!
-              backup: true
+            # Note: Whilst we don't use the backup feature in this playbook (it
+            # can only be reached once vault is unsealed anyway!) we enable it
+            # anyway since it provides an extra (albeit limited) chance to not
+            # lose the keys, and there is no real reason not to do it!
+            body: |-
+              {{
+                {
+                  "secret_threshold": (ansible_vault_unseal_key_threshold | int),
+                  "secret_shares": (pgp_keys | length),
+                  "pgp_keys": pgp_keys_base64,
+                  "require_verification": ansible_vault_verify_rekey,
+                  "backup": True,
+                } | to_json
+              }}
             ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
           changed_when: true
           register: vault_rekey_init
