@@ -4,7 +4,6 @@ version: "0.0.1"
 readme: "README.md"
 authors:
   - "Jonathan Heathcote <jonathan.heathcote@bbc.co.uk>"
-dependencies:
 license:
   - MIT
 tags:
