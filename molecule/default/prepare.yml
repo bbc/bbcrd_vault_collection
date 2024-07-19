@@ -1,0 +1,82 @@
+---
+- name: Setup test GnuPG environment
+  hosts: localhost
+  gather_facts: false
+  vars:
+    administrator_names: |-
+      {{
+        hostvars[groups["vault"][0]].ansible_vault_administrators.keys() | list
+      }}
+  tasks:
+    - name: Make ephemeral GnuPG home directory
+      file:
+        path: "{{ lookup('env', 'GNUPGHOME') }}"
+        state: directory
+        mode: "0700"
+    
+    - name: Create test keypairs
+      command:
+        argv:
+          - gpg
+          # Run non-interactively
+          - --batch
+          # Don't use a passphrase (to suit automated use!)
+          - --passphrase
+          - ''
+          # Generate a key
+          - --quick-gen-key
+          - "{{ item }}"
+          - default  # Algorithm
+          - default  # Usage
+      loop: "{{ administrator_names }}"
+
+    - name: Export public keys
+      command:
+        argv:
+          - gpg
+          # Run non-interactively
+          - --batch
+          # Produce ASCII-Armored (i.e. base64-encoded) output
+          - --armor
+          # Grab the public key
+          - --export
+          - "{{ item }}"
+      changed_when: false
+      loop: "{{ administrator_names }}"
+      register: gpg_export
+    
+    - name: Store public keys and fingerprints in ansible_vault_administrators.yml variable file
+      copy:
+        dest: "{{ lookup('env', 'GNUPGHOME') }}/ansible_vault_administrators.yml"
+        content: >-
+            {%- set ansible_vault_administrators = {} -%}
+            {%- for result in gpg_export.results -%}
+            {%-   set _ =
+                    ansible_vault_administrators.__setitem__(
+                      result.item,
+                      {
+                        "ansible_vault_pgp_public_key": result.stdout,
+                        "fingerprint": (result.stdout | b64encode | bbcrd.ansible_vault.pgp_public_key_to_fingerprint),
+                      }
+                    )
+            -%}
+            {%- endfor -%}
+            {{- {"ansible_vault_administrators": ansible_vault_administrators} | to_nice_yaml -}}
+
+- name: Setup cluster nodes
+  hosts: vault
+  tasks:
+    - name: Configure apt proxy settings
+      lineinfile:
+        path: "/etc/apt/apt.conf.d/50_proxy"
+        regexp: '^Acquire::{{ item | regex_escape }}::Proxy .*'
+        line: 'Acquire::{{ item | regex_escape }}::Proxy "{{ ansible_env[item ~ "_proxy"] }}";'
+        create: true
+      when: 'ansible_env[item ~ "_proxy"] | default("")'
+      loop:
+        - http
+        - https
+    
+    - name: Populate apt cache
+      apt:
+        update_cache: true

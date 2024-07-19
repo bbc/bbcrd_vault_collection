@@ -1,0 +1,12 @@
+---
+- name: Converge
+  hosts: vault
+  
+  pre_tasks:
+    - name: Import public key into ansible_vault_administrators
+      include_vars:
+        file: "{{ lookup('env', 'GNUPGHOME') }}/ansible_vault_administrators.yml"
+        hash_behaviour: merge
+  
+  roles:
+    - name: bbcrd.ansible_vault.vault
