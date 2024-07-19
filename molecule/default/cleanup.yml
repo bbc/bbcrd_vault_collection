@@ -1,0 +1,15 @@
+- name: Clean up GnuPG environment
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Stop running gpg-agent
+      command:
+        argv:
+          - gpgconf
+          - --kill
+          - gpg-agent
+    
+    - name: Remove ephemeral GnuPG home directory
+      file:
+        path: "{{ lookup('env', 'GNUPGHOME') }}"
+        state: absent

@@ -1,0 +1,58 @@
+---
+driver:
+  name: docker
+
+platforms:
+  - &instance_config
+    name: vault-1
+    groups:
+      - vault
+    image: docker.io/geerlingguy/docker-ubuntu2204-ansible
+    pre_build_image: true
+    override_command: false
+    
+    # Pass-through any proxy config
+    env:
+      http_proxy: "$http_proxy"
+      https_proxy: "$https_proxy"
+      no_proxy: "vault-1,vault-2,vault-3,$no_proxy"
+    
+    # Internal network used for cluster inter-node communication
+    networks:
+      - name: internal
+    
+    # Required to run systemd within vault
+    privileged: true
+    cgroupns_mode: host
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:rw"
+  
+  - <<: *instance_config
+    name: vault-2
+  
+  - <<: *instance_config
+    name: vault-3
+
+provisioner:
+  env:
+    # Run in an ephemeral GnuPG environment
+    GNUPGHOME: $MOLECULE_EPHEMERAL_DIRECTORY/gnupghome
+  
+  config_options:
+    connection:
+      pipelining: true
+  
+  inventory:
+    group_vars:
+      vault:
+        # No real secrets in the test suite!
+        ansible_vault_no_log_sensitive: false
+        
+        # Use HTTP to avoid need to setup certificates in test environment
+        ansible_vault_listen_protocol: http
+        
+        ansible_vault_public_address: "{{ ansible_hostname }}"
+        
+        ansible_vault_administrators:
+          test-user-1:
+
