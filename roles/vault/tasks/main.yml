@@ -1,5 +1,4 @@
 ---
-
 - name: Install Vault software and systemd service
   import_tasks: install.yml
   tags:
@@ -19,6 +18,11 @@
   import_tasks: unseal.yml
   tags:
     - ansible_vault_unseal
+
+# TODO: We probably need to make all commands which attempt to poke the API
+# pick a host which is actually up and in the cluster to run the necessary
+# commands against. We probably need to write some tasks to pick such a
+# server...
 
 - name: Remove old nodes from the cluster
   import_tasks: remove_old_nodes.yml
