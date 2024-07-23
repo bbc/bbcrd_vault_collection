@@ -2,20 +2,15 @@
 
 # Revoke any auto-generated root tokens
 
-- name: Pick a host on which to run API commands
-  import_tasks: "pick_unsealed_host.yml"
-
 - name: Revoke generated root token
   when: ansible_vault_root_token is not none and root_token_generated
   no_log: "{{ ansible_vault_no_log_sensitive }}"
-  run_once: true
-  delegate_to: "{{ unsealed_host }}"
   uri:
     # vault token revoke
-    url: "{{ unsealed_host_public_url }}/v1/auth/token/revoke-self"
+    url: "{{ ansible_vault_public_url }}/v1/auth/token/revoke-self"
     method: POST
     headers:
       X-Vault-Token: "{{ ansible_vault_root_token }}"
     status_code: [200, 204]  # OK or No Content
-    ca_path: "{{ unsealed_host_ca_path | default(omit) }}"
+    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
   tags: always

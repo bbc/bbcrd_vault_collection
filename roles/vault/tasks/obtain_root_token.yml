@@ -14,28 +14,24 @@
     - name: Obtain unseal key
       import_tasks: obtain_unseal_key.yml
 
-    - name: Pick a host on which to run 
-      import_tasks: "pick_unsealed_host.yml"
-
     - name: Only need to perform root generation on one host
       run_once: true
-      delegate_to: "{{ unsealed_host }}"
       block:
         - name: Cancel any previous root token generation
           uri:
             # vault operator generate-root -cancel ...
-            url: "{{ unsealed_host_public_url }}/v1/sys/generate-root/attempt"
+            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
             method: DELETE
-            ca_path: "{{ unsealed_host_ca_path | default(omit) }}"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
             status_code: [200, 204]  # OK or No Content
         
         - name: Begin root token generation
           no_log: "{{ ansible_vault_no_log_sensitive }}"  # Due to OTP being returned
           uri:
             # vault operator generate-root -init ...
-            url: "{{ unsealed_host_public_url }}/v1/sys/generate-root/attempt"
+            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
             method: POST
-            ca_path: "{{ unsealed_host_ca_path | default(omit) }}"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
           register: vault_generate_root_init
         
         - name: Show nonce for use by others to submit their unseal keys
@@ -54,8 +50,8 @@
               vault_generate_root_init.json.nonce
             }}
           uri:
-            url: "{{ unsealed_host_public_url }}/v1/sys/generate-root/attempt"
-            ca_path: "{{ unsealed_host_ca_path | default(omit) }}"
+            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
           retries: 9999999  # Forever
           delay: 10
           until: vault_generate_root_status.status == 200 and vault_generate_root_status.json.progress > item
@@ -66,13 +62,13 @@
           no_log: "{{ ansible_vault_no_log_sensitive }}"
           uri:
             # vault operator generate-root ...
-            url: "{{ unsealed_host_public_url }}/v1/sys/generate-root/update"
+            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/update"
             method: POST
             body_format: json
             body:
               key: "{{ ansible_vault_unseal_key }}"
               nonce: "{{ vault_generate_root_init.json.nonce }}"
-            ca_path: "{{ unsealed_host_ca_path | default(omit) }}"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
           failed_when: vault_generate_root_update.status != 200 or not vault_generate_root_update.json.complete
           register: vault_generate_root_update
         
@@ -100,7 +96,7 @@
           no_log: "{{ ansible_vault_no_log_sensitive }}"
           uri:
             # vault token create ...
-            url: "{{ unsealed_host_public_url }}/v1/auth/token/create"
+            url: "{{ ansible_vault_public_url }}/v1/auth/token/create"
             method: POST
             body_format: json
             body:
@@ -112,19 +108,19 @@
               no_parent: true
             headers:
               X-Vault-Token: "{{ generated_root_token }}"
-            ca_path: "{{ unsealed_host_ca_path | default(omit) }}"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
           register: vault_create_token
       
         - name: Revoke non-expiring root token generated using unseal keys
           no_log: "{{ ansible_vault_no_log_sensitive }}"
           uri:
             # vault token revoke
-            url: "{{ unsealed_host_public_url }}/v1/auth/token/revoke-self"
+            url: "{{ ansible_vault_public_url }}/v1/auth/token/revoke-self"
             method: POST
             headers:
               X-Vault-Token: "{{ generated_root_token }}"
             status_code: [200, 204]  # OK or No Content
-            ca_path: "{{ unsealed_host_ca_path | default(omit) }}"
+            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
         
         - name: Set ansible_vault_root_token fact
           no_log: "{{ ansible_vault_no_log_sensitive }}"
