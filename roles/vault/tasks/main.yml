@@ -46,5 +46,8 @@
   tags:
     - ansible_vault_rekey
 
+- name: Revoke any generated root tokens
+  import_tasks: revoke_generated_root_token.yml
+
 # TODO: We should probably provide some facility for deploying vault service
 # configuration at this point (e.g. loading up policies and secrets engines etc.)

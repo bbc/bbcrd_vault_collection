@@ -3,9 +3,9 @@
 # token is already stored there, do nothing. Otherwise, produce a new root
 # token using unseal keys.
 #
-# Note: By convention we only count the final assignment of a root token to the
-# ansible_vault_root_token variable as a change to avoid polluting the change
-# count too much.
+# Note: By convention we don't count generation of a root token to the
+# ansible_vault_root_token variable as a change to avoid polluting the ansible
+# change count.
 
 - name: Obtain root token
   any_errors_fatal: true
@@ -126,5 +126,4 @@
           no_log: "{{ ansible_vault_no_log_sensitive }}"
           set_fact:
             ansible_vault_root_token: "{{ vault_create_token.json.auth.client_token }}"
-          changed_when: true  # Force handler to run to clean-up
-          notify: "bbcrd.ansible_vault.vault : ansible_vault_revoke_root_token"
+            root_token_generated: true
