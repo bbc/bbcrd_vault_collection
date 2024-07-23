@@ -1,5 +1,9 @@
 ---
-# Restart (then unseal) a single vault server specified by the variable 'target
+# Restart (then unseal) a single vault server specified by the variable
+# 'target'
+
+- name: Pick a host from which to run API commands
+  import_tasks: "pick_unsealed_host.yml"
 
 # Unless ansible_vault_allow_loss_of_quorum is set, we'll refuse to restart a
 # server which would result in the cluster becoming unavailable due to a loss
@@ -14,14 +18,15 @@
 # as voters and potentially adding the needed resliancy.
 - name: "Check that restarting {{ target }} would not result in downtime"
   run_once: true
+  delegate_to: "{{ unsealed_host }}"
   when: not ansible_vault_allow_loss_of_quorum
   no_log: "{{ ansible_vault_no_log_sensitive }}"
   uri:
     # vault operator raft autopilot state
-    url: "{{ ansible_vault_public_url }}/v1/sys/storage/raft/autopilot/state"
+    url: "{{ unsealed_host_public_url }}/v1/sys/storage/raft/autopilot/state"
     headers:
       X-Vault-Token: "{{ ansible_vault_root_token }}"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    ca_path: "{{ unsealed_host_ca_path | default(omit) }}"
   register: vault_autopilot_state
   # Either the cluster has enough fault tolerance to cope with a restarted node
   # or the node we're about to restart is already down for some reason.
