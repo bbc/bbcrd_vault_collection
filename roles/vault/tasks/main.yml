@@ -19,6 +19,11 @@
   tags:
     - ansible_vault_unseal
 
+- name: Propagate encrypted unseal keys to new nodes
+  import_tasks: propagate_unseal_keys.yml
+  tags:
+    - ansible_vault_propagate_unseal_keys
+
 # TODO: We probably need to make all commands which attempt to poke the API
 # pick a host which is actually up and in the cluster to run the necessary
 # commands against. We probably need to write some tasks to pick such a
