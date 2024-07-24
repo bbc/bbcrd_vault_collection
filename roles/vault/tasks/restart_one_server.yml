@@ -10,8 +10,10 @@
 # restarting such instances regardless.
 #
 # We'll retry this check if it fails to allow time for autopilot to consider
-# any recently restart nodes as stable, thus adding them back into the cluster
-# as voters and potentially adding the needed resliancy.
+# any recently restarted nodes as stable, thus adding them back into the
+# cluster as voters and potentially adding the needed resliancy. This is also
+# necessary when the host Ansible chooses to make this request has just been
+# restarted and is not yet back in the cluster.
 - name: "Check that restarting {{ target }} would not result in downtime"
   run_once: true
   when: not ansible_vault_allow_loss_of_quorum
@@ -28,8 +30,8 @@
   until: |-
     vault_autopilot_state.json.data.failure_tolerance >= 1
     or not (vault_autopilot_state.json.data.servers[target].healthy | default(False))
-  retries: 2
-  delay: 15  # The default autopilot delay is 10 seconds
+  retries: 20
+  delay: 2  # The default autopilot delay is 10 seconds
 
 - name: "Restart and unseal {{ target }}"
   when: inventory_hostname == target
