@@ -28,6 +28,7 @@
           | map('extract', hostvars)
           | selectattr("encrypted_unseal_keys", "defined")
           | rejectattr("encrypted_unseal_keys", "none")
+          | rejectattr("encrypted_unseal_keys", "eq", "")
           | map(attribute="encrypted_unseal_keys")
       }}
 
