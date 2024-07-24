@@ -1,0 +1,9 @@
+- name: (Cleanup) revoke generated root token
+  run_once: true
+  uri:
+    # vault token revoke
+    url: "http://{{ ansible_hostname }}:8200/v1/auth/token/revoke-self"
+    method: POST
+    headers:
+      X-Vault-Token: "{{ root_token }}"
+    status_code: [200, 204]  # OK or No Content

@@ -1,0 +1,32 @@
+---
+
+# Verify that all hosts have the same set of unseal keys installed on them and
+# that all keys can be decrypted.
+#
+# Sets unseal_keys to an array of decrypted unseal keys.
+
+- name: Check all hosts have encrypted unseal keys
+  slurp:
+    src: /var/lib/vault/encrypted_unseal_keys.json
+  register: encrypted_unseal_keys_slurp
+
+- name: Verify all hosts have same unseal keys
+  assert:
+    that: "encrypted_unseal_keys_slurp.content == hostvars[ansible_play_hosts[0]]['encrypted_unseal_keys_slurp']['content']"
+    quiet: true
+
+- name: Parse encrypted unseal keys
+  run_once: true
+  set_fact:
+    encrypted_unseal_keys: "{{ encrypted_unseal_keys_slurp.content | b64decode | from_json }}"
+
+- name: Decrypt the unseal keys
+  run_once: true
+  set_fact:
+    unseal_keys: |-
+      {{
+        encrypted_unseal_keys.shares
+          | map(attribute="encrypted_unseal_key")
+          | map("bbcrd.ansible_vault.pgp_decrypt")
+          | map("b64decode")
+      }}

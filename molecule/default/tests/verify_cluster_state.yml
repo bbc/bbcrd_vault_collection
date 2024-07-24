@@ -1,0 +1,28 @@
+---
+
+# Verify that the cluster is in a healthy state (i.e. all nodes are up)
+
+- name: Get cluster state
+  run_once: true
+  uri:
+    # vault operator raft autopilot state
+    url: "http://{{ ansible_hostname }}:8200/v1/sys/storage/raft/autopilot/state"
+    headers:
+      X-Vault-Token: "{{ root_token }}"
+  register: autopilot_state
+
+- name: Verify cluster is healty
+  run_once: true
+  assert:
+    that: autopilot_state.json.data.healthy
+    quiet: true
+
+- name: Verify all nodes are in the cluster
+  run_once: true
+  assert:
+    that: (autopilot_state.json.data.servers.keys() | sort) == (groups["vault"] | sort)
+    quiet: true
+    fail_msg: >
+      Expected {{ groups['vault'] | sort | join(', ') }},
+      found {{ autopilot_state.json.data.servers.keys() | sort | join(', ') }}.
+

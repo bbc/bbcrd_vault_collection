@@ -1,0 +1,20 @@
+---
+
+# Check that no root tokens were left behind
+
+- name: Verify no root tokens left behind
+  run_once: true
+  uri:
+    url: "http://{{ ansible_hostname }}:8200/v1/auth/token/accessors"
+    method: LIST
+    headers:
+      X-Vault-Token: "{{ root_token }}"
+  register: token_list
+
+- name: Verify no tokens left behind
+  run_once: true
+  assert:
+    that: (token_list.json.data["keys"]| length) <= 1
+    quiet: true
+    fail_msg: "Found {{ token_list.json.data['keys']| length }} tokens in vault, expected 1 (belonging to the test suite)."
+
