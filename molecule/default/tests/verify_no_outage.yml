@@ -1,0 +1,13 @@
+---
+
+# Check that no outage occurred (as observed by the down_detector service).
+# Only flags if the service was running and has failed. If the service wasn't
+# running, does not fail.
+
+- name: Get down_detector status
+  service_facts:
+
+- name: Check vault cluster remained accessible
+  assert:
+    that: services['down_detector.service'].status != "failed"
+    quiet: true

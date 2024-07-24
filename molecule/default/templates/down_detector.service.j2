@@ -1,0 +1,11 @@
+[Unit]
+Description=Check all vault hosts are online
+After=network-online.target
+Wants=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/down_detector.sh {{ urls | join(' ') }}

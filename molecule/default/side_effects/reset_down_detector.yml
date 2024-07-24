@@ -1,0 +1,10 @@
+---
+- name: Reset down detector
+  hosts: vault
+  
+  tasks:
+    
+    - name: Reset down detector
+      systemd:
+        name: down_detector
+        state: restarted

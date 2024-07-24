@@ -7,6 +7,12 @@
     - name: Check all hosts are unsealed
       include_tasks: tests/verify_all_hosts_unsealed.yml
     
+    - name: Check all hosts running correct version of vault
+      include_tasks: tests/verify_version.yml
+    
+    - name: Verify no outage
+      include_tasks: tests/verify_no_outage.yml
+    
     - name: Verify presence of, and decrypt encrypted unseal keys
       include_tasks: tests/decrypt_unseal_keys.yml
     
