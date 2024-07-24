@@ -33,6 +33,55 @@ platforms:
   - <<: *instance_config
     name: vault-3
 
+scenario:
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    
+    # NB: In the test sequence below, the reset_down_detector side-effect will
+    # start the down-detector (clearing any previous faults). The verifier will
+    # check that no outage ocurred.
+    #
+    # The stop_down_detector side-effect will stop the down detector, clearing
+    # any faults. When the down detector is stopped, the verifier will not
+    # check for outages.
+    
+    # Fresh installation
+    - converge
+    - verify
+    - idempotence
+    
+    # Unseal a server (whilst cluster up)
+    - side_effect side_effects/reset_down_detector.yml
+    - side_effect side_effects/seal_one_server.yml
+    - converge
+    - verify
+    
+    # Unseal servers when cluster down, but some unsealed
+    - side_effect side_effects/stop_down_detector.yml
+    - side_effect side_effects/seal_quorum_of_servers.yml
+    - converge
+    - verify
+    
+    # Unseal whole cluster from cold
+    - side_effect side_effects/stop_down_detector.yml
+    - side_effect side_effects/seal_all_servers.yml
+    - converge
+    - verify
+    
+    # Verify rolling version upgrades work
+    - side_effect side_effects/reset_down_detector.yml
+    - converge converge_old_version.yml  # Downgrade
+    - converge  # Upgrade again
+    - verify
+    
+    - cleanup
+    - destroy
+
 provisioner:
   env:
     # Run in an ephemeral GnuPG environment
@@ -45,6 +94,11 @@ provisioner:
   inventory:
     group_vars:
       vault:
+        ansible_vault_version: "1.17.1"
+        
+        # Older version used in version upgrade/downgrade tests
+        ansible_vault_rollback_version: "1.17.0"
+        
         # No real secrets in the test suite!
         ansible_vault_no_log_sensitive: false
         

@@ -1,0 +1,10 @@
+---
+- name: Seal all servers
+  hosts: vault
+  
+  tasks:
+    
+    - name: Restart vault (leaving it sealed)
+      systemd:
+        name: vault
+        state: restarted
