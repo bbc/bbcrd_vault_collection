@@ -16,3 +16,4 @@
           - reset-failed
           - down_detector.service
       changed_when: false
+      failed_when: false
