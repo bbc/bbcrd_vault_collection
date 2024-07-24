@@ -27,9 +27,12 @@
   register: vault_autopilot_state
   # Either the cluster has enough fault tolerance to cope with a restarted node
   # or the node we're about to restart is already down for some reason.
-  until: |-
-    vault_autopilot_state.json.data.failure_tolerance >= 1
-    or not (vault_autopilot_state.json.data.servers[target].healthy | default(False))
+  until: >-
+    vault_autopilot_state.status == 200
+    and (
+      vault_autopilot_state.json.data.failure_tolerance >= 1
+      or not (vault_autopilot_state.json.data.servers[target].healthy | default(False))
+    )
   retries: 20
   delay: 2  # The default autopilot delay is 10 seconds
 
