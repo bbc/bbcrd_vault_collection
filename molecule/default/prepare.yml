@@ -80,3 +80,35 @@
     - name: Populate apt cache
       apt:
         update_cache: true
+    
+    - name: Install down_detector dependencies
+      apt:
+        name: curl
+    
+    - name: Install down_detector.sh script
+      copy:
+        src: files/down_detector.sh
+        dest: /usr/local/bin/down_detector.sh
+        mode: "755"
+    
+    - name: Install down_detector systemd service
+      template:
+        src: templates/down_detector.service.j2
+        dest: /etc/systemd/system/down_detector.service
+      vars:
+        # We poll the generate-root endpoint since this doesn't require a token
+        # but it does require the cluster to be up and responsive
+        urls: |-
+          {{
+            groups['vault-all']
+              | map("extract", hostvars)
+              | map(attribute="ansible_hostname")
+              | map('regex_replace', '^(.*)$', 'http://\1:8200/v1/sys/generate-root/attempt')
+          }}
+      register: down_detector_service
+    
+    - name: Reload systemd units
+      when: down_detector_service.changed
+      systemd:
+        daemon_reload: true
+  
