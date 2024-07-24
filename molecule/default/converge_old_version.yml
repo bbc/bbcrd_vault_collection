@@ -1,0 +1,19 @@
+---
+
+- name: Roll-back version
+  import_playbook: converge.yml
+  vars:
+    ansible_vault_version: "{{ ansible_vault_rollback_version }}"
+
+- name: Confirm rollback occurred
+  hosts: vault
+  tasks:
+    - name: Get running vault version
+      uri:
+        url: "http://{{ ansible_hostname }}:8200/v1/sys/seal-status"
+      register: vault_status
+
+    - name: Check if running rolled-back version
+      assert:
+        that: vault_status.json.version == ansible_vault_rollback_version
+        quiet: true

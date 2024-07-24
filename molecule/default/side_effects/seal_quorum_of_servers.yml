@@ -1,0 +1,10 @@
+---
+- name: Seal quorum of servers
+  hosts: vault,!vault-1
+  
+  tasks:
+    
+    - name: Restart vault (leaving it sealed)
+      systemd:
+        name: vault
+        state: restarted
