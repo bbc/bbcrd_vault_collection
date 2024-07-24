@@ -2,7 +2,7 @@
 
 # Check that no root tokens were left behind
 
-- name: Verify no root tokens left behind
+- name: Enumerate tokens in vault
   run_once: true
   uri:
     url: "http://{{ ansible_hostname }}:8200/v1/auth/token/accessors"
