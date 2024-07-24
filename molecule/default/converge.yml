@@ -10,3 +10,19 @@
   
   roles:
     - name: bbcrd.ansible_vault.vault
+
+
+- name: Clean up any non-cluster memebers
+  hosts: "all,!{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+  
+  tasks:
+    - name: Shutdown vault server
+      systemd:
+        name: vault
+        state: stopped
+      ignore_errors: true  # Vault may not be installed
+    
+    - name: Delete all vault data
+      file:
+        path: /var/lib/vault
+        state: absent

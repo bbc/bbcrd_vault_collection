@@ -5,7 +5,7 @@
   vars:
     administrator_names: |-
       {{
-        hostvars[groups["vault"][0]].ansible_vault_administrators.keys() | list
+        hostvars[groups["vault_all"][0]].ansible_vault_administrators.keys() | list
       }}
   tasks:
     - name: Make ephemeral GnuPG home directory
@@ -64,7 +64,7 @@
             {{- {"ansible_vault_administrators": ansible_vault_administrators} | to_nice_yaml -}}
 
 - name: Setup cluster nodes
-  hosts: vault
+  hosts: all
   tasks:
     - name: Configure apt proxy settings
       lineinfile:
@@ -100,7 +100,7 @@
         # but it does require the cluster to be up and responsive
         urls: |-
           {{
-            groups['vault-all']
+            groups['vault_all']
               | map("extract", hostvars)
               | map(attribute="ansible_hostname")
               | map('regex_replace', '^(.*)$', 'http://\1:8200/v1/sys/generate-root/attempt')
