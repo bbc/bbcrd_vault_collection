@@ -35,17 +35,29 @@
               | map(attribute="id")
               | difference(groups[ansible_vault_cluster_ansible_group_name])
           }}
+        healthy_to_keep: |-
+          {{
+            vault_autopilot_state.json.data.servers.values()
+              | selectattr("healthy", "true")
+              | map(attribute="id")
+              | intersect(groups[ansible_vault_cluster_ansible_group_name])
+          }}
+        unhealthy_to_keep: |-
+          {{
+            vault_autopilot_state.json.data.servers.values()
+              | selectattr("healthy", "false")
+              | map(attribute="id")
+              | intersect(groups[ansible_vault_cluster_ansible_group_name])
+          }}
 
     - name: Check that removing nodes won't cause the cluster to lose quorum
       when: not ansible_vault_allow_loss_of_quorum
       assert:
-        that: "{{ (healthy_to_remove | length) <= vault_autopilot_state.json.data.failure_tolerance }}"
+        that: "{{ (healthy_to_keep | length) > (unhealthy_to_keep | length) }}"
         fail_msg: >-
-          The cluster currently has a failure tolerance of
-          {{ vault_autopilot_state.json.data.failure_tolerance }} but there are
-          {{ healthy_to_remove | length }} healthy nodes due for removal
-          ({{ healthy_to_remove | join(',') }}) which would lead to a loss of
-          quorum.
+          After removing old nodes, the ratio of healthy to unhealthy nodes
+          will become {{ healthy_to_keep | length }}:{{ unhealthy_to_keep | length }}
+          which would lead to a loss of quorum.
         quiet: true
 
     - name: Remove old cluster members
