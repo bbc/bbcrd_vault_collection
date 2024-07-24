@@ -1,0 +1,25 @@
+---
+- name: Converge
+  hosts: vault
+  
+  tasks:
+    
+    - name: Check all hosts are unsealed
+      include_tasks: tests/verify_all_hosts_unsealed.yml
+    
+    - name: Verify presence of, and decrypt encrypted unseal keys
+      include_tasks: tests/decrypt_unseal_keys.yml
+    
+    - name: Generate root token (also verifying unseal keys are usable)
+      include_tasks: tests/generate_root_token.yml
+    
+    - block:
+        - name: Verify cluster state
+          include_tasks: tests/verify_cluster_state.yml
+        
+        - name: Check no root tokens have been left behind
+          include_tasks: tests/verify_no_floating_root_tokens.yml
+      
+      always:
+        - name: (Cleanup) revoke the generated root token
+          include_tasks: tests/revoke_root_token.yml

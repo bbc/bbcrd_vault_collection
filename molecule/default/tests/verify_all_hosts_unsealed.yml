@@ -1,0 +1,10 @@
+---
+
+# Tests which verify that all hosts are in an initialised and unsealed state
+
+- name: Check all hosts unsealed
+  uri:
+    # vault operator status
+    url: "http://{{ ansible_hostname }}:8200/v1/sys/seal-status"
+  register: vault_state
+  failed_when: vault_state.json.sealed

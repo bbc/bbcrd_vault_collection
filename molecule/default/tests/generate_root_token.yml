@@ -1,0 +1,70 @@
+---
+
+# Generate a root token into the varible root_token using the unseal keys in
+# unseal_keys.
+#
+# Verifies that the provided unseal keys are usable and that the key threshold
+# has been configured correctly.
+
+- name: Generate root token (verifying encrypted unseal key validity)
+  run_once: true
+  block:
+    - name: Cancel any previous root token generation
+      uri:
+        # vault operator generate-root -cancel ...
+        url: "http://{{ ansible_hostname }}:8200/v1/sys/generate-root/attempt"
+        method: DELETE
+        status_code: [200, 204]  # OK or No Content
+    
+    - name: Begin root token generation
+      uri:
+        # vault operator generate-root -init ...
+        url: "http://{{ ansible_hostname }}:8200/v1/sys/generate-root/attempt"
+        method: POST
+      register: vault_generate_root_init
+    
+    - name: Submit all-but-final unseal key for root token generation
+      uri:
+        # vault operator generate-root ...
+        url: "http://{{ ansible_hostname }}:8200/v1/sys/generate-root/update"
+        method: POST
+        body_format: json
+        body:
+          key: "{{ item }}"
+          nonce: "{{ vault_generate_root_init.json.nonce }}"
+      failed_when: vault_generate_root_update.status != 200 or vault_generate_root_update.json.complete
+      loop: "{{ unseal_keys[1:ansible_vault_unseal_key_threshold | default(1)] }}"
+    
+    - name: Submit final unseal key for root token generation
+      uri:
+        # vault operator generate-root ...
+        url: "http://{{ ansible_hostname }}:8200/v1/sys/generate-root/update"
+        method: POST
+        body_format: json
+        body:
+          key: "{{ unseal_keys[0] }}"
+          nonce: "{{ vault_generate_root_init.json.nonce }}"
+      failed_when: vault_generate_root_update.status != 200 or not vault_generate_root_update.json.complete
+      register: vault_generate_root_update
+    
+    - name: Decrypt generated root token
+      set_fact:
+        root_token: |-
+          {{
+            (
+                vault_generate_root_init.json.otp | b64encode
+                if vault_generate_root_init.json.otp_length != 0 else
+                vault_generate_root_init.json.otp ~ "=="
+            )
+              | bbcrd.ansible_vault.xor_b64_bytes(vault_generate_root_update.json.encoded_token ~ '==')
+              | b64decode
+          }}
+    
+    - name: Verify generated root token is valid
+      uri:
+        # vault operator generate-root ...
+        url: "http://{{ ansible_hostname }}:8200/v1/auth/token/lookup-self"
+        headers:
+          X-Vault-Token: "{{ root_token }}"
+      failed_when: token_lookup.status != 200 or "root" not in token_lookup.json.data.policies
+      register: token_lookup
