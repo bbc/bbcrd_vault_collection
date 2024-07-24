@@ -1,6 +1,6 @@
 ---
 - name: Converge
-  hosts: vault
+  hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
   
   pre_tasks:
     - name: Import public key into ansible_vault_administrators

@@ -20,9 +20,9 @@
 - name: Verify all nodes are in the cluster
   run_once: true
   assert:
-    that: (autopilot_state.json.data.servers.keys() | sort) == (groups["vault"] | sort)
+    that: (autopilot_state.json.data.servers.keys() | sort) == (groups[ansible_vault_cluster_ansible_group_name] | sort)
     quiet: true
     fail_msg: >
-      Expected {{ groups['vault'] | sort | join(', ') }},
+      Expected {{ groups[ansible_vault_cluster_ansible_group_name] | sort | join(', ') }},
       found {{ autopilot_state.json.data.servers.keys() | sort | join(', ') }}.
 
