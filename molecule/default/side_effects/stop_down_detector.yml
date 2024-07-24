@@ -1,0 +1,18 @@
+---
+- name: Stop down detector
+  hosts: vault
+  
+  tasks:
+    
+    - name: Stop down detector
+      systemd:
+        name: down_detector
+        state: stopped
+    
+    - name: Clear down detector failed flag
+      command:
+        argv:
+          - systemctl
+          - reset-failed
+          - down_detector.service
+      changed_when: false
