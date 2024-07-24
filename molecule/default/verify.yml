@@ -1,6 +1,6 @@
 ---
-- name: Converge
-  hosts: vault
+- name: Verify vault deployment
+  hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
   
   tasks:
     
