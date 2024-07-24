@@ -61,4 +61,5 @@
           X-Vault-Token: "{{ ansible_vault_root_token }}"
         status_code: [200, 204]  # OK, No Content
         ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      changed_when: true
       loop: "{{ healthy_to_remove | union(unhealthy_to_remove) }}"
