@@ -3,10 +3,14 @@ driver:
   name: docker
 
 platforms:
+  # Two groups are defined: vault and vault_all. The vault_all group contains
+  # all of the nodes in vault along with an extra pair of nodes.
+  
   - &instance_config
     name: vault-1
     groups:
       - vault
+      - vault_all
     image: docker.io/geerlingguy/docker-ubuntu2204-ansible
     pre_build_image: true
     override_command: false
@@ -15,13 +19,13 @@ platforms:
     env:
       http_proxy: "$http_proxy"
       https_proxy: "$https_proxy"
-      no_proxy: "vault-1,vault-2,vault-3,$no_proxy"
+      no_proxy: "vault-1,vault-2,vault-3,vault-4,vault-5,vault-6,vault-7,$no_proxy"
     
     # Internal network used for cluster inter-node communication
     networks:
       - name: internal
     
-    # Required to run systemd within vault
+    # Required to run systemd within docker
     privileged: true
     cgroupns_mode: host
     volumes:
@@ -32,6 +36,33 @@ platforms:
   
   - <<: *instance_config
     name: vault-3
+  
+  # The following additional 'vault-extra' nodes are only used in a subset of
+  # tests involving adding/removing nodes from the cluster.
+  #
+  # We choose an enlarged cluster size of 7 to ensure that when we downsize
+  # back to 3 nodes, we're falling below the quorum size of the larger cluster.
+  # If the role successfully downsizes without the cluster going down, we know
+  # we've got the cluster management right!
+  - <<: *instance_config
+    name: vault-4
+    groups:
+      - vault_all
+  
+  - <<: *instance_config
+    name: vault-5
+    groups:
+      - vault_all
+  
+  - <<: *instance_config
+    name: vault-6
+    groups:
+      - vault_all
+  
+  - <<: *instance_config
+    name: vault-7
+    groups:
+      - vault_all
 
 scenario:
   test_sequence:
@@ -73,10 +104,24 @@ scenario:
     - converge
     - verify
     
-    # Verify rolling version upgrades work
+    # Verify rolling version downgrades/upgrades work
     - side_effect side_effects/reset_down_detector.yml
-    - converge converge_old_version.yml  # Downgrade
-    - converge  # Upgrade again
+    # XXX have to use 'verify' rather than 'converge' to allow specifying
+    # alternative playbook...
+    - verify converge_old_version.yml  # Downgrade
+    - converge  # Upgrade back again
+    - verify
+    
+    # Verify growing the cluster works
+    - side_effect side_effects/reset_down_detector.yml
+    # XXX have to use 'verify' rather than 'converge' to allow specifying
+    # alternative playbook...
+    - verify converge_extended.yml
+    - verify verify_extended.yml
+    
+    # Verify shrinking the cluster works too
+    - side_effect side_effects/reset_down_detector.yml
+    - converge  # Shrink cluster back down again
     - verify
     
     - cleanup
@@ -93,7 +138,7 @@ provisioner:
   
   inventory:
     group_vars:
-      vault:
+      vault_all:
         ansible_vault_version: "1.17.1"
         
         # Older version used in version upgrade/downgrade tests

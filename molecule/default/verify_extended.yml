@@ -1,0 +1,4 @@
+- name: Verify expanded cluster
+  import_playbook: verify.yml
+  vars:
+    ansible_vault_cluster_ansible_group_name: "vault_all"
