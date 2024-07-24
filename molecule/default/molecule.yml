@@ -112,6 +112,13 @@ scenario:
     - converge  # Upgrade back again
     - verify
     
+    # Verify rekeying works
+    - side_effect side_effects/reset_down_detector.yml
+    # XXX have to use 'verify' rather than 'converge' to allow specifying
+    # alternative playbook...
+    - verify converge_rekey.yml
+    - verify
+    
     # Verify growing the cluster works
     - side_effect side_effects/reset_down_detector.yml
     # XXX have to use 'verify' rather than 'converge' to allow specifying

@@ -1,0 +1,29 @@
+---
+
+- name: Obtain current unseal keys
+  hosts: vault
+  
+  tasks:
+    - name: Fetch current unseal keys
+      import_tasks: tests/decrypt_unseal_keys.yml
+    
+    - name: Store current unseal keys
+      set_fact:
+        orig_unseal_keys: "{{ unseal_keys }}"
+
+- name: Force rekeying of vault
+  import_playbook: converge.yml
+  vars:
+    ansible_vault_force_rekey: true
+
+- name: Verify unseal keys changed
+  hosts: vault
+  
+  tasks:
+    - name: Fetch new unseal keys
+      import_tasks: tests/decrypt_unseal_keys.yml
+    
+    - name: Verify unseal keys changed
+      assert:
+        that: unseal_keys != orig_unseal_keys
+        quiet: true
