@@ -6,7 +6,7 @@
 # ansible_vault_restart_servers variable.
 
 - name: Check vault versions
-  when: ansible_vault_restart_servers is not none
+  when: ansible_vault_restart_servers is none
   block:
     - name: Discover installed Vault binary version
       include_tasks: get_vault_command_version.yml
