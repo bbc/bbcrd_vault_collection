@@ -74,10 +74,9 @@
     # cluster and enter the initialised state.
     #
     # If this fails, it is likely that the existing members of the cluster have
-    # not reached
-    # quorum. In this state new cluster nodes cannot be added. If existing
-    # cluster nodes cannot be brought back online to bring the cluster to
-    # quorum, you may have to manually recover the cluster, e.g. using a
+    # not reached quorum. In this state new cluster nodes cannot be added. If
+    # existing cluster nodes cannot be brought back online to bring the cluster
+    # to quorum, you may have to manually recover the cluster, e.g. using a
     # peers.json recovery, before new nodes can be added.
     #
     # See: https://developer.hashicorp.com/vault/docs/concepts/integrated-storage#manual-recovery-using-peers-json
@@ -101,3 +100,6 @@
     - name: Unseal and join new hosts to cluster
       when: vault_sealed
       import_tasks: unseal_commands.yml
+
+- name: Wait for all hosts to become responsive
+  import_tasks: wait_for_api_responsiveness.yml
