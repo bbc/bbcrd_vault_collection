@@ -2,16 +2,23 @@
 
 # Revoke any auto-generated root tokens
 
-- name: Revoke generated root token
+- name: Clear up auto-generated root tokens
   when: ansible_vault_root_token is not none and root_token_generated
   run_once: true
-  no_log: "{{ ansible_vault_no_log_sensitive }}"
-  uri:
-    # vault token revoke
-    url: "{{ ansible_vault_public_url }}/v1/auth/token/revoke-self"
-    method: POST
-    headers:
-      X-Vault-Token: "{{ ansible_vault_root_token }}"
-    status_code: [200, 204]  # OK or No Content
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
-  tags: always
+  block:
+    - name: Revoke generated root token
+      no_log: "{{ ansible_vault_no_log_sensitive }}"
+      uri:
+        # vault token revoke
+        url: "{{ ansible_vault_public_url }}/v1/auth/token/revoke-self"
+        method: POST
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+        status_code: [200, 204]  # OK or No Content
+        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      tags: always
+
+    - name: Clear root token variables
+      set_fact:
+        ansible_vault_root_token: null
+        root_token_generated: false
