@@ -81,45 +81,26 @@
               - "Please submit {{ vault_rekey_init.json.required - 1 }} additional unseal keys using nonce:"
               - "{{ vault_rekey_init.json.nonce }}"
         
-        - name: |-
-            Waiting for {{
-              vault_rekey_init.json.required
-              - (vault_rekey_status.json.progress | default(0))
-              - 1
-            }} additional unseal key(s) to be provided for rekeying with nonce {{
-              vault_rekey_init.json.nonce
-            }}
-          uri:
-            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
-          retries: 9999999  # Forever
-          delay: 10
-          until: vault_rekey_status.status == 200 and vault_rekey_status.json.progress > item
-          loop: "{{ range(vault_rekey_init.json.required - 1) }}"
-          register: vault_rekey_status
-        
-        - name: Submit final unseal key
-          no_log: "{{ ansible_vault_no_log_sensitive }}"
-          uri:
-            # vault operator rekey ...
-            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/update"
-            method: POST
-            body_format: json
-            body:
-              key: "{{ ansible_vault_unseal_key }}"
-              nonce: "{{ vault_rekey_init.json.nonce }}"
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
-          failed_when: vault_rekey_update.status != 200 or not vault_rekey_update.json.complete
-          register: vault_rekey_update
+        - name: Supply unseal keys
+          import_tasks: generic_unseal_key_flow.yml
+          vars:
+            purpose: "to rekey vault"
+            nonce: "{{ vault_rekey_init.json.nonce }}"
+            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
+            # vault operator rekey
+            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/update"
         
         - name: Clear now out-of-date ansible_vault_unseal_key
           set_fact:
             ansible_vault_unseal_key: null
+            # NB: We set this as a fact so that we capture the value from the
+            # 'submission' variable before we later override it
+            verification_nonce: "{{ submission.json.verification_nonce }}"
         
         - name: Create encrypted unseal key bundle
           import_tasks: save_encrypted_unseal_keys.yml
           vars:
-            encrypted_unseal_keys_base64: "{{ vault_rekey_update.json.keys_base64 }}"
+            encrypted_unseal_keys_base64: "{{ submission.json.keys_base64 }}"
             encrypted_unseal_keys_filename: |-
               {{
                 "encrypted_unseal_keys.json.candidate"
@@ -139,36 +120,14 @@
       when: ansible_vault_verify_rekey
       run_once: true
       block:
-        - name: |-
-            Waiting for {{
-              vault_rekey_init.json.required
-              - (vault_rekey_status.json.progress | default(0))
-              - 1
-            }} additional unseal key(s) to be provided for verification with nonce {{
-              vault_rekey_update.json.verification_nonce
-            }}
-          uri:
-            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
-          retries: 9999999  # Forever
-          delay: 10
-          until: vault_rekey_status.status == 200 and vault_rekey_status.json.progress > item
-          loop: "{{ range(vault_rekey_init.json.required - 1) }}"
-          register: vault_rekey_status
-        
-        - name: Submit final unseal key
-          no_log: "{{ ansible_vault_no_log_sensitive }}"
-          uri:
+        - name: Supply new unseal keys for verification
+          import_tasks: generic_unseal_key_flow.yml
+          vars:
+            purpose: "to verify new unseal keys"
+            nonce: "{{ verification_nonce }}"
+            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
             # vault operator rekey -verify ...
-            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
-            method: POST
-            body_format: json
-            body:
-              key: "{{ ansible_vault_unseal_key }}"
-              nonce: "{{ vault_rekey_update.json.verification_nonce }}"
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
-          failed_when: vault_rekey_verify.status != 200 or not vault_rekey_verify.json.complete
-          register: vault_rekey_verify
+            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
         
         - name: "Make candidate unseal keys live"
           run_once: false  # NB: Make sure we put the keys on every node!
