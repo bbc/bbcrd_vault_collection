@@ -17,9 +17,13 @@
   when: (existing_fingerprints | sort) != (pgp_key_fingerprints | sort) or ansible_vault_force_rekey
   any_errors_fatal: true
   block:
-    # Sanity check to ensure we're looking at all servers (so the generated
-    # keys also get written to all of those servers!)
-    - name: Sanity check that *all* servers are uninitialised
+    # This check is performed to ensure that we end up writing the newly
+    # rotated keys to all members of the server. (It is not a technical
+    # requirement of the rekeying process).
+    #
+    # If you choose to set ansible_vault_skip_rekey_sanity_check, you must
+    # manually propagate the generated keys to the remaining servers a later time.
+    - name: Sanity check that all servers in the cluster are up
       run_once: true
       when: not ansible_vault_skip_rekey_sanity_check
       assert:
