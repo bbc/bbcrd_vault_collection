@@ -61,9 +61,6 @@
         quiet: true
         fail_msg: "All cluster members must be up or ansible_vault_skip_rekey_sanity_check set to true."
     
-    - name: Sanity check public keys
-      import_tasks: check_public_keys.yml
-    
     - name: Obtain unseal key
       import_tasks: obtain_unseal_key.yml
     

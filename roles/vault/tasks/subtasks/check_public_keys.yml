@@ -1,8 +1,0 @@
----
-
-# Check that the set of public keys provided are valid
-
-- name: Check all users have a unique public key
-  assert:
-    that: "(pgp_key_fingerprints | length) == (pgp_key_fingerprints | unique | length)"
-    quiet: true
