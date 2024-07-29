@@ -7,6 +7,7 @@
       include_vars:
         file: "{{ lookup('env', 'GNUPGHOME') }}/ansible_vault_administrators.yml"
         hash_behaviour: merge
+      tags: always
   
   roles:
     - name: bbcrd.ansible_vault.vault
@@ -21,8 +22,10 @@
         name: vault
         state: stopped
       ignore_errors: true  # Vault may not be installed
+      tags: always
     
     - name: Delete all vault data
       file:
         path: /var/lib/vault
         state: absent
+      tags: always
