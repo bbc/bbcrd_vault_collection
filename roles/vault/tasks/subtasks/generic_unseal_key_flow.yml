@@ -70,7 +70,7 @@
   retries: 9999999  # ~forever
   delay: 10
   until: >-
-    (status.status == 200 and status.json.progress >= item)
+    (status.status == 200 and status.json.progress > item)
     or (status.status == 200 and nonce is not none and status.json.nonce != nonce)
   # Make sure nonce is the one we expected!
   failed_when: >-
