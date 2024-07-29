@@ -7,22 +7,51 @@
 - name: Enumerate PGP keys used
   run_once: true
   set_fact:
-    existing_fingerprints: |-
+    existing_fingerprints_and_names: |-
       {{
-        encrypted_unseal_keys.shares
-          | map(attribute="fingerprint")
+        encrypted_unseal_keys.shares | map(attribute="fingerprint")
+          | zip(encrypted_unseal_keys.shares | map(attribute="name"))
+          | map("join", " -- ")
+          | sort
+      }}
+    
+    new_fingerprints_and_names: |-
+      {{
+        pgp_key_fingerprints
+          | zip(pgp_key_names)
+          | map("join", " -- ")
+          | sort
       }}
 
 - name: Rekey the Vault unseal keys if the keyholders have changed
-  when: (existing_fingerprints | sort) != (pgp_key_fingerprints | sort) or ansible_vault_force_rekey
+  when: >-
+    existing_fingerprints_and_names != new_fingerprints_and_names
+    or ansible_vault_force_rekey
   any_errors_fatal: true
   block:
+    - name: Show diff of unseal key holders
+      run_once: true
+      debug:
+        msg: |-
+          {{
+            (existing_fingerprints_and_names | ndiff(new_fingerprints_and_names))
+            if existing_fingerprints_and_names != new_fingerprints_and_names else
+            "(unseal key holders not changed)"
+          }}
+    
+    - name: Confirm changes
+      run_once: true
+      when: >-
+        existing_fingerprints_and_names != new_fingerprints_and_names
+        and not ansible_vault_skip_confirm_rekey_changes
+      pause:
+        prompt: "Rekey with new list of keys (see above)? y/N"
+      register: confirm
+      failed_when: (confirm.user_input.strip().lower()) not in ["y", "yes"]
+    
     # This check is performed to ensure that we end up writing the newly
-    # rotated keys to all members of the server. (It is not a technical
-    # requirement of the rekeying process).
-    #
-    # If you choose to set ansible_vault_skip_rekey_sanity_check, you must
-    # manually propagate the generated keys to the remaining servers a later time.
+    # rotated keys to all members of the server. It is not a technical
+    # requirement of the rekeying process.
     - name: Sanity check that all servers in the cluster are up
       run_once: true
       when: not ansible_vault_skip_rekey_sanity_check
