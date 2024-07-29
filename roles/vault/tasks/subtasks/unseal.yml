@@ -85,8 +85,8 @@
         # vault status
         url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
         ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
-      retries: 5
-      delay: 1
+      retries: 30
+      delay: 2
       until: |-
         vault_status.status == 200 and
         vault_status.json.initialized
