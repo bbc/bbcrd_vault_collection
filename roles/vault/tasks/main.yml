@@ -1,26 +1,27 @@
 ---
+
 - name: Install Vault software and systemd service
-  import_tasks: install.yml
+  import_tasks: subtasks/install.yml
   tags:
     - ansible_vault_install
 
 - name: Write Vault server configuration files
-  import_tasks: configure_server.yml
+  import_tasks: subtasks/configure_server.yml
   tags:
     - ansible_vault_configure_server
 
 - name: Initialise first vault node
-  import_tasks: init_first_node.yml
+  import_tasks: subtasks/init_first_node.yml
   tags:
     - ansible_vault_init_first_node
 
 - name: Unseal the cluster (and join new nodes)
-  import_tasks: unseal.yml
+  import_tasks: subtasks/unseal.yml
   tags:
     - ansible_vault_unseal
 
 - name: Propagate encrypted unseal keys to new nodes
-  import_tasks: propagate_unseal_keys.yml
+  import_tasks: subtasks/propagate_unseal_keys.yml
   tags:
     - ansible_vault_propagate_unseal_keys
 
@@ -30,7 +31,7 @@
 # server...
 
 - name: Remove old nodes from the cluster
-  import_tasks: remove_old_nodes.yml
+  import_tasks: subtasks/remove_old_nodes.yml
   tags:
     - ansible_vault_remove_old_nodes
 
@@ -38,7 +39,7 @@
 # cluster of old nodes since it maximises the chances that the cluster will be
 # in a state where we can safely restart a server without causing an outage.
 - name: Restart vault servers if required
-  import_tasks: restart.yml
+  import_tasks: subtasks/restart.yml
   tags:
     - ansible_vault_restart
 
@@ -47,12 +48,12 @@
 # propagate is *definitely* correct!
 
 - name: Rekey unseal keys (e.g. to add/remove admins)
-  import_tasks: rekey.yml
+  import_tasks: subtasks/rekey.yml
   tags:
     - ansible_vault_rekey
 
 - name: Revoke any generated root tokens
-  import_tasks: revoke_generated_root_token.yml
+  import_tasks: subtasks/revoke_generated_root_token.yml
 
 # TODO: We should probably provide some facility for deploying vault service
 # configuration at this point (e.g. loading up policies and secrets engines etc.)
