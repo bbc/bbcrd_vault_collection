@@ -213,6 +213,10 @@ ansible_vault_allow_loss_of_quorum: false
 # the playbook is running against all cluster nodes.
 ansible_vault_skip_cluster_init_sanity_check: false
 
+# When set, do not interactively prompt for confirmation before rekeying when
+# the set of keys to be used has changed.
+ansible_vault_skip_confirm_rekey_changes: false
+
 # When set to True, verify that a new set of unseal keys is decryptable/usable
 # by requiring them to be used for verification before committing to the unseal
 # key change. This check reduces the chances of becoming locked out of Vault
