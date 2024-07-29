@@ -127,12 +127,15 @@ ansible_vault_cluster_ansible_group_name: vault
 #
 # * ansible_vault_pgp_public_key: (Required) The base64-encoded PGP public key
 #   of the user. This will be used to encrypt unseal all needed keys.
+# * ansible_vault_unseal_key_shares: (Optional) The number of key shares to
+#   generate for this user. Defaults to 1.
 #
 # Example:
 #
 #     ansible_vault_administrators:
 #       foo:
 #         ansible_vault_pgp_public_key: "<ASCII Armor encoded PGP public key>"
+#         ansible_vault_unseal_key_shares: 1
 ansible_vault_administrators: {}
 
 # The number of unseal keys which must be provided to unseal vault.

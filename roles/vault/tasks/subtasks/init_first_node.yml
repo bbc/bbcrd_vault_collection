@@ -62,9 +62,6 @@
         quiet: true
         fail_msg: "All cluster members must be up (and uninitialised)."
     
-    - name: Sanity check public keys
-      import_tasks: check_public_keys.yml
-    
     - name: Initialise a single node
       run_once: true
       block:

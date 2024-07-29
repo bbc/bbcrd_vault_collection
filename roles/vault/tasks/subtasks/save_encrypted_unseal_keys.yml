@@ -13,7 +13,7 @@
       timestamp: "{{ ansible_date_time.iso8601 }}"
       shares: |-
         {{
-          ansible_vault_administrators.keys() | zip(
+          (unseal_key_shares | map(attribute="user")) | zip(
             pgp_keys,
             pgp_key_names,
             pgp_key_fingerprints,
