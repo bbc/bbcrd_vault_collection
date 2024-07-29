@@ -13,6 +13,10 @@
 #   submit_api_url -- The API endpoint to POST the final unseal key to.
 #   purpose -- A human readable string stating what the unseal keys are being
 #              used for (e.g. 'to unseal vault' or 'for verification')
+#   check_complete -- (Optional, default = true). If set to False, skips check
+#                     that the unseal flow reported completeness in its final
+#                     step. This may be useful when joining new nodes to the
+#                     cluster which don't immediately report unsealed.
 #
 # If these requests should be sent to only one host (rather than all hosts),
 # you must wrap the `import_tasks` task in a run_once block.
@@ -91,7 +95,9 @@
     submission.status != 200
     or (nonce is not none and submission.json.nonce != nonce)
     or (
-      not (submission.json.complete | default(False))
-      and (submission.json.sealed | default(True))
+      (
+        not (submission.json.complete | default(False))
+        and (submission.json.sealed | default(True))
+      ) and check_complete | default(True)
     )
   register: submission
