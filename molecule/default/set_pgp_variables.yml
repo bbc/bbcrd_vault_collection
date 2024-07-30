@@ -1,0 +1,58 @@
+---
+
+# The following tasks set the ansible_vault_administrators and
+# ansible_vault_pgp_key_fingerprints variables according to:
+#
+# * playbook_administrator_name -- The name of the administrator whose public
+#   keys will used in the playbook (via ansible_vault_pgp_key_fingerprints)
+#
+# * enabled_administrators -- The set of administrators whose public keys are
+#   included in the Ansible data in ansible_vault_administrators. Defaults to
+#   ['test-user-1'].
+
+- name: Remove public keys from ansible_vault_administrators
+  run_once: true
+  set_fact:
+    ansible_vault_administrators: |-
+      {{
+        ansible_vault_administrators.keys()
+          | zip(
+            ansible_vault_administrators.values()
+              | map('combine', {'ansible_vault_pgp_public_key': omit})
+            )
+          | community.general.dict
+      }}
+
+- name: Import selected public keys into ansible_vault_administrators
+  run_once: true
+  set_fact:
+    ansible_vault_administrators: |-
+      {{
+        ansible_vault_administrators
+          | combine(
+              (
+                lookup(
+                  'ansible.builtin.file',
+                  lookup('env', 'GNUPGHOME') ~ '/ansible_vault_administrators_' ~ item ~ '.yml',
+                ) | from_yaml
+              ).ansible_vault_administrators,
+              recursive=True,
+            )
+      }}
+  loop: "{{ enabled_administrators | default(['test-user-1']) }}"
+  loop_control:
+    label: "{{ lookup('env', 'GNUPGHOME') }}/ansible_vault_administrators_{{ item }}.yml"
+
+- name: Set ansible_vault_pgp_key_fingerprints
+  run_once: true
+  set_fact:
+    ansible_vault_pgp_key_fingerprints: >-
+      {{
+        [
+          ansible_vault_administrators
+            [playbook_administrator_name | default('test-user-1')]
+            .ansible_vault_pgp_public_key
+            | b64encode
+            | bbcrd.ansible_vault.pgp_public_key_to_fingerprint
+        ]
+      }}
