@@ -119,6 +119,13 @@ scenario:
     - verify converge_rekey.yml
     - verify
     
+    # Verify changing set of administrators works
+    - side_effect side_effects/reset_down_detector.yml
+    # XXX have to use 'verify' rather than 'converge' to allow specifying
+    # alternative playbook...
+    - verify converge_change_administrators.yml
+    - verify
+    
     # Verify growing the cluster works
     - side_effect side_effects/reset_down_detector.yml
     # XXX have to use 'verify' rather than 'converge' to allow specifying
@@ -164,4 +171,8 @@ provisioner:
         ansible_vault_administrators:
           test-user-1:
             ansible_vault_unseal_key_shares: 3
+          test-user-2:
+            ansible_vault_unseal_key_shares: 2
+          test-user-3:
+            ansible_vault_unseal_key_shares: 1
 

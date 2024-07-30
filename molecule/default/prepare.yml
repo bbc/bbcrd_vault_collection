@@ -45,23 +45,16 @@
       loop: "{{ administrator_names }}"
       register: gpg_export
     
-    - name: Store public keys and fingerprints in ansible_vault_administrators.yml variable file
+    - name: Store public keys in ansible_vault_administrators_*.yml variable file
       copy:
-        dest: "{{ lookup('env', 'GNUPGHOME') }}/ansible_vault_administrators.yml"
-        content: >-
-            {%- set ansible_vault_administrators = {} -%}
-            {%- for result in gpg_export.results -%}
-            {%-   set _ =
-                    ansible_vault_administrators.__setitem__(
-                      result.item,
-                      {
-                        "ansible_vault_pgp_public_key": result.stdout,
-                        "fingerprint": (result.stdout | b64encode | bbcrd.ansible_vault.pgp_public_key_to_fingerprint),
-                      }
-                    )
-            -%}
-            {%- endfor -%}
-            {{- {"ansible_vault_administrators": ansible_vault_administrators} | to_nice_yaml -}}
+        dest: "{{ lookup('env', 'GNUPGHOME') }}/ansible_vault_administrators_{{ item.item }}.yml"
+        content: |-
+          ansible_vault_administrators:
+            {{ item.item }}:
+              ansible_vault_pgp_public_key: {{ item.stdout | to_json }}
+      loop: "{{ gpg_export.results }}"
+      loop_control:
+        label: "ansible_vault_administrators_{{ item.item }}.yml"
 
 - name: Setup cluster nodes
   hosts: all
