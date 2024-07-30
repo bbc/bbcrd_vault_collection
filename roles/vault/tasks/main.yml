@@ -61,3 +61,11 @@
   always:
     - name: Revoke any generated root tokens
       import_tasks: subtasks/revoke_generated_root_token.yml
+      tags: always
+    
+    - name: Clear decrypted unseal keys
+      when: unseal_keys_decrypted
+      run_once: true
+      set_fact:
+        ansible_vault_unseal_keys: null
+      tags: always
