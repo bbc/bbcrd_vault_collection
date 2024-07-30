@@ -151,6 +151,21 @@ ansible_vault_unseal_keys: null
 # available in the current GnuPG store.
 ansible_vault_pgp_key_fingerprints: "{{ lookup('bbcrd.ansible_vault.pgp_private_key_fingerprints', wantlist=True) }}"
 
+# Override: If not null, the supplied task file will be imported whenever
+# additional unseal keys are required. The following variables will be set:
+#
+# * purpose -- a short string like 'to unseal vault' describing in a
+#   human-readable manner the reason for the unseal keys being required
+#
+# * nonce -- the nonce for the operation (or null if unsealing nodes)
+#
+# * required -- the number of additional unseal keys which must be provided
+#
+# The main purpose for this hook is to facilitate automated testing of this
+# role. It may, however, be useful as a way of (e.g.) automatically notifying
+# colleagues when an unseal key is needed.
+ansible_vault_provide_additional_unseal_keys_tasks: null
+
 
 ################################################################################
 # Root tokens
