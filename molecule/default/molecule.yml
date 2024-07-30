@@ -119,11 +119,12 @@ scenario:
     - verify converge_rekey.yml
     - verify
     
-    # Verify changing set of administrators works
+    # Verify changing set of administrators and running with only a partial set
+    # of unseal keys works
     - side_effect side_effects/reset_down_detector.yml
     # XXX have to use 'verify' rather than 'converge' to allow specifying
     # alternative playbook...
-    - verify converge_change_administrators.yml
+    - verify converge_supply_additional_keys.yml
     - verify
     
     # Verify growing the cluster works
@@ -169,10 +170,15 @@ provisioner:
         ansible_vault_unseal_key_threshold: 2
         
         ansible_vault_administrators:
+          # The default administrator for most tests. Deliberately has one more
+          # key than needed to make sure the role can handle that scenario.
           test-user-1:
             ansible_vault_unseal_key_shares: 3
+          
+          # Additional users for tests involving administrators holding
+          # incomplete sets of keys.
           test-user-2:
-            ansible_vault_unseal_key_shares: 2
+            ansible_vault_unseal_key_shares: 1
           test-user-3:
             ansible_vault_unseal_key_shares: 1
 

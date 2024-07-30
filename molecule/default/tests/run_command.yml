@@ -1,0 +1,24 @@
+---
+
+# A task file which runs a command on localhost specified by the
+# 'run_command_argv' variable.
+#
+# Currently used by 'converge_supply_additional_keys.yml' to run the
+# 'supply_additional_keys.yml' playbook.
+
+- name: "Running command"
+  run_once: true
+  delegate_to: localhost
+  command:
+    argv: "{{ run_command_argv }}"
+  environment:
+     NO_COLOR: "True"
+     ANSIBLE_FORCE_COLOR: "False"
+  changed_when: false
+  failed_when: command.rc != 0
+  register: command
+
+- name: "Showing output"
+  run_once: true
+  debug:
+    var: command.stdout_lines

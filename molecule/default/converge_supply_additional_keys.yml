@@ -1,0 +1,83 @@
+---
+
+# This playbook verifies two main features:
+#
+# * Handling of changes to the set of vault administrators
+#
+# * Handling scenarios where the person running the role does not hold a
+#   complete set of unseal keys and another person must supply the extra keys.
+
+- name: Add extra administrators to vault
+  import_playbook: converge.yml
+  vars:
+    ansible_vault_skip_confirm_rekey_changes: true
+    enabled_administrators:
+      - test-user-1
+      - test-user-2  # Only has one unseal key
+      - test-user-3  # Only has one unseal key
+
+- name: Verify new administrators added
+  hosts: vault
+  
+  tasks:
+    - name: Fetch new unseal keys
+      import_tasks: tests/decrypt_unseal_keys.yml
+    
+    - name: Verify unseal keys changed
+      assert:
+        that: unseal_key_users | sort == ['test-user-1', 'test-user-1', 'test-user-1', 'test-user-2', 'test-user-3']
+        quiet: true
+    
+    # To test whether extra key supply works during regular unsealing, also
+    # seal the vault
+    - name: Seal vault
+      systemd:
+        name: vault
+        state: restarted
+
+
+- name: Verify two administrators can work together to supply unseal keys
+  import_playbook: converge.yml
+  vars:
+    enabled_administrators:
+      - test-user-1
+      - test-user-2  # Only has one unseal key
+      - test-user-3  # Only has one unseal key
+    playbook_administrator_name: test-user-2
+    
+    # Make sure we test supply of unseal keys for the rekeying flow.
+    ansible_vault_force_rekey: true
+    
+    # Supply the extra unseal key by running the supply_additional_keys.yml
+    # playbook 
+    ansible_vault_provide_additional_unseal_keys_tasks: "{{ playbook_dir }}/tests/run_command.yml"
+    run_command_argv:
+      - ansible-playbook
+      - --inventory
+      - "{{ inventory_dir }}"
+      - "{{ playbook_dir }}/supply_additional_keys.yml"
+      - --extra-vars
+      - |-
+        {{
+          {
+            "enabled_administrators": ["test-user-1", "test-user-2", "test-user-3"],
+            "playbook_administrator_name": "test-user-3",
+          } | to_json
+        }}
+
+- name: Revert to single administrator
+  import_playbook: converge.yml
+  vars:
+    ansible_vault_skip_confirm_rekey_changes: true
+
+- name: Verify administrators reverted back
+  hosts: vault
+  
+  tasks:
+    - name: Fetch new unseal keys
+      import_tasks: tests/decrypt_unseal_keys.yml
+    
+    - name: Verify unseal keys changed
+      assert:
+        that: unseal_key_users | sort == ['test-user-1', 'test-user-1', 'test-user-1']
+        quiet: true
