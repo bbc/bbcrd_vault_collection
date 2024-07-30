@@ -100,13 +100,6 @@
           changed_when: true
           register: vault_rekey_init
         
-        - name: Show nonce for use by others to submit their unseal keys
-          when: "vault_rekey_init.json.required - 1 > 0"
-          debug:
-            msg:
-              - "Please submit {{ vault_rekey_init.json.required - 1 }} additional unseal keys using nonce:"
-              - "{{ vault_rekey_init.json.nonce }}"
-        
         - name: Supply unseal keys
           import_tasks: generic_unseal_key_flow.yml
           vars:
@@ -116,9 +109,9 @@
             # vault operator rekey
             submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/update"
         
-        - name: Clear now out-of-date ansible_vault_unseal_key
+        - name: Clear now out-of-date ansible_vault_unseal_keys
           set_fact:
-            ansible_vault_unseal_key: null
+            ansible_vault_unseal_keys: null
             # NB: We set this as a fact so that we capture the value from the
             # 'submission' variable before we later override it
             verification_nonce: "{{ submission.json.verification_nonce }}"
