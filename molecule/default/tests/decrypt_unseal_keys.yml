@@ -4,6 +4,8 @@
 # that all keys can be decrypted.
 #
 # Sets unseal_keys to an array of decrypted unseal keys.
+#
+# Sets unseal_key_users to the set of user names associated with each key
 
 - name: Check all hosts have encrypted unseal keys
   slurp:
@@ -30,3 +32,4 @@
           | map("bbcrd.ansible_vault.pgp_decrypt")
           | map("b64decode")
       }}
+    unseal_key_users: "{{ encrypted_unseal_keys.shares | map(attribute='user') }}"
