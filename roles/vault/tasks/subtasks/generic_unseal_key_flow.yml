@@ -98,9 +98,9 @@
       }}
 
 - name: >-
-    Waiting for {{ (remaining | int) - 1 - item }} additional unseal key(s) to
-    be provided {{ purpose }} {% if nonce is not none %} with nonce {{ nonce }}
-    {% endif %}
+    Waiting for {{ (remaining | int) - 1 - (item|default(0)) }} additional
+    unseal key(s) to be provided {{ purpose }} {% if nonce is not none %}with
+    nonce {{ nonce }}{% endif %}
   uri:
     url: "{{ status_api_url }}"
     ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
