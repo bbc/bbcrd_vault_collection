@@ -5,7 +5,7 @@
 #
 # The following variables must be set:
 #
-#   ansible_vault_unseal_key -- A valid unseal key
+#   ansible_vault_unseal_keys -- A valid set of unseal keys
 #   nonce -- The nonce for the submission process. If null, no nonce is used
 #            (or checked for).
 #   status_api_url -- The API endpoint to poll to monitor the status of key
@@ -25,9 +25,13 @@
 #
 #   submission.json -- The JSON response from the final submit API call.
 #
-# The process begins by waiting for all but one unseal key to be presented (by
-# other people). The final unseal key (which must be set in
-# ansible_vault_unseal_key) is then presented to the API.
+# This process consists of three phases:
+#
+# * First we submit up to threshold-1 unseal keys, making sure to save at least
+#   one of our unseal keys to use later.
+# * Next we wait for others to submit all but the last unseal key
+# * Finally we submit the last unseal key and capture whatever output is
+#   produced at that point.
 #
 # The reason for waiting to be the last person to insert an unseal key is that
 # some APIs will offer up their output to whoever provides the final unseal
@@ -53,16 +57,49 @@
     ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
   register: status
 
-- name: >-
-    Waiting for {{
-      (
+- name: Work out how many unseal keys are required
+  set_fact:
+    remaining: |-
+      {{
         status.json.t | default(status.json.required)
         - status.json.progress
-        - 1
-      )
-    }} additional unseal key(s) to be provided {{ purpose }}
-    {% if nonce is not none %}
-    with nonce {{ nonce }}
+      }}
+
+- name: Submitting initial unseal keys
+  no_log: "{{ ansible_vault_no_log_sensitive }}"
+  uri:
+    url: "{{ submit_api_url }}"
+    method: POST
+    body_format: json
+    body:
+      key: "{{ item }}"
+      nonce: "{{ nonce if nonce is not none else omit }}"
+    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+  # We must save an unseal key to supply as the final required key (the first
+  # subscript makes sure we save one of our keys and the second makes sure we
+  # don't submit more than the threshold!)
+  loop: "{{ (ansible_vault_unseal_keys or [])[:-1][:(remaining | int) - 1] }}"
+  loop_control:
+    index_var: idx
+    label: "{{ idx }}"
+
+- name: Fetch updated unseal key submission state
+  uri:
+    url: "{{ status_api_url }}"
+    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+  register: status
+
+- name: Work out how many more unseal keys are required
+  set_fact:
+    remaining: |-
+      {{
+        status.json.t | default(status.json.required)
+        - status.json.progress
+      }}
+
+- name: >-
+    Waiting for {{ (remaining | int) - 1 - item }} additional unseal key(s) to
+    be provided {{ purpose }} {% if nonce is not none %} with nonce {{ nonce }}
     {% endif %}
   uri:
     url: "{{ status_api_url }}"
@@ -76,7 +113,7 @@
   failed_when: >-
     status.status != 200
     or (nonce is not none and status.json.nonce != nonce)
-  loop: "{{ range((status.json.t | default(status.json.required)) - 1) }}"
+  loop: "{{ range((remaining | int) - 1) }}"
   register: status
 
 - name: Submit final unseal key
@@ -86,7 +123,7 @@
     method: POST
     body_format: json
     body:
-      key: "{{ ansible_vault_unseal_key }}"
+      key: "{{ ansible_vault_unseal_keys[-1] }}"
       nonce: "{{ nonce if nonce is not none else omit }}"
     ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
   # Make sure nonce is the one we expected and that we really did submit the

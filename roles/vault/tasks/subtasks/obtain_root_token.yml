@@ -34,13 +34,6 @@
             ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
           register: vault_generate_root_init
         
-        - name: Show nonce for use by others to submit their unseal keys
-          when: "vault_generate_root_init.json.required - 1 > 0"
-          debug:
-            msg:
-              - "Please submit {{ vault_generate_root_init.json.required - 1 }} additional unseal keys using nonce:"
-              - "{{ vault_generate_root_init.json.nonce }}"
-
         - name: Supply unseal keys
           import_tasks: generic_unseal_key_flow.yml
           vars:

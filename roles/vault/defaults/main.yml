@@ -141,14 +141,15 @@ ansible_vault_administrators: {}
 # The number of unseal keys which must be provided to unseal vault.
 ansible_vault_unseal_key_threshold: 1
 
-# Override: The unseal key to use for unsealing vault nodes. If not given, the
-# unseal key will be decrypted automatically using GnuPG.
-ansible_vault_unseal_key: null
+# Override: The a set of one or more (unencrypted) unseal key to use for
+# unsealing vault nodes. If not given, the unseal key will be decrypted
+# automatically using GnuPG.
+ansible_vault_unseal_keys: null
 
-# Override: The fingerprint of the PGP key to use to decrypt a secret. You only
-# need to set this if your GnuPG certificate store includes private keys for
-# more than one of the encrypted unseal keys in an encrypted unseal key bundle.
-ansible_vault_pgp_key_fingerprint: null
+# Override: A list of fingerprints for the PGP key to use to decrypt unseal
+# keys. By default, any and all available private keys will be used which are
+# available in the current GnuPG store.
+ansible_vault_pgp_key_fingerprints: "{{ lookup('bbcrd.ansible_vault.pgp_private_key_fingerprints', wantlist=True) }}"
 
 
 ################################################################################
