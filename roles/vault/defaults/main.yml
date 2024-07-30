@@ -234,3 +234,7 @@ ansible_vault_verify_rekey: true
 # propagating the new encrypted unseal key bundle to all hosts in the cluster.
 # Take extreme care to copy the right files to the right hosts!
 ansible_vault_skip_rekey_sanity_check: false
+
+# If true, skip interactive confirmation (and verification of the nonce, if
+# applicable) before supplying additional unseal keys.
+ansible_vault_skip_additional_unseal_confirmation: false
