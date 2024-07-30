@@ -28,9 +28,9 @@
         that: unseal_key_users | sort == ['test-user-1', 'test-user-1', 'test-user-1', 'test-user-2', 'test-user-3']
         quiet: true
     
-    # To test whether extra key supply works during regular unsealing, also
-    # seal the vault
-    - name: Seal vault
+    # To test whether extra key supply works during regular unsealing...
+    - name: Seal one vault server
+      run_once: true
       systemd:
         name: vault
         state: restarted
