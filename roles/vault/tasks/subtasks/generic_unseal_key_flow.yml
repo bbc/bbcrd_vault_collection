@@ -98,7 +98,7 @@
       }}
 
 - name: >-
-    Waiting for {{ (remaining | int) - 1 - (item|default(0)) }} additional
+    Waiting for {{ (remaining | int) - 1 }} additional
     unseal key(s) to be provided {{ purpose }} {% if nonce is not none %}with
     nonce {{ nonce }}{% endif %}
   uri:
@@ -114,6 +114,8 @@
     status.status != 200
     or (nonce is not none and status.json.nonce != nonce)
   loop: "{{ range((remaining | int) - 1) }}"
+  loop_control:
+    label: "Received {{ item + 1 }} of {{ (remaining | int) - 1 }}"
   register: status
 
 - name: Submit final unseal key
