@@ -33,6 +33,7 @@
           key: "{{ item }}"
           nonce: "{{ vault_generate_root_init.json.nonce }}"
       failed_when: vault_generate_root_update.status != 200 or vault_generate_root_update.json.complete
+      register: vault_generate_root_update
       loop: "{{ unseal_keys[1:ansible_vault_unseal_key_threshold | default(1)] }}"
     
     - name: Submit final unseal key for root token generation
