@@ -24,6 +24,21 @@
     state: directory
     mode: 0755
 
+# This check is required due to a shortcoming of Ansible whereby
+# hostvars[...]["ansible_vault_public_address"] does not exist if the variable
+# is only defined as a role default value. The config template below relies on
+# this pattern.
+- name: Check ansible_vault_public_address is explicitly defined
+  run_once: true
+  assert:
+    that: "'ansible_vault_public_address' in hostvars[item]"
+    quiet: true
+    fail_msg: >-
+      You must explicitly define 'ansible_vault_public_address' for all vault
+      hosts (even if just to the same value as the default). This is needed to
+      wokr around a limitation in Ansible.
+  loop: "{{ groups[ansible_vault_cluster_ansible_group_name] }}"
+
 - name: Write vault configuration
   template:
     src: config.hcl.j2
