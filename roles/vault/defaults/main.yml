@@ -86,7 +86,7 @@ ansible_vault_listen_port: 8200
 # it *must* be defined for hosts using this role due to a limitation of
 # Ansible.  You're welcome to copy this default, of course!
 ansible_vault_public_protocol: "{{ ansible_vault_listen_protocol }}"
-ansible_vault_public_address: "{{ ansible_hostname }}"
+ansible_vault_public_address: "{{ ansible_host | default(inventory_hostname) }}"
 ansible_vault_public_port: "{{ ansible_vault_listen_port }}"
 
 # The address and port used for the Vault clustering API endpoint.
