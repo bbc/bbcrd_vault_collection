@@ -9,7 +9,8 @@
 # NB: These tasks will fail if the encrypted unseal keys on the other servers
 # are already inconsistent
 - name: Fetch encrypted unseal keys
-  include_tasks: fetch_encrypted_unseal_keys.yml
+  import_role:
+    name: bbcrd.ansible_vault.fetch_encrypted_unseal_keys
 
 - name: Propagate encrypted unseal keys to new nodes
   copy:

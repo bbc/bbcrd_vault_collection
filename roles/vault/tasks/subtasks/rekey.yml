@@ -2,7 +2,8 @@
 # Rekey the unseal keys if the set of users/PGP keys has changed
 
 - name: Fetch encrypted unseal keys
-  import_tasks: fetch_encrypted_unseal_keys.yml
+  import_role:
+    name: bbcrd.ansible_vault.fetch_encrypted_unseal_keys
 
 - name: Enumerate PGP keys used
   run_once: true
