@@ -9,7 +9,9 @@
   when: ansible_vault_restart_servers is none
   block:
     - name: Discover installed Vault binary version
-      include_tasks: get_vault_command_version.yml
+      import_role:
+        name: bbcrd.ansible_vault.install
+        tasks_from: get_version.yml
 
     - name: Get running vault version
       uri:

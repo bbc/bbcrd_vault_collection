@@ -10,7 +10,7 @@
     state: present
 
 - name: Discover installed Vault version (if any)
-  include_tasks: get_vault_command_version.yml
+  include_tasks: get_version.yml
 
 - name: Download and install Vault
   when: vault_version != ansible_vault_version or ansible_vault_force_reinstall
@@ -36,9 +36,9 @@
         path: "{{ ansible_vault_install_dir }}"
         state: directory
     
-    # NB: We will later explicitly test whether the running Vault server
+    # NB: Later roles will explicitly test whether the running Vault server
     # version matches the installed binary to decide whether to restart a vault
-    # instance. As such, no handler is required here.
+    # instance (a task which must be performed with care!).
     - name: Install binary
       copy:
         src: "/tmp/vault_{{ ansible_vault_version }}/{{ ansible_vault_binary }}"
