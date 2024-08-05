@@ -12,7 +12,8 @@
   when: ansible_vault_root_token is none
   block:
     - name: Obtain unseal key
-      import_tasks: obtain_unseal_key.yml
+      import_role:
+        name: bbcrd.ansible_vault.decrypt_unseal_keys
 
     - name: Only need to perform root generation on one host
       run_once: true

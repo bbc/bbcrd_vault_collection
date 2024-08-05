@@ -119,3 +119,9 @@ ansible_vault_pgp_key_fingerprints: "{{ lookup('bbcrd.ansible_vault.pgp_private_
 ansible_vault_provide_additional_unseal_keys_tasks: null
 
 
+################################################################################
+# Safety overrides
+################################################################################
+
+# Don't log results of sensitive actions
+ansible_vault_no_log_sensitive: true

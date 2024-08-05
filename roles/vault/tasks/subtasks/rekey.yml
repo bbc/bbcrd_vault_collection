@@ -3,7 +3,8 @@
 
 - name: Fetch encrypted unseal keys
   import_role:
-    name: bbcrd.ansible_vault.fetch_encrypted_unseal_keys
+    name: bbcrd.ansible_vault.decrypt_unseal_keys
+    tasks_from: fetch.yml
 
 - name: Enumerate PGP keys used
   run_once: true
@@ -63,7 +64,8 @@
         fail_msg: "All cluster members must be up or ansible_vault_skip_rekey_sanity_check set to true."
     
     - name: Obtain unseal key
-      import_tasks: obtain_unseal_key.yml
+      import_role:
+        name: bbcrd.ansible_vault.decrypt_unseal_keys
     
     - name: Perform rekeying on one host
       run_once: true
@@ -133,7 +135,8 @@
     # of this mechanism elsewhere.
     - name: "Obtain new candidate unseal key"
       when: ansible_vault_verify_rekey
-      import_tasks: obtain_unseal_key.yml
+      import_role:
+        name: bbcrd.ansible_vault.decrypt_unseal_keys
       vars:
         encrypted_unseal_keys_filename: "encrypted_unseal_keys.json.candidate"
         

@@ -46,9 +46,6 @@ ansible_vault_force_rekey: false
 # Safety overrides
 ################################################################################
 
-# Don't log results of sensitive actions
-ansible_vault_no_log_sensitive: true
-
 # If set to False, this role will refuse to remove or restart cluster nodes
 # when it would cause the cluster to fall out of quorum.
 #

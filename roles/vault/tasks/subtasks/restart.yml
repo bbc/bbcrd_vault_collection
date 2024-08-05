@@ -43,7 +43,8 @@
   block:
     # Needed to unseal the restarted servers
     - name: Obtain unseal key
-      import_tasks: obtain_unseal_key.yml
+      import_role:
+        name: bbcrd.ansible_vault.decrypt_unseal_keys
     
     # Needed to monitor the cluster's health
     - name: Obtain root token
