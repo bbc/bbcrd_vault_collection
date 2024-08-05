@@ -28,7 +28,8 @@
         - ansible_vault_init_first_node
     
     - name: Unseal the cluster (and join new nodes)
-      import_tasks: subtasks/unseal.yml
+      import_role:
+        name: bbcrd.ansible_vault.unseal
       tags:
         - ansible_vault_unseal
     

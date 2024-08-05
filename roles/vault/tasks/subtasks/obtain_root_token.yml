@@ -36,7 +36,8 @@
           register: vault_generate_root_init
         
         - name: Supply unseal keys
-          import_tasks: generic_unseal_key_flow.yml
+          import_role:
+            name: bbcrd.ansible_vault.generic_unseal_key_submission_flow
           vars:
             purpose: "to generate a root token"
             nonce: "{{ vault_generate_root_init.json.nonce }}"

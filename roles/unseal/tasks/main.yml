@@ -1,7 +1,6 @@
 ---
-# Unseal the vault, also causing any brand-new nodes to join the cluster
 
-- name: Determine which hosts require unsealing
+- name: Get Vault server statuses
   uri:
     # vault status
     url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
@@ -13,6 +12,7 @@
     vault_sealed: "{{ vault_status.json.sealed }}"
 
 - name: Unseal hosts
+  # when any host requires unsealing
   when: |-
     groups[ansible_vault_cluster_ansible_group_name]
       | map('extract', hostvars)
@@ -36,9 +36,9 @@
     #   ensures it sees the latest list (which is not be picked up when SIGHUP
     #   is used to make Vault reload its config!)
     #
-    # * Nice-to-have reason to restart now: If the vault binary has been updated
-    #   since the server was started, restarting now saves us unsealing it and then
-    #   having to restart it and unseal it again later.
+    # * Nice-to-have reason to restart now: If the vault binary has been
+    #   updated since the server was started, restarting now saves us having to
+    #   unsealing it again following a later restart.
     - name: Restart hosts to be unsealed
       when: vault_sealed
       systemd:
@@ -60,15 +60,15 @@
 
     # Note: We must first unseal any initialised (but sealed) hosts: If the
     # cluster as a whole is down the new hosts will not be able to join the
-    # cluster. As such, our first step must be to get the rest of the cluster
-    # up.
+    # cluster. As such, our first step must be to get the existing cluster
+    # nodes up.
     - name: Work out which hosts are initialised
       set_fact:
         vault_initialised: "{{ vault_status.json.initialized }}"
 
     - name: Unseal already initialised hosts
       when: vault_sealed and vault_initialised
-      import_tasks: unseal_commands.yml
+      import_tasks: unseal.yml
 
     # After the main cluster becomes unsealed, we can start to join new nodes
     # to the cluster. To do this we must first wait for them to notice the
@@ -100,7 +100,8 @@
 
     - name: Unseal and join new hosts to cluster
       when: vault_sealed
-      import_tasks: unseal_commands.yml
+      import_tasks: unseal.yml
 
 - name: Wait for all hosts to become responsive
-  import_tasks: wait_for_api_responsiveness.yml
+  import_role:
+    name: bbcrd.ansible_vault.wait_for_api_responsiveness

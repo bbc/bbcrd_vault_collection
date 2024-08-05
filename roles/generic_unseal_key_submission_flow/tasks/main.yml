@@ -1,50 +1,9 @@
 ---
 
-# This set of tasks implements the generic flow in which unseal keys are
-# presented to a vault API.
-#
-# The following variables must be set:
-#
-#   ansible_vault_unseal_keys -- A valid set of unseal keys
-#   nonce -- The nonce for the submission process. If null, no nonce is used
-#            (or checked for).
-#   status_api_url -- The API endpoint to poll to monitor the status of key
-#                     submission.
-#   submit_api_url -- The API endpoint to POST the final unseal key to.
-#   purpose -- A human readable string stating what the unseal keys are being
-#              used for (e.g. 'to unseal vault' or 'for verification')
-#   check_complete -- (Optional, default = true). If set to False, skips check
-#                     that the unseal flow reported completeness in its final
-#                     step. This may be useful when joining new nodes to the
-#                     cluster which don't immediately report unsealed.
-#
-# If these requests should be sent to only one host (rather than all hosts),
-# you must wrap the `import_tasks` task in a run_once block.
-#
-# On completing these tasks, the following variables will be set:
-#
-#   submission.json -- The JSON response from the final submit API call.
-#
-# This process consists of three phases:
-#
-# * First we submit up to threshold-1 unseal keys, making sure to save at least
-#   one of our unseal keys to use later.
-# * Next we wait for others to submit all but the last unseal key
-# * Finally we submit the last unseal key and capture whatever output is
-#   produced at that point.
-#
-# The reason for waiting to be the last person to insert an unseal key is that
-# some APIs will offer up their output to whoever provides the final unseal
-# key. For example, an (encrypted) root token during generate-root or new
-# unseal keys (during rekeying). To avoid having to deal with these values
-# being passed human-to-human, by waiting until last we can capture the values
-# immediately.
-#
 # All of vault's unesal key submission APIs follow almost exactly the same
-# patterns -- hence this flow being factored out here. Unfortunately there are
-# a few minor differences which make the implementation below slightly
-# scruffier. Those differences are:
-#
+# pattern. Unfortunately there are a few minor differences which make the
+# implementation below slightly scruffier.  Those differences are:
+# 
 # * The unseal API doesn't use a nonce (but the others do).
 # * The generate-root API reports the number of unseal keys required via the
 #   'required' key (others use the 't' key).
@@ -145,6 +104,6 @@
       (
         not (submission.json.complete | default(False))
         and (submission.json.sealed | default(True))
-      ) and check_complete | default(True)
+      ) and check_complete
     )
   register: submission

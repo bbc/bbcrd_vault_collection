@@ -59,4 +59,5 @@
     
     - name: Wait for restarted hosts to become responsive
       when: inventory_hostname in to_restart
-      import_tasks: wait_for_api_responsiveness.yml
+      import_role:
+        name: bbcrd.ansible_vault.wait_for_api_responsiveness

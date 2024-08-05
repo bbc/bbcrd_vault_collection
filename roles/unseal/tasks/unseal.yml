@@ -1,8 +1,6 @@
 ---
 
-# Perform the vault commands necessary for unsealing
-#
-# Intended only for importing by unseal.yml
+# Send the vault API commands to unseal nodes
 
 - name: Reset the unseal process
   uri:
@@ -16,7 +14,8 @@
   changed_when: true
 
 - name: Supply unseal keys
-  import_tasks: generic_unseal_key_flow.yml
+  import_role:
+    name: bbcrd.ansible_vault.generic_unseal_key_submission_flow
   vars:
     purpose: "to unseal vault"
     nonce: null
