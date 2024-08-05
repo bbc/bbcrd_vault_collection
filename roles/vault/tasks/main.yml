@@ -65,7 +65,10 @@
   
   always:
     - name: Revoke any generated root tokens
-      import_tasks: subtasks/revoke_generated_root_token.yml
+      
+      import_role:
+        name: bbcrd.ansible_vault.generate_root
+        tasks_from: revoke.yml
       tags: always
     
     - name: Clear decrypted unseal keys

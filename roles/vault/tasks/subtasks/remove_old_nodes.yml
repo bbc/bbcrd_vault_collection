@@ -4,7 +4,8 @@
 # may be larger than it needs to be.
 
 - name: Obtain root token
-  import_tasks: obtain_root_token.yml
+  import_role:
+    name: bbcrd.ansible_vault.generate_root
 
 - name: Remove any old nodes from the cluster
   run_once: true
