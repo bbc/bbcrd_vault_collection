@@ -49,7 +49,8 @@
     # Needed to monitor the cluster's health
     - name: Obtain root token
       when: not ansible_vault_allow_loss_of_quorum
-      import_tasks: obtain_root_token.yml
+      import_role:
+        name: bbcrd.ansible_vault.generate_root
 
     - name: Restart and unseal vault server
       include_tasks: restart_one_server.yml
