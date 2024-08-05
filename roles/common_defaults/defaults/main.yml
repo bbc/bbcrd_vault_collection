@@ -1,17 +1,20 @@
 ---
 
 ################################################################################
+# Cluster options
+################################################################################
+
+# The name of the Ansible group in which all members of the vault cluster are
+# enumerated.
+ansible_vault_cluster_ansible_group_name: vault
+
+
+################################################################################
 # Installation-related variables
 ################################################################################
 
 # The version of vault to be installed
 ansible_vault_version: "1.17.1"
-
-# Location of the Vault server configuration directory
-#
-# Within this directory, the following files are placed:
-# * config.hcl -- The vault server configuration file
-ansible_vault_config_dir: "/etc/vault"
 
 # The name (not path) of the vault server systemd service
 ansible_vault_systemd_unit: vault
@@ -19,3 +22,48 @@ ansible_vault_systemd_unit: vault
 # User and group to run the vault service as
 ansible_vault_user: "vault"
 ansible_vault_group: "vault"
+
+
+################################################################################
+# Vault server configuration
+################################################################################
+
+# Location of the Vault server configuration directory
+#
+# Within this directory, the following files are placed:
+# * config.hcl -- The vault server configuration file
+ansible_vault_config_dir: "/etc/vault"
+
+# Location of the Vault server data directory
+#
+# Within this directory, the following are used
+# * data/ -- The on-disk Raft storage location
+# * encrypted_unseal_keys.json -- PGP encrypted unseal keys
+# * encrypted_unseal_keys.json.candidate -- Candidate PGP encrypted unseal
+#   keys, subject to verification during rekeying.
+ansible_vault_data_dir: "/var/lib/vault"
+
+# The base URL the server's API is reachable from publicly.
+#
+# By contrast, if you're using a reverse proxy (e.g. haproxy) to do HTTPS
+# termination (for example) then the public address, port and protocol may
+# differ. For example, you may listen on HTTP on 127.0.0.1 but have a public
+# interface using HTTPS on some public IP address.
+#
+# XXX: Whilst 'ansible_vault_public_url' is defined as a default here, it
+# *must* be defined for hosts using this role due to a limitation of Ansible.
+# You're welcome to copy this default, of course!
+ansible_vault_public_url: >-
+  https://{{
+    ansible_host | default(inventory_hostname)
+  }}:8200
+
+
+################################################################################
+# TLS certificates
+################################################################################
+
+# Filename on the remote host of the CA PEM file to use to verify the vault
+# server's HTTPS certificate. Omit to use default trust stores.
+#ansible_vault_ca_path: "/path/to/ca.pem"
+

@@ -36,7 +36,7 @@
     fail_msg: >-
       You must explicitly define 'ansible_vault_public_url' for all vault
       hosts (even if just to the same value as the default). This is needed to
-      work around a limitation in Ansible.
+      work around a limitation of Ansible.
   loop: "{{ groups[ansible_vault_cluster_ansible_group_name] }}"
 
 - name: Write vault configuration
