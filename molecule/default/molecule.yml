@@ -165,7 +165,7 @@ provisioner:
         # Use HTTP to avoid need to setup certificates in test environment
         ansible_vault_listen_protocol: http
         
-        ansible_vault_public_address: "{{ ansible_host | default(inventory_hostname) }}"
+        ansible_vault_public_url: "http://{{ ansible_host | default(inventory_hostname) }}:8200"
         
         ansible_vault_unseal_key_threshold: 2
         
