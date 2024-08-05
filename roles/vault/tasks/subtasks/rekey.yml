@@ -104,7 +104,8 @@
           register: vault_rekey_init
         
         - name: Supply unseal keys
-          import_tasks: generic_unseal_key_flow.yml
+          import_role:
+            name: bbcrd.ansible_vault.generic_unseal_key_submission_flow
           vars:
             purpose: "to rekey vault"
             nonce: "{{ vault_rekey_init.json.nonce }}"
@@ -145,7 +146,8 @@
       run_once: true
       block:
         - name: Supply new unseal keys for verification
-          import_tasks: generic_unseal_key_flow.yml
+          import_role:
+            name: bbcrd.ansible_vault.generic_unseal_key_submission_flow
           vars:
             purpose: "to verify new unseal keys"
             nonce: "{{ verification_nonce }}"
