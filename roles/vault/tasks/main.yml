@@ -4,7 +4,8 @@
 # configure a vault cluster.
 
 - name: Install Vault software and systemd service
-  import_tasks: subtasks/install.yml
+  import_role:
+    name: bbcrd.ansible_vault.install
   tags:
     - ansible_vault_install
 
