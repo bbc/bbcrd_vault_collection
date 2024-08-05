@@ -14,7 +14,7 @@
 #              used for (e.g. 'to unseal vault' or 'for verification')
 #   encrypted_unseal_keys_filename -- (Optional.) The filename to pull
 #                                     encrypted unseal keys from. See
-#                                     obtain_unseal_key.yml.
+#                                     the decrypt_unseal_keys role.
 #   status_status_code -- A list of valid status codes for the status_api_url.
 #                         Defaults to [200]
 #
@@ -78,7 +78,8 @@
         )
       block:
         - name: Obtain unseal keys
-          import_tasks: obtain_unseal_key.yml
+          import_role:
+            name: bbcrd.ansible_vault.decrypt_unseal_keys
         
         - name: "Submit unseal key {{ purpose }}"
           no_log: "{{ ansible_vault_no_log_sensitive }}"
