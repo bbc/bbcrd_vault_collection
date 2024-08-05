@@ -4,14 +4,15 @@
 # the unseal keys from an encrypted unseal key bundle.
 #
 # The encrypted unseal keys are read from the file named by
-# encrypted_unseal_keys_filename. See fetch_encrypted_unseal_keys.yml.
+# encrypted_unseal_keys_filename. See the fetch_encrypted_unseal_keys role.
 
 - name: Obtain unseal keys
   any_errors_fatal: true
   when: ansible_vault_unseal_keys is none
   block:
     - name: Fetch encrypted unseal keys
-      import_tasks: fetch_encrypted_unseal_keys.yml
+      import_role:
+        name: bbcrd.ansible_vault.fetch_encrypted_unseal_keys
     
     - name: Decrypt the unseal keys
       run_once: true
