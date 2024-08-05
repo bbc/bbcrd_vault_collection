@@ -1,13 +1,8 @@
 ---
 
-# This set of tasks propagates the encrypted unseal keys file to all hosts
-# which don't currently have a copy of it -- i.e. new members of the cluster.
-#
-# We specifically *don't* attempt to make an inconsistent situation consistent
-# since we don't have enough information to do this!
 
-# NB: These tasks will fail if the encrypted unseal keys on the other servers
-# are already inconsistent
+# NB: This role fails if the encrypted unseal keys on the other servers are
+# already inconsistent
 - name: Fetch encrypted unseal keys
   import_role:
     name: bbcrd.ansible_vault.decrypt_unseal_keys
