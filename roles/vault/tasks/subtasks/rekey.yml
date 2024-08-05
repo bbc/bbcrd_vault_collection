@@ -117,7 +117,8 @@
             verification_nonce: "{{ submission.json.verification_nonce }}"
         
         - name: Create encrypted unseal key bundle
-          import_tasks: save_encrypted_unseal_keys.yml
+          import_role:
+            name: bbcrd.ansible_vault.save_encrypted_unseal_keys
           vars:
             encrypted_unseal_keys_base64: "{{ submission.json.keys_base64 }}"
             encrypted_unseal_keys_filename: |-

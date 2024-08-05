@@ -1,10 +1,4 @@
 ---
-# Create an encrypted unseal key bundle given a list of encrypted unseal keys
-# in the same order as pgp_keys et al in the variable 'encrypted_unseal_keys_base64'.
-#
-# The bundle will be displayed in a debug message and written to all cluster
-# nodes in the file named in the 'encrypted_unseal_keys_filename' variable,
-# defaulting to encrypted_unseal_keys.json.
 
 - name: Create encrypted unseal key bundle
   run_once: true
