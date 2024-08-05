@@ -1,30 +1,5 @@
 ---
 
-# An enumeration of the unseal key shares to be created. A list of objects of
-# the following shape:
-#
-#   {
-#       "user": <name of administrator>,
-#       "share_index": <index of key share>,
-#       "pgp_public_key": <ASCII Armor PGP key>,
-#   }
-unseal_key_shares: "{{ ansible_vault_administrators | bbcrd.ansible_vault.enumerate_key_shares }}"
-
-# The list of PGP public keys, in the same iteration order as
-# unseal_key_shares.
-pgp_keys: "{{ unseal_key_shares | map(attribute='pgp_public_key') }}"
-
-# The same values as pgp_keys, but with ASCII armour unwrapped
-pgp_keys_base64: "{{ pgp_keys | map('bbcrd.ansible_vault.ascii_armor_to_base64') }}"
-
-# A list of names (and emails and comments) for each PGP public key, in the
-# same iteration order as unseal_key_shares.
-pgp_key_names: "{{ pgp_keys | map('b64encode') | map('bbcrd.ansible_vault.pgp_public_key_to_name') }}"
-
-# A list of fingerprints for each PGP public key, in the same iteration order
-# as unseal_key_shares.
-pgp_key_fingerprints: "{{ pgp_keys | map('b64encode') | map('bbcrd.ansible_vault.pgp_public_key_to_fingerprint') }}"
-
 # A variable which is set to True iff the unseal keys are decrypted (rather
 # than being passed in via ansible_vault_unseal_keys.
 unseal_keys_decrypted: false

@@ -22,7 +22,8 @@
   any_errors_fatal: true
   block:
     - name: Initialise first vault node
-      import_tasks: subtasks/init_first_node.yml
+      import_role:
+        name: bbcrd.ansible_vault.init_first_node
       tags:
         - ansible_vault_init_first_node
     
