@@ -34,7 +34,8 @@
         - ansible_vault_unseal
     
     - name: Propagate encrypted unseal keys to new nodes
-      import_tasks: subtasks/propagate_unseal_keys.yml
+      import_role:
+        name: bbcrd.ansible_vault.propagate_unseal_keys
       tags:
         - ansible_vault_propagate_unseal_keys
     
