@@ -1,7 +1,4 @@
 ---
-# The Vault clustering API URL assembled from the various
-# ansible_vault_clustering_* variables
-ansible_vault_clustering_url: "https://{{ ansible_vault_clustering_address }}:{{ ansible_vault_clustering_port }}"
 
 # An enumeration of the unseal key shares to be created. A list of objects of
 # the following shape:

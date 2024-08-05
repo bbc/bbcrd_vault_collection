@@ -10,7 +10,8 @@
     - ansible_vault_install
 
 - name: Write Vault server configuration files
-  import_tasks: subtasks/configure_server.yml
+  import_role:
+    name: bbcrd.ansible_vault.configure_server
   tags:
     - ansible_vault_configure_server
 
