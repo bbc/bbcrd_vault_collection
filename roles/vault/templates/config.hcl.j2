@@ -5,7 +5,7 @@ storage "raft" {
   {%- for host in groups[ansible_vault_cluster_ansible_group_name] +%}
     {%- if host != inventory_hostname +%}
   retry_join {
-    leader_api_addr = "{{ ansible_vault_public_protocol }}://{{ hostvars[host]['ansible_vault_public_address'] }}:{{ ansible_vault_public_port }}"
+    leader_api_addr = "{{ hostvars[host]['ansible_vault_public_url'] }}"
       {%- if ansible_vault_ca_path is defined +%}
     leader_ca_cert_file = "{{ ansible_vault_ca_path }}"
       {%- endif +%}

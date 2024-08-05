@@ -69,10 +69,7 @@ ansible_vault_listen_protocol: "https"
 ansible_vault_listen_address: "0.0.0.0"
 ansible_vault_listen_port: 8200
 
-# The protocol, hostname/IP and port the Vault server is reachable from
-# publicly.
-#
-# The protocol and port must be the same on all hosts in a cluster.
+# The base URL the server's API is reachable from publicly.
 #
 # In a simple setup, this may be the same as the `ansible_vault_listen_*`
 # variables above.
@@ -82,18 +79,23 @@ ansible_vault_listen_port: 8200
 # differ. For example, you may listen on HTTP on 127.0.0.1 but have a public
 # interface using HTTPS on some public IP address.
 #
-# Warning: Whilst 'ansible_vault_public_address' is defined as a default here,
-# it *must* be defined for hosts using this role due to a limitation of
-# Ansible.  You're welcome to copy this default, of course!
-ansible_vault_public_protocol: "{{ ansible_vault_listen_protocol }}"
-ansible_vault_public_address: "{{ ansible_host | default(inventory_hostname) }}"
-ansible_vault_public_port: "{{ ansible_vault_listen_port }}"
+# XXX: Whilst 'ansible_vault_public_url' is defined as a default here, it
+# *must* be defined for hosts using this role due to a limitation of Ansible.
+# You're welcome to copy this default, of course!
+ansible_vault_public_url: >-
+  {{
+    ansible_vault_listen_protocol
+  }}://{{
+    ansible_host | default(inventory_hostname)
+  }}:{{
+    ansible_vault_listen_port
+  }}
 
 # The address and port used for the Vault clustering API endpoint.
 #
 # NB: Regardless of the API protocol selected, Vault always uses HTTPS for its
 # clustering API.
-ansible_vault_clustering_address: "{{ ansible_vault_public_address }}"
+ansible_vault_clustering_address: "{{ ansible_host | default(inventory_hostname) }}"
 ansible_vault_clustering_port: 8201
 
 
