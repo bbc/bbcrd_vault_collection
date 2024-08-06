@@ -48,7 +48,7 @@
     
     # Needed to monitor the cluster's health
     - name: Obtain root token
-      when: not ansible_vault_allow_loss_of_quorum
+      when: not ansible_vault_allow_loss_of_quorum_on_restart
       import_role:
         name: bbcrd.ansible_vault.generate_root
 

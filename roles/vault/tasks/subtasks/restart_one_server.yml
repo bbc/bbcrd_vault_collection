@@ -1,9 +1,9 @@
 ---
 # Restart (then unseal) a single vault server specified by the variable 'target
 
-# Unless ansible_vault_allow_loss_of_quorum is set, we'll refuse to restart a
-# server which would result in the cluster becoming unavailable due to a loss
-# of quorum.
+# Unless ansible_vault_allow_loss_of_quorum_on_restart is set, we'll refuse to
+# restart a server which would result in the cluster becoming unavailable due
+# to a loss of quorum.
 #
 # Note that in the case of a vault instance already being down for some reason
 # its being restarted will not contribute to the cluster's health. We'll allow
@@ -16,7 +16,7 @@
 # restarted and is not yet back in the cluster.
 - name: "Check that restarting {{ target }} would not result in downtime"
   run_once: true
-  when: not ansible_vault_allow_loss_of_quorum
+  when: not ansible_vault_allow_loss_of_quorum_on_restart
   no_log: "{{ ansible_vault_no_log_sensitive }}"
   uri:
     # vault operator raft autopilot state

@@ -1,0 +1,12 @@
+---
+
+# If set to False, this role will refuse to remove nodes from the cluster when
+# it would cause the cluster to fall out of quorum.
+#
+# Only set to True with caution. If enough nodes are removed, recovering the
+# cluster requires recovering existing but nodes until quorum is achieved
+# again. If this is not possible, a manual 'peers.json' recovery must be
+# performed.
+# (https://developer.hashicorp.com/vault/docs/concepts/integrated-storage#manual-recovery-using-peers-json)
+ansible_vault_allow_loss_of_quorum_on_cluster_node_removal: false
+
