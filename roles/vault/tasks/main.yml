@@ -57,7 +57,8 @@
     
     
     - name: Rekey unseal keys (e.g. to add/remove admins)
-      import_tasks: subtasks/rekey.yml
+      import_role:
+        name: bbcrd.ansible_vault.rekey
       tags:
         - ansible_vault_rekey
     
