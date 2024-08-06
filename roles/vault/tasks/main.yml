@@ -50,7 +50,8 @@
     # will be in a state where we can safely restart a server without causing
     # an outage.
     - name: Restart vault servers if required
-      import_tasks: subtasks/restart.yml
+      import_role:
+        name: bbcrd.ansible_vault.restart
       tags:
         - ansible_vault_restart
     

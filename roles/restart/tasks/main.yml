@@ -1,9 +1,4 @@
 ---
-# Restart (and unseal) vault servers in a rolling-fashion.
-#
-# By default will only restart servers running out-of-date versions of Vault.
-# Alternatively, a list of servers to restart is set via the
-# ansible_vault_restart_servers variable.
 
 - name: Check vault versions
   when: ansible_vault_restart_servers is none
