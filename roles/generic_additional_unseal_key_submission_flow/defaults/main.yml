@@ -1,0 +1,15 @@
+---
+
+# If true, skip interactive confirmation (and verification of the nonce, if
+# applicable) before supplying additional unseal keys.
+ansible_vault_skip_additional_unseal_confirmation: false
+
+# If True, send API commands to a single node (with run once), if False, send
+# them to all nodes.
+submit_once: true
+
+# A list of valid status codes for the status_api_url
+#
+# NB: 400 returned by verify endpoint when no verification is in progress.
+# NB: 503 returned if vault is sealed
+status_status_code: [200, 503]
