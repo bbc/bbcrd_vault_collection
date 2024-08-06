@@ -1,0 +1,18 @@
+---
+
+# Override: Set to a list of servers to be restarted (and unsealed again)
+# one-by-one, in the order specified during the execution of the role.
+#
+# If null, only servers running an out-of-date vault binary will be restarted.
+#
+# If an empty list, no servers will be restarted, even if some are running an
+# out-of-date version.
+#
+# If a list, exactly the listed set of servers will be restarted, regardless of
+# what Vault versions are in use.
+ansible_vault_restart_servers: null
+
+
+# If set to False, this role will refuse to restart cluster nodes when doing so
+# would cause the cluster to fall out of quorum during the restart.
+ansible_vault_allow_loss_of_quorum_on_restart: false
