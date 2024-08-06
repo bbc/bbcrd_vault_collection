@@ -1,29 +1,5 @@
 ---
 
-# This set of tasks implements the generic flow in which additional unseal keys
-# are decrypted then presented to a vault API by a second vault administrator.
-#
-# The following variables must be set:
-#
-#   status_api_url -- The API endpoint to poll to monitor the status of key
-#                     submission.
-#   submit_api_url -- The API endpoint to POST the final unseal key to.
-#   submit_once -- Should status/submit API endpoints be hit on one host or all
-#                  hosts?
-#   purpose -- A human readable string stating what the unseal keys are being
-#              used for (e.g. 'to unseal vault' or 'for verification')
-#   encrypted_unseal_keys_filename -- (Optional.) The filename to pull
-#                                     encrypted unseal keys from. See
-#                                     the decrypt_unseal_keys role.
-#   status_status_code -- A list of valid status codes for the status_api_url.
-#                         Defaults to [200]
-#
-# If these requests should be sent to only one host (rather than all hosts),
-# you must use run_once on the `import_tasks` task.
-#
-# Will supply all but the last key required. The final key is always left to be
-# submitted by the main caller of the playbook.
-
 - name: "Fetch unseal key submission state {{ purpose }}"
   run_once: "{{ submit_once }}"
   uri:
@@ -31,7 +7,7 @@
     ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
     # NB: 400 returned by verify endpoint when no verification is in progress.
     # NB: 503 returned if vault is sealed
-    status_code: "{{ status_status_code | default([200, 503]) }}"
+    status_code: "{{ status_status_code }}"
   register: status
 
 - name: "Determine if an unseal key submission is taking place"

@@ -12,7 +12,8 @@
 #
 
 - name: Provide keys for unsealing vault
-  import_tasks: subtasks/generic_additional_unseal_key_flow.yml
+  import_role:
+    name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
   vars:
     purpose: "to unseal vault"
     submit_once: false
@@ -23,7 +24,8 @@
   tags: ansible_vault_supply_unseal_keys
 
 - name: Supply unseal keys for root token generation
-  import_tasks: subtasks/generic_additional_unseal_key_flow.yml
+  import_role:
+    name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
   vars:
     purpose: "to generate a root token"
     submit_once: true
@@ -48,7 +50,8 @@
   # erroneously submitting keys at this point we pre-check to make sure
   # verification is not taking place.
   when: verify_status.json.nonce | default("") == ""
-  import_tasks: subtasks/generic_additional_unseal_key_flow.yml
+  import_role:
+    name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
   vars:
     purpose: "to rekey vault"
     submit_once: true
@@ -58,7 +61,8 @@
   tags: ansible_vault_supply_rekey_keys
 
 - name: Supply candidate unseal keys to verify rekey
-  import_tasks: subtasks/generic_additional_unseal_key_flow.yml
+  import_role:
+    name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
   vars:
     purpose: "to verify new unseal keys"
     submit_once: true
@@ -68,3 +72,4 @@
     encrypted_unseal_keys_filename: "encrypted_unseal_keys.json.candidate"
     status_status_code: [200, 400, 503]  # Returns 400 when no verification in progress
   tags: ansible_vault_supply_verify_keys
+
