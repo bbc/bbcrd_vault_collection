@@ -2,10 +2,6 @@
 # Safety overrides
 ################################################################################
 
-# If set to True, skips the sanity check during new cluster initialisation that
-# the playbook is running against all cluster nodes.
-ansible_vault_skip_cluster_init_sanity_check: false
-
 # If true, skip interactive confirmation (and verification of the nonce, if
 # applicable) before supplying additional unseal keys.
 ansible_vault_skip_additional_unseal_confirmation: false
