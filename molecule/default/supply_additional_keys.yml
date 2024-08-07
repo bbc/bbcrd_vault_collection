@@ -8,16 +8,14 @@
 # Playbook executed via the ansible_vault_provide_additional_unseal_keys_tasks
 # hook (which calls tests/run_command.yml which runs this playbook).
 
-- name: Supply additional keys
+- name: Load PGP keys
   hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
-  
   tasks:
     - name: "Set ansible_vault_administrators and ansible_vault_pgp_key_fingerprints"
       import_tasks: set_pgp_variables.yml
       tags: always
-  
-    - include_role:
-        name: bbcrd.ansible_vault.vault
-        tasks_from: supply_additional_keys.yml
-      vars:
-        ansible_vault_skip_additional_unseal_confirmation: true
+
+- name: Supply additional unseal keys
+  vars:
+    ansible_vault_skip_additional_unseal_confirmation: true
+  import_playbook: bbcrd.ansible_vault.supply_additional_keys
