@@ -26,3 +26,16 @@ You can alternatively just fetch the encrypted unseal key bundle into
 
 When used this way, the role will always fetch the encrypted unseal keys from
 scratch.
+
+
+Clearing decrypted unseal keys
+------------------------------
+
+The `clear.yml` utility task is included in this role which will automatically
+clear the `ansible_vault_unseal_keys` variable iff it was set by this role.
+(The `unseal_keys_decrypted` variable is set by this role during decryption and
+used to decide whehter to clear the unseal keys or not).
+
+    - import_role:
+        name: bbcrd.ansible_vault.decrypt_unseal_keys
+        tasks_from: clear.yml

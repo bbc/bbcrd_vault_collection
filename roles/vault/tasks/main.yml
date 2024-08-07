@@ -68,15 +68,13 @@
   
   always:
     - name: Revoke any generated root tokens
-      
       import_role:
         name: bbcrd.ansible_vault.generate_root
         tasks_from: revoke.yml
       tags: always
     
-    - name: Clear decrypted unseal keys
-      when: unseal_keys_decrypted
-      run_once: true
-      set_fact:
-        ansible_vault_unseal_keys: null
+    - name: Clear any decrypted unseal keys
+      import_role:
+        name: bbcrd.ansible_vault.decrypt_unseal_keys
+        tasks_from: clear.yml
       tags: always
