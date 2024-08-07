@@ -11,16 +11,16 @@
 #   included in the Ansible data in ansible_vault_administrators. Defaults to
 #   ['test-user-1'].
 
-- name: Converge
+- name: Set PGP variables
   hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
   
-  pre_tasks:
+  tasks:
     - name: "Set ansible_vault_administrators and ansible_vault_pgp_key_fingerprints"
       import_tasks: set_pgp_variables.yml
       tags: always
   
-  roles:
-    - name: bbcrd.ansible_vault.vault
+- name: Run main vault installation/management playbook
+  import_playbook: bbcrd.ansible_vault.manage_vault_cluster
 
 
 - name: Clean up any non-cluster memebers
