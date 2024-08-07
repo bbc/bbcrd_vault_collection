@@ -60,7 +60,7 @@
   when:
     - ansible_vault_provide_additional_unseal_keys_tasks is not none
     - (remaining | int) - 1 > 0
-  import_tasks: "{{ ansible_vault_provide_additional_unseal_keys_tasks or 'nop.yml' }}"
+  include_tasks: "{{ ansible_vault_provide_additional_unseal_keys_tasks or 'nop.yml' }}"
   vars:
     required: "{{ (remaining | int) - 1 }}"
 
