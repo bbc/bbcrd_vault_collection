@@ -1,5 +1,0 @@
----
-
-# The default set of tasks for this role which attempts to install, unseal and
-# configure a vault cluster.
-
