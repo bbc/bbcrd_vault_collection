@@ -50,7 +50,7 @@
           import_role:
             name: bbcrd.ansible_vault.remove_old_cluster_nodes
           tags:
-            - ansible_vault_remove_old_nodes
+            - ansible_vault_remove_old_cluster_nodes
         
         # NB: This process is deliberately perormed *after* unsealing and pruning
         # the cluster of old nodes since it maximises the chances that the cluster
@@ -78,10 +78,14 @@
           import_role:
             name: bbcrd.ansible_vault.generate_root
             tasks_from: revoke.yml
-          tags: always
+          tags:
+            - always
+            - ansible_vault_revoke_root_token
         
         - name: Clear any decrypted unseal keys
           import_role:
             name: bbcrd.ansible_vault.decrypt_unseal_keys
             tasks_from: clear.yml
-          tags: always
+          tags:
+            - always
+            - ansible_vault_clear_unesal_keys
