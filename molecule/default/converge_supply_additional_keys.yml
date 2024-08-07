@@ -34,6 +34,27 @@
       systemd:
         name: vault
         state: restarted
+    
+    - name: Set up additional key supply script
+      # NB The following are done in set_fact to capture current playbook name
+      set_fact:
+        # Supply the extra unseal key by running the supply_additional_keys.yml
+        # playbook
+        ansible_vault_provide_additional_unseal_keys_tasks: "{{ playbook_dir }}/tests/run_command.yml"
+        
+        run_command_argv:
+          - ansible-playbook
+          - --inventory
+          - "{{ inventory_dir }}"
+          - "{{ playbook_dir }}/supply_additional_keys.yml"
+          - --extra-vars
+          - |-
+            {{
+              {
+                "enabled_administrators": ["test-user-1", "test-user-2", "test-user-3"],
+                "playbook_administrator_name": "test-user-3",
+              } | to_json
+            }}
 
 
 - name: Verify two administrators can work together to supply unseal keys
@@ -47,23 +68,6 @@
     
     # Make sure we test supply of unseal keys for the rekeying flow.
     ansible_vault_force_rekey: true
-    
-    # Supply the extra unseal key by running the supply_additional_keys.yml
-    # playbook 
-    ansible_vault_provide_additional_unseal_keys_tasks: "{{ playbook_dir }}/tests/run_command.yml"
-    run_command_argv:
-      - ansible-playbook
-      - --inventory
-      - "{{ inventory_dir }}"
-      - "{{ playbook_dir }}/supply_additional_keys.yml"
-      - --extra-vars
-      - |-
-        {{
-          {
-            "enabled_administrators": ["test-user-1", "test-user-2", "test-user-3"],
-            "playbook_administrator_name": "test-user-3",
-          } | to_json
-        }}
 
 - name: Revert to single administrator
   import_playbook: converge.yml
@@ -81,3 +85,7 @@
       assert:
         that: unseal_key_users | sort == ['test-user-1', 'test-user-1', 'test-user-1']
         quiet: true
+    
+    - name: Disable additional key supply script
+      set_fact:
+        ansible_vault_provide_additional_unseal_keys_tasks: null

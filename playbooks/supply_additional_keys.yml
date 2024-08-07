@@ -1,8 +1,7 @@
 ---
 
-# This playbook is intended for use by vault administrators to submit
-# additional unseal keys to assist someone else running one of the "main"
-# roles/playbooks.
+# Submit additional unseal keys to assist another vault administrator running
+# one of the "main" roles/playbooks.
 #
 # This playbook will check for whether unseal keys are actively needed for any
 # of the following tasks and automatically submit as many unseal keys as
