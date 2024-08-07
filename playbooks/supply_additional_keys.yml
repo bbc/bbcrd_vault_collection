@@ -1,0 +1,92 @@
+---
+
+# This playbook is intended for use by vault administrators to submit
+# additional unseal keys to assist someone else running one of the "main"
+# roles/playbooks.
+#
+# This playbook will check for whether unseal keys are actively needed for any
+# of the following tasks and automatically submit as many unseal keys as
+# possible up to the number required.
+#
+# * Unsealing a vault node (or nodes)
+# * Generating a root token
+# * Rekeying
+# * Verifying new unseal keys (during rekeying)
+#
+# Prior to submitting keys, the playbook will interactively confirm unseal key
+# submission. For most operations this will include a nonce for the current
+# operation. You should confirm that this matches the nonce reported by your
+# colleague running the main role/playbook. This verifies that unseal keys are
+# being submitted in service of the person/task you think they are!
+#
+# See documentation for the
+# `bbcrd.ansible_vault.generic_unseal_key_submission_flow` and
+# `bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow` roles for
+# more details of this process.
+
+- name: Supply additional unseal keys to assist another administrator
+  hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+
+  tasks:
+    - name: Provide keys for unsealing vault
+      import_role:
+        name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+      vars:
+        purpose: "to unseal vault"
+        submit_once: false
+        # vault status
+        status_api_url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+        # vault operator unseal
+        submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
+      tags: ansible_vault_supply_unseal_keys
+
+    - name: Supply unseal keys for root token generation
+      import_role:
+        name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+      vars:
+        purpose: "to generate a root token"
+        submit_once: true
+        status_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+        # vault operator generate-root ...
+        submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/update"
+      tags: ansible_vault_supply_generate_root_keys
+
+    - name: "Check if rekey verification in progress"
+      run_once: true
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        # NB: 400 returned by verify endpoint when no verification is in progress.
+        # NB: 503 returned if vault is sealed
+        status_code: [200, 400, 503]
+      register: verify_status
+
+    - name: Supply unseal keys for rekeying
+      # NB: The rekeying endpoint does not provide any indication that rekeying has
+      # completed and that verification is in progress. As such, to avoid
+      # erroneously submitting keys at this point we pre-check to make sure
+      # verification is not taking place.
+      when: verify_status.json.nonce | default("") == ""
+      import_role:
+        name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+      vars:
+        purpose: "to rekey vault"
+        submit_once: true
+        status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
+        # vault operator rekey
+        submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/update"
+      tags: ansible_vault_supply_rekey_keys
+
+    - name: Supply candidate unseal keys to verify rekey
+      import_role:
+        name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+      vars:
+        purpose: "to verify new unseal keys"
+        submit_once: true
+        status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+        # vault operator rekey -verify ...
+        submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+        encrypted_unseal_keys_filename: "encrypted_unseal_keys.json.candidate"
+        status_status_code: [200, 400, 503]  # Returns 400 when no verification in progress
+      tags: ansible_vault_supply_verify_keys
+
