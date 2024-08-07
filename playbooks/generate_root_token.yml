@@ -1,0 +1,38 @@
+---
+
+# Generate an ephemeral root token for the vault cluster using unseal keys.
+#
+# This playbook generates an ephemeral root token and is intended for
+# interactive use. Root tokens should only for use in emergencies or unusual
+# situations (e.g. any non-automated setup steps).
+#
+# The generated root token will be revoked when the playbook exits and will in
+# any case have a lifetime limited by ansible_vault_root_token_ttl.
+
+- name: Generate an ephemeral root token
+  hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+
+  tasks:
+    - name: Obtain root token
+      import_role:
+        name: bbcrd.ansible_vault.generate_root
+    
+    - block:
+        - name: Display root token
+          run_once: true
+          debug:
+            msg:
+              ansible_vault_root_token: "{{ ansible_vault_root_token }}"
+              ansible_vault_root_token_ttl: "{{ ansible_vault_root_token_ttl }}"
+    
+    
+        - name: Wait for user to confirm finished with root token
+          run_once: true
+          pause:
+            prompt: "Press enter to revoke root token {{ ansible_vault_root_token }}"
+    
+      always:
+        - name: Revoke root token
+          import_role:
+            name: bbcrd.ansible_vault.generate_root
+            tasks_from: revoke.yml
