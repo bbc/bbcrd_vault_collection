@@ -50,7 +50,8 @@ Key submission consists of three phases:
    save at least one of our unseal keys to use later.
 
 2. Next we wait for others to submit all but the last unseal key.
-   TODO: Point to role to use for this purpose.
+   This can be done using the `bbcrd.ansible_vault.supply_additional_keys`
+   playbook.
 
 3. Finally we submit our own last unseal key and capture whatever output is
    produced at that point.
