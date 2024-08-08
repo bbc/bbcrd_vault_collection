@@ -69,10 +69,6 @@
           tags:
             - ansible_vault_rekey
         
-        # TODO: We should probably provide some facility for deploying vault
-        # service configuration at this point (e.g. loading up policies and secrets
-        # engines etc.)
-      
       always:
         - name: Revoke any generated root tokens
           import_role:
