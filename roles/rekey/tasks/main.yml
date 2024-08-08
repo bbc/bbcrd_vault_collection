@@ -132,8 +132,6 @@
                 "encrypted_unseal_keys.json"
               }}
     
-    # XXX: We need some way to override this in the same way we can avoid use
-    # of this mechanism elsewhere.
     - name: "Obtain new candidate unseal key"
       when: ansible_vault_verify_rekey
       import_role:
