@@ -8,6 +8,7 @@
 
 - name: Setup and manage a Vault cluster
   hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+  become: "{{ ansible_vault_become | default(True) }}"
   
   tasks:
     - name: Install Vault software and systemd service
