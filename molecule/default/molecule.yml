@@ -154,6 +154,8 @@ provisioner:
   inventory:
     group_vars:
       vault_all:
+        ansible_vault_become: false
+        
         ansible_vault_version: "1.17.1"
         
         # Older version used in version upgrade/downgrade tests

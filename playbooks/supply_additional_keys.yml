@@ -25,6 +25,7 @@
 
 - name: Supply additional unseal keys to assist another administrator
   hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+  become: "{{ ansible_vault_become | default(True) }}"
 
   tasks:
     - name: Provide keys for unsealing vault

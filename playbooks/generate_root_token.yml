@@ -11,6 +11,7 @@
 
 - name: Generate an ephemeral root token
   hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+  become: "{{ ansible_vault_become | default(True) }}"
 
   tasks:
     - name: Obtain root token
