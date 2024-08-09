@@ -36,7 +36,7 @@
       debug:
         msg: |-
           {{
-            (existing_fingerprints_and_names | ndiff(new_fingerprints_and_names))
+            (existing_fingerprints_and_names | bbcrd.ansible_vault.ndiff(new_fingerprints_and_names))
             if existing_fingerprints_and_names != new_fingerprints_and_names else
             "(unseal key holders not changed)"
           }}
