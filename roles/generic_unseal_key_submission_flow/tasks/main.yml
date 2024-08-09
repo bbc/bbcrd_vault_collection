@@ -20,7 +20,7 @@
   set_fact:
     remaining: |-
       {{
-        status.json.t | default(status.json.required)
+        status.json.required | default(status.json.t)
         - status.json.progress
       }}
 
@@ -52,7 +52,7 @@
   set_fact:
     remaining: |-
       {{
-        status.json.t | default(status.json.required)
+        status.json.required | default(status.json.t)
         - status.json.progress
       }}
 
