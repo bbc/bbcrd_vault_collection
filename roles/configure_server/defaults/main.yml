@@ -48,3 +48,10 @@ ansible_vault_clustering_port: >-
 # be specified
 ansible_vault_tls_cert_file: "{{ ansible_vault_data_dir }}/tls.crt"
 ansible_vault_tls_key_file: "{{ ansible_vault_data_dir }}/tls.key"
+
+
+################################################################################
+# Web UI
+################################################################################
+
+ansible_vault_enable_ui: true
