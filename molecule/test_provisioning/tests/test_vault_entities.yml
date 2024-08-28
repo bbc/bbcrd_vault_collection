@@ -1,0 +1,165 @@
+---
+
+- hosts: vault
+  tasks:
+    - import_tasks: ../load_credentials_and_reset_vault.yml
+    
+    ################################################################################
+    # Entity testing
+    ################################################################################
+    
+    - name: Check nothing is done when no entities are specified
+      bbcrd.ansible_vault.vault_entities:
+        entities: {}
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Check creating entities (no aliases yet)
+      bbcrd.ansible_vault.vault_entities:
+        entities:
+          minimal: {}
+          populated:
+            metadata:
+              foo: bar
+          deleted: null
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check no change when applied again
+      bbcrd.ansible_vault.vault_entities:
+        entities:
+          minimal: {}
+          populated:
+            metadata:
+              foo: bar
+          deleted: null
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Check changing metadata causes change
+      bbcrd.ansible_vault.vault_entities:
+        entities:
+          minimal: {}
+          populated:
+            metadata:
+              foo: baz
+          deleted: null
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check changing policies causes change
+      bbcrd.ansible_vault.vault_entities:
+        entities:
+          minimal: {}
+          populated:
+            metadata:
+              foo: baz
+            policies:
+              - default
+          deleted: null
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check expected entities exist
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/entity/name"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: vault_list_entities
+      failed_when: |-
+        (vault_list_entities.json.data["keys"] | sort)
+        !=
+        (["populated", "minimal"] | sort)
+    
+    ################################################################################
+    # Entity-alias testing
+    ################################################################################
+    
+    - name: Create an example auth method for use by entity-alias
+      bbcrd.ansible_vault.vault_auth_methods:
+        auth_methods:
+          userpass:
+            type: userpass
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+    
+    - name: Create an example user
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/auth/userpass/users/AzureDiamond"
+        method: POST
+        body_format: json
+        body:
+          password: "hunter2"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+        status_code: [200, 204]
+    
+    - name: Check adding entity alias
+      bbcrd.ansible_vault.vault_entities:
+        entities:
+          testuser:
+            aliases:
+              - name: AzureDiamond
+                auth_mount: userpass/
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: testuser_creation
+    
+    - name: Auth using example username/password
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/auth/userpass/login/AzureDiamond"
+        method: POST
+        body_format: json
+        body:
+          password: "hunter2"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: login
+    
+    - name: Verify that user to entity relationship exists as expected
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/auth/token/lookup-self"
+        headers:
+          X-Vault-Token: "{{ login.json.auth.client_token }}"
+      register: lookup
+      failed_when:
+        lookup.json.data.entity_id != testuser_creation.entities.testuser.id
+    
+    - name: Check removing entity alias
+      bbcrd.ansible_vault.vault_entities:
+        entities:
+          testuser:
+            aliases: []
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+    
+    - name: Auth again using example username/password
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/auth/userpass/login/AzureDiamond"
+        method: POST
+        body_format: json
+        body:
+          password: "hunter2"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: login
+    
+    - name: Verify that user to entity relationship is absent
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/auth/token/lookup-self"
+        headers:
+          X-Vault-Token: "{{ login.json.auth.client_token }}"
+      register: lookup
+      failed_when:
+        lookup.json.data.entity_id is none
