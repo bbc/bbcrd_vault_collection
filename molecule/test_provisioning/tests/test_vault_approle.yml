@@ -1,0 +1,78 @@
+---
+
+- hosts: vault
+  tasks:
+    - import_tasks: ../load_credentials_and_reset_vault.yml
+    
+    - name: Enable AppRole auth
+      bbcrd.ansible_vault.vault_auth_methods:
+        auth_methods:
+          approle:
+            type: approle
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+    
+    - name: Check nothing done when absent approle doesn't exist
+      bbcrd.ansible_vault.vault_approle:
+        name: "does-not-exist"
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Create a new approle
+      bbcrd.ansible_vault.vault_approle:
+        name: "my-approle"
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check created a role
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/auth/approle/role/my-approle"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+    
+    - name: Do not recreate if not changed
+      bbcrd.ansible_vault.vault_approle:
+        name: "my-approle"
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Do recreate on change
+      bbcrd.ansible_vault.vault_approle:
+        name: "my-approle"
+        parameters:
+          token_ttl: 100
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check role edited
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/auth/approle/role/my-approle"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.json.data.token_ttl != 100
+    
+    - name: Delete
+      bbcrd.ansible_vault.vault_approle:
+        name: "my-approle"
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check role deleted
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/auth/approle/role/my-approle"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+        status_code: 404
