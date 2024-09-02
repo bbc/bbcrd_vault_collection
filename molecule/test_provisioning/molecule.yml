@@ -36,6 +36,7 @@ scenario:
     
     # NB: Each group of tests executes as a 'side effect'. There is no converge
     # step.
+    - side_effect tests/test_vault_auth_methods.yml
     
     - cleanup
     - destroy
