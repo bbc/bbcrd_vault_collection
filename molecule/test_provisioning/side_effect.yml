@@ -1,0 +1,4 @@
+# This file is intentionally blank to work around molecule issue #3617, making
+# it possible for molecule to run other side effect playbooks.
+#
+# See: https://github.com/ansible/molecule/issues/3617

@@ -1,0 +1,91 @@
+---
+
+# In this simpler test deployment we forego the complexities of clustered vault
+# with PGP based authentication. Instead we store the unesal key and root token
+# unencrypted in `/vault_credentials` on the vault host to be loaded as
+# required.
+
+- name: Setup apt
+  hosts: all
+  tasks:
+    - name: Configure apt proxy settings
+      lineinfile:
+        path: "/etc/apt/apt.conf.d/50_proxy"
+        regexp: '^Acquire::{{ item | regex_escape }}::Proxy .*'
+        line: 'Acquire::{{ item | regex_escape }}::Proxy "{{ ansible_env[item ~ "_proxy"] }}";'
+        create: true
+      when: 'ansible_env[item ~ "_proxy"] | default("")'
+      loop:
+        - http
+        - https
+    
+    - name: Populate apt cache
+      apt:
+        update_cache: true
+
+- name: Setup vault server
+  hosts: vault
+  tasks:
+    - name: Install vault
+      import_role:
+        name: bbcrd.ansible_vault.install
+    
+    - name: Configure vault
+      import_role:
+        name: bbcrd.ansible_vault.configure_server
+
+    - name: Start vault
+      systemd:
+        name: vault
+        state: started
+
+    - name: Check if vault is initialised
+      uri:
+        # vault status
+        url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+      retries: 5
+      delay: 5
+      until: vault_status.status == 200  # i.e. connection successful
+      register: vault_status
+    
+    - when: not vault_status.json.initialized
+      block:
+        - name: Initialise vault
+          uri:
+            # vault operator init
+            url: "{{ ansible_vault_public_url }}/v1/sys/init"
+            method: POST
+            body_format: json
+            body:
+              secret_shares: 1
+              secret_threshold: 1
+          changed_when: true
+          register: vault_init
+        
+        - name: Unseal vault
+          when: vault_status.json.sealed
+          uri:
+            # vault operator unseal
+            url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
+            method: POST
+            body_format: json
+            body:
+              key: "{{ vault_init.json.keys_base64[0] }}"
+          changed_when: true
+          register: vault_unseal
+          failed_when: vault_unseal.json.sealed
+        
+        # Remember: Don't do anything like this unless you're in a test environment
+        # like this! :)
+        - name: Store unseal keys and root token credentials
+          copy:
+            content: "{{ vault_init.json | to_nice_json }}"
+            dest: "/vault_credentials"
+        
+        - name: Create a snapshot of the pristine vault database
+          get_url:
+            # vault operator raft snapshot save /vault_snapshot
+            url: "{{ ansible_vault_public_url }}/v1/sys/storage/raft/snapshot"
+            dest: "/vault_snapshot"
+            headers:
+              X-Vault-Token: "{{ vault_init.json.root_token }}"

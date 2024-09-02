@@ -1,0 +1,60 @@
+---
+driver:
+  name: docker
+
+platforms:
+  # Two groups are defined: vault and vault_all. The vault_all group contains
+  # all of the nodes in vault along with an extra pair of nodes.
+  
+  - name: vault
+    groups:
+      - vault
+    image: docker.io/geerlingguy/docker-ubuntu2204-ansible
+    pre_build_image: true
+    override_command: false
+    
+    # Pass-through any proxy config
+    env:
+      http_proxy: "$http_proxy"
+      https_proxy: "$https_proxy"
+      no_proxy: "vault,$no_proxy"
+    
+    # Required to run systemd within docker
+    privileged: true
+    cgroupns_mode: host
+    volumes:
+      - "/sys/fs/cgroup:/sys/fs/cgroup:rw"
+
+scenario:
+  test_sequence:
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    
+    # NB: Each group of tests executes as a 'side effect'. There is no converge
+    # step.
+    
+    - cleanup
+    - destroy
+
+provisioner:
+  config_options:
+    connection:
+      pipelining: true
+  
+  inventory:
+    group_vars:
+      vault:
+        ansible_vault_version: "1.17.1"
+        
+        # No real secrets in the test suite!
+        ansible_vault_no_log_sensitive: false
+        
+        # Use HTTP to avoid need to setup certificates in test environment
+        ansible_vault_listen_protocol: http
+        
+        ansible_vault_public_url: "http://{{ ansible_host | default(inventory_hostname) }}:8200"
+
