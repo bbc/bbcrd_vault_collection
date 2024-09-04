@@ -40,6 +40,7 @@ scenario:
     - side_effect tests/test_vault_entities.yml
     - side_effect tests/test_vault_policy.yml
     - side_effect tests/test_vault_approle.yml
+    - side_effect tests/test_vault_approle_secret.yml
     
     - cleanup
     - destroy
