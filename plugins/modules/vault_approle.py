@@ -59,6 +59,14 @@ options:
         default: null
 """
 
+RETURN = r"""
+role_id:
+    description: |-
+        The role ID
+    type: str
+    returned: if present
+"""
+
 EXAMPLES = r"""
 - name: Create an AppRole role
   bbcrd.ansible_vault.vault_approle:
@@ -109,6 +117,9 @@ def run_module():
                 method="POST",
                 data=parameters,
             )
+        
+        # Get role ID
+        result["role_id"] = vault_api_request(module, f"/v1/auth/{mount}/role/{name}/role-id")["data"]["role_id"]
 
     elif state == "absent":
         # Delete
