@@ -148,7 +148,8 @@ def run_module():
             module,
             f"/v1/auth/{mount}/role/{approle_name}/secret-id",
             method="LIST",
-        )["data"]["keys"]
+            expected_status=[200, 404],
+        ).get("data", {}).get("keys", [])
         for secret_id_accessor in secret_id_accessors:
             existing_secret_id = vault_api_request(
                 module,
