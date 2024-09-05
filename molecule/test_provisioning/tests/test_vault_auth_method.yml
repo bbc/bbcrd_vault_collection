@@ -4,25 +4,23 @@
   tasks:
     - import_tasks: ../load_credentials_and_reset_vault.yml
     
-    - name: Create nothing
-      bbcrd.ansible_vault.vault_auth_methods:
-        auth_methods: {}
+    - name: Delete nothing
+      bbcrd.ansible_vault.vault_auth_method:
+        type: oidc
+        state: absent
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
       register: result
       failed_when: result.changed
     
-    - name: Create auth methods
-      bbcrd.ansible_vault.vault_auth_methods:
-        auth_methods:
-          my_github:
-            type: github
-          my_userpass:
-            type: userpass
+    - name: Create auth method
+      bbcrd.ansible_vault.vault_auth_method:
+        type: github
+        mount: my_github
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
       register: result
-      failed_when:  not result.changed
+      failed_when: not result.changed
     
     - name: Check created as expected
       uri:
@@ -34,31 +32,23 @@
       failed_when: |-
         not (
             "my_github/" in auth_methods.json.data and
-            "my_userpass/" in auth_methods.json.data and
-            auth_methods.json.data["my_github/"]["type"] == "github" and
-            auth_methods.json.data["my_userpass/"]["type"] == "userpass"
+            auth_methods.json.data["my_github/"]["type"] == "github"
         )
     
     - name: No change if left same
-      bbcrd.ansible_vault.vault_auth_methods:
-        auth_methods:
-          my_github:
-            type: github
-          my_userpass:
-            type: userpass
+      bbcrd.ansible_vault.vault_auth_method:
+        type: github
+        mount: my_github
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
       register: result
       failed_when: result.changed
     
     - name: Delete and recreate when changed
-      bbcrd.ansible_vault.vault_auth_methods:
-        auth_methods:
-          my_github:
-            type: github
-          my_userpass:
-            type: userpass
-            description: "Newly added description!"
+      bbcrd.ansible_vault.vault_auth_method:
+        type: github
+        mount: my_github
+        description: "Newly added description!"
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
       register: result
@@ -73,29 +63,40 @@
       register: auth_methods
       failed_when: |-
         not (
-            auth_methods.json.data["my_userpass/"]["description"] == "Newly added description!"
+            auth_methods.json.data["my_github/"]["description"] == "Newly added description!"
         )
     
-    - name: Delete when requested
-      bbcrd.ansible_vault.vault_auth_methods:
-        auth_methods:
-          my_github:
-            type: github
-          my_userpass: null
+    - name: Delete
+      bbcrd.ansible_vault.vault_auth_method:
+        mount: my_github
+        state: absent
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
-    - name: Check change applied
+    - name: Check deleted
       uri:
         url: "{{ ansible_vault_public_url }}/v1/sys/auth"
         method: GET
         headers:
           X-Vault-Token: "{{ ansible_vault_root_token }}"
       register: auth_methods
-      failed_when: |-
-        not (
-            "my_github/" in auth_methods.json.data and
-            "my_userpass/" not in auth_methods.json.data
-        )
+      failed_when: '"my_github/" in auth_methods.json.data'
+    
+    - name: Check auto-fill mount
+      bbcrd.ansible_vault.vault_auth_method:
+        type: userpass
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check created
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/sys/auth"
+        method: GET
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: auth_methods
+      failed_when: '"userpass/" not in auth_methods.json.data'

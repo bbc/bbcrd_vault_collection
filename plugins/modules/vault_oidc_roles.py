@@ -53,10 +53,8 @@ options:
 
 EXAMPLES = r"""
 - name: Enable OIDC auth endpoint
-  bbcrd.ansible_vault.vault_auth_methods:
-    auth_methods:
-      oidc:
-        type: oidc
+  bbcrd.ansible_vault.vault_auth_method:
+    type: oidc
 
 - name: Configure OIDC
   bbcrd.ansible_vault.vault_oidc_configure:
