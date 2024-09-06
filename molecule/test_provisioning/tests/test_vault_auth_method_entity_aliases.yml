@@ -1,0 +1,149 @@
+---
+
+- hosts: vault
+  tasks:
+    - import_tasks: ../load_credentials_and_reset_vault.yml
+    
+    ################################################################################
+    # Entity testing
+    ################################################################################
+    
+    - name: Create auth method
+      bbcrd.ansible_vault.vault_auth_method:
+        type: oidc
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+    
+    - name: Check nothing is done when no entitity aliases are specified
+      bbcrd.ansible_vault.vault_auth_method_entity_aliases:
+        mount: oidc
+        entity_aliases: {}
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Create some entity aliases (and entities!)
+      bbcrd.ansible_vault.vault_auth_method_entity_aliases:
+        mount: oidc
+        entity_aliases:
+          # Simple alias-to-entity mappings
+          foo@example.com: Foo
+          # Long-form
+          bar@example.com:
+            entity_name: "Bar"
+          baz@example.com:
+            entity_name: "Baz"
+            custom_metadata:
+              oh: yeah
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check expected entities exist
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/entity/name"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: vault_list_entities
+      failed_when: |-
+        (vault_list_entities.json.data["keys"] | sort)
+        !=
+        (["Foo", "Bar", "Baz"] | sort)
+    
+    - name: Check entity-aliases exist
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/entity-alias/id"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: vault_list_entities
+      failed_when: |-
+        (vault_list_entities.json.data.key_info.values() | map(attribute="name") | sort)
+        !=
+        (["foo@example.com", "bar@example.com", "baz@example.com"] | sort)
+    
+    - name: No changes if everything already exists
+      bbcrd.ansible_vault.vault_auth_method_entity_aliases:
+        mount: oidc
+        entity_aliases:
+          foo@example.com: Foo
+          bar@example.com:
+            entity_name: "Bar"
+          baz@example.com:
+            entity_name: "Baz"
+            custom_metadata:
+              oh: yeah
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Changes if metadata added
+      bbcrd.ansible_vault.vault_auth_method_entity_aliases:
+        mount: oidc
+        entity_aliases:
+          foo@example.com: Foo
+          bar@example.com:
+            entity_name: "Bar"
+          baz@example.com:
+            entity_name: "Baz"
+            custom_metadata:
+              oh: yeah
+              this: is new
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Changes if metadata removed entirely
+      bbcrd.ansible_vault.vault_auth_method_entity_aliases:
+        mount: oidc
+        entity_aliases:
+          foo@example.com: Foo
+          bar@example.com:
+            entity_name: "Bar"
+          baz@example.com:
+            entity_name: "Baz"
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Changes if alias removed
+      bbcrd.ansible_vault.vault_auth_method_entity_aliases:
+        mount: oidc
+        entity_aliases:
+          foo@example.com: Foo
+          bar@example.com:
+            entity_name: "Bar"
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check entity-alias deleted
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/entity-alias/id"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: vault_list_entities
+      failed_when: |-
+        (vault_list_entities.json.data.key_info.values() | map(attribute="name") | sort)
+        !=
+        (["foo@example.com", "bar@example.com"] | sort)
+    
+    - name: Changes if alias' chosen entity changes
+      bbcrd.ansible_vault.vault_auth_method_entity_aliases:
+        mount: oidc
+        entity_aliases:
+          foo@example.com: Foo
+          bar@example.com:
+            entity_name: "Bar2"
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
