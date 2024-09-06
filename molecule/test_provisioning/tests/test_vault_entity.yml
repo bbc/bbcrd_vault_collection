@@ -1,0 +1,85 @@
+---
+
+- hosts: vault
+  tasks:
+    - import_tasks: ../load_credentials_and_reset_vault.yml
+    
+    ################################################################################
+    # Entity testing
+    ################################################################################
+    
+    - name: Check nothing is done when deleting non-existant entity
+      bbcrd.ansible_vault.vault_entity:
+        name: missing
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Check creation with defaults
+      bbcrd.ansible_vault.vault_entity:
+        name: foo
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check entity exists
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/entity/name/foo"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: entity
+      failed_when: |-
+        entity.json.data.metadata != {}
+        or entity.json.data.policies != []
+        or entity.json.data.disabled != False
+    
+    - name: Check no change
+      bbcrd.ansible_vault.vault_entity:
+        name: foo
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Check add metadata
+      bbcrd.ansible_vault.vault_entity:
+        name: foo
+        metadata:
+          bar: baz
+        policies:
+          - admin
+        disabled: true
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check entity changed
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/entity/name/foo"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: entity
+      failed_when: |-
+        entity.json.data.metadata != {"bar": "baz"}
+        or entity.json.data.policies != ["admin"]
+        or entity.json.data.disabled != True
+    
+    - name: Delete entity
+      bbcrd.ansible_vault.vault_entity:
+        name: foo
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check entity deleted
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/entity/name/foo"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+        status_code: 404
