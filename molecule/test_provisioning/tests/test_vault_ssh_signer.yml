@@ -1,0 +1,157 @@
+---
+
+- hosts: vault
+  tasks:
+    - import_tasks: ../load_credentials_and_reset_vault.yml
+    
+    - name: Check nothing is done if absent when not present to start with
+      bbcrd.ansible_vault.vault_ssh_signer:
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Check creates mount and generates CA on first run
+      bbcrd.ansible_vault.vault_ssh_signer:
+        ca:
+          generate_signing_key: true
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Get public key
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/ssh/public_key"
+        return_content: true
+      register: first_public_key
+    
+    - name: Check no changing of key on subsequent run
+      bbcrd.ansible_vault.vault_ssh_signer:
+        ca:
+          generate_signing_key: true
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Check public key not changed
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/ssh/public_key"
+        return_content: true
+      register: second_public_key
+      failed_when: first_public_key.content != second_public_key.content
+    
+    - name: Check adding of roles
+      bbcrd.ansible_vault.vault_ssh_signer:
+        ca:
+          generate_signing_key: true
+        roles:
+          foo:
+            key_type: ca
+            allow_user_certificates: true
+            algorithm_signer: rsa-sha2-512
+            default_user: root
+            allowed_users: root
+            default_extensions:
+              permit-X11-forwarding: ""
+              permit-agent-forwarding: ""
+              permit-port-forwarding: ""
+              permit-pty: ""
+              permit-user-rc: ""
+            ttl: 12h
+            max_ttl: 12h
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check no change if role unchanged
+      bbcrd.ansible_vault.vault_ssh_signer:
+        ca:
+          generate_signing_key: true
+        roles:
+          foo:
+            key_type: ca
+            allow_user_certificates: true
+            algorithm_signer: rsa-sha2-512
+            default_user: root
+            allowed_users: root
+            default_extensions:
+              permit-X11-forwarding: ""
+              permit-agent-forwarding: ""
+              permit-port-forwarding: ""
+              permit-pty: ""
+              permit-user-rc: ""
+            ttl: 43200
+            max_ttl: 43200
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Check change if role changed
+      bbcrd.ansible_vault.vault_ssh_signer:
+        ca:
+          generate_signing_key: true
+        roles:
+          foo:
+            key_type: ca
+            allow_user_certificates: true
+            algorithm_signer: rsa-sha2-512
+            default_user: root
+            allowed_users: root
+            default_extensions:
+              permit-X11-forwarding: ""
+              permit-agent-forwarding: ""
+              permit-port-forwarding: ""
+              permit-pty: ""
+              permit-user-rc: ""
+            ttl: 3600  # Changed!
+            max_ttl: 3600  # Changed!
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check role configuration
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/ssh/roles/foo"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: role
+      failed_when: role.json.data.ttl != 3600  # Sanity check
+    
+    - name: Check role deletion
+      bbcrd.ansible_vault.vault_ssh_signer:
+        ca:
+          generate_signing_key: true
+        roles: {}
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check role is gone
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/ssh/roles/foo"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+        status_code: 404
+      register: role
+    
+    - name: Check deletion works
+      bbcrd.ansible_vault.vault_ssh_signer:
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check role is gone
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/ssh/config/ca"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+        status_code: 404
