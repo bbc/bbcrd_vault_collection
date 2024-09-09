@@ -90,8 +90,8 @@ EXAMPLES = r"""
           permit-port-forwarding: ""
           permit-pty: ""
           permit-user-rc: ""
-        ttl: 12h
-        max_ttl: 12h
+        ttl: 43200
+        max_ttl: 43200
     mount: ssh-client-signer
 """
 
