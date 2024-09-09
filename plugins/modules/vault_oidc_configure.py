@@ -22,7 +22,7 @@ options:
             https://developer.hashicorp.com/vault/api-docs/auth/jwt#parameters
         required:
         type: dict
-    status:
+    state:
         description: |-
             If 'present' (the default), will only write the configuration if no
             configuration exists. Otherwise, no action will be performed. This
