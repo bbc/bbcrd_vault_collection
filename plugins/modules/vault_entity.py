@@ -106,7 +106,7 @@ def run_module():
         if (
             existing_entity is None
             or existing_entity["metadata"] != metadata
-            or existing_entity["policies"] != policies
+            or sorted(existing_entity["policies"]) != sorted(policies)
             or existing_entity["disabled"] != disabled
         ):
             result["changed"] = True
