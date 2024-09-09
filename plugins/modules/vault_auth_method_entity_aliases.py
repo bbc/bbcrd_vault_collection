@@ -33,7 +33,7 @@ options:
             
             * entity_name -- The name of the entity. Required.
             * custom_metadata -- Optional. A string-string dictionary of
-              user-defined metadata values for the entity alias. Default: {}.
+              user-defined metadata values for the entity alias.
             
             When an entity with the provided name does not exist, one will be
             created automatically.
@@ -131,7 +131,7 @@ def run_module():
         else:
             entity_name = spec.pop("entity_name")
             params = spec
-        params.setdefault("custom_metadata", {})
+        params.setdefault("custom_metadata", None)
 
         # Make sure entity exists and get its ID
         entity = vault_api_request(
