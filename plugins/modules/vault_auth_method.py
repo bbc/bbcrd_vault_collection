@@ -5,20 +5,12 @@ from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.dict_compare import (
-    dict_issubset,
-)
 
 
 DOCUMENTATION = r"""
 module: bbcrd.ansible_vault.vault_auth_method
 
 short_description: Enable (or disable) a Vault authentication method.
-
-description: |-
-    Warning: If any of the parameters provided don't match those of the auth
-    method's configuration, the auth method will be deleted and recreated as
-    Vault doesn't support modifying an existing auth method.
 
 options:
     type:
@@ -110,19 +102,17 @@ def run_module():
     if mount is None or type is None:
         module.fail_json(msg="Either mount or type must be specified.")
     
-    desired = {
-        "type": type,
-        "description": description,
-        "config": config,
-    }
-    
     actual = vault_api_request(
         module,
         f"/v1/sys/auth",
     )["data"].get(f"{mount}/")
 
     if state == "present":
-        if actual is None or not dict_issubset(desired, actual):
+        if (
+            actual is None
+            or actual["type"] != type
+        ):
+            # (Re)create auth method from scratch: brand new or the type changed
             result["changed"] = True
             if actual is not None:
                 vault_api_request(
@@ -134,8 +124,28 @@ def run_module():
                 module,
                 f"/v1/sys/auth/{mount}",
                 method="POST",
-                data=desired,
+                data={
+                    "type": type,
+                    "description": description,
+                    "config": config,
+                },
             )
+        else:
+            # Modify existing auth method
+            if (
+                actual["description"] != description
+                or any(
+                    key not in actual or actual[key] != value
+                    for key, value in config.items()
+                )
+            ):
+                result["changed"] = True
+                vault_api_request(
+                    module,
+                    f"/v1/sys/auth/{mount}/tune",
+                    method="POST",
+                    data=dict(config, description=description),
+                )
     elif state == "absent":
         if actual is not None:
             result["changed"] = True
