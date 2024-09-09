@@ -43,6 +43,7 @@ scenario:
     - side_effect tests/test_vault_approle.yml
     - side_effect tests/test_vault_approle_secret.yml
     - side_effect tests/test_vault_oidc.yml
+    - side_effect tests/test_vault_ssh_signer.yml
     
     - cleanup
     - destroy
