@@ -3,8 +3,15 @@
 - hosts: vault
   tasks:
     - import_tasks: ../load_credentials_and_reset_vault.yml
+
+    - name: Enable SSH signing engine
+      bbcrd.ansible_vault.vault_secrets_engine:
+        type: ssh
+        mount: ssh
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
     
-    - name: Check nothing is done if absent when not present to start with
+    - name: Check nothing is done if absent and already unconfigured
       bbcrd.ansible_vault.vault_ssh_signer:
         state: absent
         vault_url: "{{ ansible_vault_public_url }}"
@@ -12,7 +19,7 @@
       register: result
       failed_when: result.changed
     
-    - name: Check creates mount and generates CA on first run
+    - name: Check generates CA on first run
       bbcrd.ansible_vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
@@ -141,17 +148,44 @@
         status_code: 404
       register: role
     
-    - name: Check deletion works
+    - name: Add role again
       bbcrd.ansible_vault.vault_ssh_signer:
+        ca:
+          generate_signing_key: true
+        roles:
+          foo:
+            key_type: ca
+            allow_user_certificates: true
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check state=absent works
+      bbcrd.ansible_vault.vault_ssh_signer:
+        ca:
+          generate_signing_key: true
+        roles:
+          foo:
+            key_type: ca
+            allow_user_certificates: true
         state: absent
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
-    - name: Check role is gone
+    - name: Check CA is gone
       uri:
         url: "{{ ansible_vault_public_url }}/v1/ssh/config/ca"
         headers:
           X-Vault-Token: "{{ ansible_vault_root_token }}"
+        status_code: 400
+    
+    - name: Check role is gone
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/ssh/roles/foo"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
         status_code: 404
+      register: role

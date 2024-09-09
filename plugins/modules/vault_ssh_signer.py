@@ -36,12 +36,12 @@ options:
         description: |-
             One of the following options:
             
-            * 'present' -- Enables the secrets engine and configures the set of
-              specified roles. Only writes the CA configuration on first use.
+            * 'present' -- Configures the set of specified roles. Only writes
+              the CA configuration on first use.
             * 'replaced' -- Like 'present' but writes (and potentially
               regenerates if generate_signing_key is True) the CA information
               on every use.
-            * 'absent' -- Disables the secrets engine.
+            * 'absent' -- Removes all roles and deletes the CA information.
     mount:
         description: |-
             The mountpoint of the SSH secrets engine, without the trailing
@@ -70,6 +70,11 @@ options:
 """
 
 EXAMPLES = r"""
+- name: Enable SSH signing engine
+  bbcrd.ansible_vault.vault_secrets_engine
+    type: ssh
+    mount: ssh-client-signer
+
 - name: Configure SSH signing engine
   bbcrd.ansible_vault.vault_ssh_signer
     ca:
@@ -96,56 +101,19 @@ EXAMPLES = r"""
 """
 
 
-def configure_ssh_secrets_engine(module: AnsibleModule, result: dict) -> None:
-    state = module.params["state"]
-    mount = module.params["mount"]
-    
-    # Remove any non-SSH secrets engine at the mount point
-    existing_engine_type = vault_api_request(
-        module,
-        f"/v1/sys/mounts/{mount}",
-        expected_status=[200, 400],
-    ).get("data", {}).get("type")
-    if existing_engine_type is not None and existing_engine_type != "ssh":
-        result["changed"] = True
-        vault_api_request(
-            module,
-            f"/v1/sys/mounts/{mount}",
-            method="DELETE",
-        )
-    
-    # Enable/disable SSH secrets engine as needed
-    if state != "absent":
-        if existing_engine_type != "ssh":
-            result["changed"] = True
-            vault_api_request(
-                module,
-                f"/v1/sys/mounts/{mount}",
-                method="POST",
-                data={"type": "ssh"},
-            )
-    elif state == "absent":
-        if existing_engine_type == "ssh":
-            result["changed"] = True
-            vault_api_request(
-                module,
-                f"/v1/sys/mounts/{mount}",
-                method="DELETE",
-            )
-
-
 def configure_ca(module: AnsibleModule, result: dict) -> None:
     ca = module.params["ca"]
     state = module.params["state"]
     mount = module.params["mount"]
     
+    existing_ca = vault_api_request(
+        module,
+        f"/v1/{mount}/config/ca",
+        method="GET",
+        expected_status=[200, 400],
+    ).get("data")
+    
     if state in ("present", "replaced"):
-        existing_ca = vault_api_request(
-            module,
-            f"/v1/{mount}/config/ca",
-            method="GET",
-            expected_status=[200, 400],
-        ).get("data")
         if (
             existing_ca is None
             or (
@@ -160,6 +128,10 @@ def configure_ca(module: AnsibleModule, result: dict) -> None:
                 method="POST",
                 data=ca,
             )
+    elif state == "absent":
+        if existing_ca is not None:
+            result["changed"] = True
+            vault_api_request(module, f"/v1/{mount}/config/ca", method="DELETE")
 
 
 def configure_roles(module: AnsibleModule, result: dict) -> None:
@@ -167,40 +139,42 @@ def configure_roles(module: AnsibleModule, result: dict) -> None:
     state = module.params["state"]
     mount = module.params["mount"]
     
-    if state in ("present", "replaced"):
-        existing_roles = vault_api_request(
+    if state == "absent":
+        roles = {}
+    
+    existing_roles = vault_api_request(
+        module,
+        f"/v1/{mount}/roles",
+        method="LIST",
+        expected_status=[200, 404],
+    ).get("data", {}).get("keys", [])
+    
+    # Delete extra roles
+    for role_name in set(existing_roles) - set(roles):
+        result["changed"] = True
+        vault_api_request(module, f"/v1/{mount}/roles/{role_name}", method="DELETE")
+    
+    # Create/update roles
+    for role_name, params in roles.items():
+        existing_params = vault_api_request(
             module,
-            f"/v1/{mount}/roles",
-            method="LIST",
+            f"/v1/{mount}/roles/{role_name}",
             expected_status=[200, 404],
-        ).get("data", {}).get("keys", [])
-        
-        # Delete roles
-        for role_name in set(existing_roles) - set(roles):
+        ).get("data")
+        if (
+            existing_params is None
+            or any(
+                key not in existing_params or existing_params[key] != value
+                for key, value in params.items()
+            )
+        ):
             result["changed"] = True
-            vault_api_request(module, f"/v1/{mount}/roles/{role_name}", method="DELETE")
-        
-        # Create/update roles
-        for role_name, params in roles.items():
-            existing_params = vault_api_request(
+            vault_api_request(
                 module,
                 f"/v1/{mount}/roles/{role_name}",
-                expected_status=[200, 404],
-            ).get("data")
-            if (
-                existing_params is None
-                or any(
-                    key not in existing_params or existing_params[key] != value
-                    for key, value in params.items()
-                )
-            ):
-                result["changed"] = True
-                vault_api_request(
-                    module,
-                    f"/v1/{mount}/roles/{role_name}",
-                    method="POST",
-                    data=params
-                )
+                method="POST",
+                data=params
+            )
 
 
 def run_module():
@@ -223,7 +197,6 @@ def run_module():
     module = AnsibleModule(argument_spec=module_args)
     result = {"changed": False}
 
-    configure_ssh_secrets_engine(module, result)
     configure_ca(module, result)
     configure_roles(module, result)
 
