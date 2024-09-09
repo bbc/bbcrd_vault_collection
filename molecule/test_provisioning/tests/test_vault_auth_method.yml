@@ -28,11 +28,11 @@
         method: GET
         headers:
           X-Vault-Token: "{{ ansible_vault_root_token }}"
-      register: auth_methods
+      register: initial_method
       failed_when: |-
         not (
-            "my_github/" in auth_methods.json.data and
-            auth_methods.json.data["my_github/"]["type"] == "github"
+            "my_github/" in initial_method.json.data and
+            initial_method.json.data["my_github/"]["type"] == "github"
         )
     
     - name: No change if left same
@@ -44,7 +44,7 @@
       register: result
       failed_when: result.changed
     
-    - name: Delete and recreate when changed
+    - name: Make non-destructive change
       bbcrd.ansible_vault.vault_auth_method:
         type: github
         mount: my_github
@@ -54,17 +54,36 @@
       register: result
       failed_when: not result.changed
     
-    - name: Check change applied
+    - name: Check change applied without destroying auth method
       uri:
         url: "{{ ansible_vault_public_url }}/v1/sys/auth"
         method: GET
         headers:
           X-Vault-Token: "{{ ansible_vault_root_token }}"
-      register: auth_methods
+      register: updated_method
       failed_when: |-
-        not (
-            auth_methods.json.data["my_github/"]["description"] == "Newly added description!"
-        )
+        updated_method.json.data["my_github/"]["description"] != "Newly added description!"
+        or updated_method.json.data["my_github/"]["accessor"] != initial_method.json.data["my_github/"]["accessor"]
+    
+    - name: Make destructive change
+      bbcrd.ansible_vault.vault_auth_method:
+        type: userpass
+        mount: my_github
+        description: "Newly added description!"
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check change applied destructively
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/sys/auth"
+        method: GET
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: updated_method
+      failed_when: |-
+        updated_method.json.data["my_github/"]["accessor"] == initial_method.json.data["my_github/"]["accessor"]
     
     - name: Delete
       bbcrd.ansible_vault.vault_auth_method:
