@@ -28,6 +28,11 @@ listener "tcp" {
   {%- else +%}
   tls_disable = true
   {%- endif +%}
+  
+  {%- if ansible_vault_x_forwarded_for_authorized_addrs is not none +%}
+  # Obtain true client address from reverse proxy X-Forwarded-For headers
+  x_forwarded_for_authorized_addrs = "{{ ansible_vault_x_forwarded_for_authorized_addrs | join(',') }}"
+  {%- endif +%}
 }
 
 api_addr = "{{ ansible_vault_public_url }}"
