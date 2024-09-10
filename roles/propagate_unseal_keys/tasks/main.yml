@@ -11,6 +11,6 @@
 - name: Propagate encrypted unseal keys to new nodes
   copy:
     content: "{{ encrypted_unseal_keys | to_nice_json }}"
-    dest: "{{ ansible_vault_data_dir }}/encrypted_unseal_keys.json"
+    dest: "{{ ansible_vault_config_dir }}/encrypted_unseal_keys.json"
     force: false  # Only write to hosts which don't already have keys installed
     backup: true  # Redundant, but I'm paranoid

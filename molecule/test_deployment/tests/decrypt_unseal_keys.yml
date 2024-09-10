@@ -9,7 +9,7 @@
 
 - name: Check all hosts have encrypted unseal keys
   slurp:
-    src: /var/lib/vault/encrypted_unseal_keys.json
+    src: /etc/vault/encrypted_unseal_keys.json
   register: encrypted_unseal_keys_slurp
 
 - name: Verify all hosts have same unseal keys

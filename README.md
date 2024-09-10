@@ -106,7 +106,7 @@ security in a non-public-cloud based, open source Vault deployment.
 Each Vault administrator must supply a PGP public key. When Vault's unseal keys
 are (re)generated, Vault uses these public keys to encrypt the unseal key
 shards. These encrypted shards are then stored into the file
-`/var/lib/vault/encrypted_unseal_keys.json` (by default) on every cluster host.
+`/etc/vault/encrypted_unseal_keys.json` (by default) on every cluster host.
 Its structure is as follows:
 
     {
