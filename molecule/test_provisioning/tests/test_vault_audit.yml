@@ -1,0 +1,87 @@
+---
+
+- hosts: vault
+  tasks:
+    - import_tasks: ../load_credentials_and_reset_vault.yml
+    
+    - name: Do nothing when device already deleted
+      bbcrd.ansible_vault.vault_audit:
+        type: file
+        mount: stdout
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+
+    - name: Enable file audit device
+      bbcrd.ansible_vault.vault_audit:
+        type: file
+        mount: stdout
+        options:
+          file_path: stdout
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+
+    - name: Check created
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/sys/audit"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: |-
+        result.json.data["stdout/"].options.file_path != "stdout"
+
+    - name: Do nothing if already enabled
+      bbcrd.ansible_vault.vault_audit:
+        type: file
+        mount: stdout
+        options:
+          file_path: stdout
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+
+    - name: Change when required
+      bbcrd.ansible_vault.vault_audit:
+        type: file
+        mount: stdout
+        options:
+          file_path: discard
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+
+    - name: Check updated
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/sys/audit"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: |-
+        result.json.data["stdout/"].options.file_path != "discard"
+
+    - name: Deletion
+      bbcrd.ansible_vault.vault_audit:
+        type: file
+        mount: stdout
+        options:
+          file_path: discard
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check deleted
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/sys/audit"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: |-
+        "stdout/" in result.json.data
