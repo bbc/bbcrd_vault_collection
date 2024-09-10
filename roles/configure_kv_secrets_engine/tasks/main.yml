@@ -1,0 +1,22 @@
+- run_once: true
+  block:
+    - name: Enable KV secrets engine
+      bbcrd.ansible_vault.vault_secrets_engine:
+        mount: "{{ ansible_vault_kv_mount }}"
+        type: kv
+        options:
+          version: "{{ ansible_vault_kv_version | string }}"
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+
+    - name: Create secrets engine policy
+      bbcrd.ansible_vault.vault_policy:
+        name: "{{ ansible_vault_kv_admin_policy_name }}"
+        policy: |-
+          path "{{ ansible_vault_kv_mount }}/*" {
+            capabilities = ["create", "read", "update", "delete", "list"]
+          }
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"

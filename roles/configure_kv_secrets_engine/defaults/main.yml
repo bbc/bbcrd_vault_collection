@@ -1,0 +1,28 @@
+---
+
+################################################################################
+# Vault-related options
+################################################################################
+
+# The mountpoint of the kv secrets engine
+ansible_vault_kv_mount: secret
+
+# The Vault token to use. Must have sufficient privileges to configure secrets
+# engines, identities and policies.
+#
+#ansible_vault_root_token: "..."
+
+
+################################################################################
+# KV secrets engine config
+################################################################################
+
+# The version of the kv secrets engine.
+#
+# Warning: changing this will cause the engine (and its secrets) to be deleted
+# and replaced with a new one.
+ansible_vault_kv_version: 1
+
+# The name of the policy to create which grants full read/write access to all
+# secrets.
+ansible_vault_kv_admin_policy_name: "kv_admin"
