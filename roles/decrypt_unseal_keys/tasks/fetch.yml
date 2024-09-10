@@ -4,7 +4,7 @@
 # available so we should ignore those failures here.
 - name: Fetch encrypted unseal keys
   slurp:
-    src: "{{ ansible_vault_data_dir }}/{{ encrypted_unseal_keys_filename | default('encrypted_unseal_keys.json') }}"
+    src: "{{ ansible_vault_config_dir }}/{{ encrypted_unseal_keys_filename | default('encrypted_unseal_keys.json') }}"
   ignore_errors: true
   register: encrypted_unseal_keys_json
 
@@ -36,7 +36,7 @@
     that: "encrypted_unseal_keys == item"
     fail_msg: >-
       The encrypted unseal keys read from all vault servers (in {{
-      ansible_vault_data_dir }}/{{ encrypted_unseal_keys_filename |
+      ansible_vault_config_dir }}/{{ encrypted_unseal_keys_filename |
       default('encrypted_unseal_keys.json') }}) do not match.  You must
       manually resolve this conflict by placing matching files on all servers
       to continue. Take care not to accidentally overwrite or delete the

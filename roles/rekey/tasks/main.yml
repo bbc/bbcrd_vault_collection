@@ -156,8 +156,8 @@
         - name: "Make candidate unseal keys live"
           run_once: false  # NB: Make sure we put the keys on every node!
           copy:
-            src: "{{ ansible_vault_data_dir }}/encrypted_unseal_keys.json.candidate"
+            src: "{{ ansible_vault_config_dir }}/encrypted_unseal_keys.json.candidate"
             remote_src: true
-            dest: "{{ ansible_vault_data_dir }}/encrypted_unseal_keys.json"
+            dest: "{{ ansible_vault_config_dir }}/encrypted_unseal_keys.json"
             backup: true
           
