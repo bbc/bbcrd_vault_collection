@@ -51,6 +51,19 @@ ansible_vault_tls_key_file: "{{ ansible_vault_data_dir }}/tls.key"
 
 
 ################################################################################
+# Reverse proxies
+################################################################################
+
+# If not null, should be an array of CIDR address ranges which Vault should
+# trust the X-Forarded-For headers from (e.g. any reverse proxy servers).
+#
+# For example, if running a reverse proxy on the same host this might be set to
+#
+#     ansible_vault_x_forwarded_for_authorized_addrs:
+#       - "127.0.0.0/24"
+ansible_vault_x_forwarded_for_authorized_addrs: null
+
+################################################################################
 # Web UI
 ################################################################################
 
