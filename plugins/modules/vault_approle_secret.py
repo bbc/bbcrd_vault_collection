@@ -13,7 +13,7 @@ from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.dict_compare i
 DOCUMENTATION = r"""
 module: bbcrd.ansible_vault.vault_approle_secret
 
-short_description: Add, replace or delete AppRole secret_ids.
+short_description: Manage an AppRole's secret_ids.
 
 options:
     approle_name:
@@ -49,16 +49,12 @@ options:
             The mode of operation for this module with respect to existing
             secret IDs. One of:
             
-            * 'present' -- Create a new secret ID on every invocation (the default).
-            * 'replaced' -- Delete any existing secret whose metadata fields
-              exactly match those provided in parameters.metadata before
-              creating a new secret.
             * 'singular' -- Deletes all existing secrets for the approle
-              before creating a new secret ID.
-            * 'absent' -- If parameters.metadata is given, deletes all existing
-              secrets whose metadata exactly matches those provided. Otherwise,
-              deletes all existing secrets for the role. Does not create a new
-              secret ID.
+              before creating a new secret ID. (Default)
+            * 'added' -- Create a new secret ID on every invocation, leaving
+              any existing secrets as-is.
+            * 'absent' -- Deletes all existing secrets for the role. Does not
+              create a new secret ID.
         required: false
         type: str
         default: "present"
@@ -115,12 +111,11 @@ def run_module():
         state=dict(
             type="str",
             choices=[
-                "present",
-                "replaced",
                 "singular",
+                "added",
                 "absent",
             ],
-            default="present",
+            default="singular",
         ),
         mount=dict(type="str", default="approle"),
         **get_vault_api_request_argument_spec(),
@@ -135,15 +130,8 @@ def run_module():
     mount = module.params["mount"]
     parameters = module.params["parameters"]
 
-    # Normalise input to the 'convenience' style of input where the metadata
-    # parameter is a dict rather than a JSON string
-    if "metadata" in parameters:
-        if isinstance(parameters["metadata"], str):
-            parameters["metadata"] = json.loads(parameters["metadata"])
-
     # Remove existing secrets
-    if state != "present":
-        # Enumerate secret IDs
+    if state in ["absent", "singular"]:
         secret_id_accessors = vault_api_request(
             module,
             f"/v1/auth/{mount}/role/{approle_name}/secret-id",
@@ -151,42 +139,19 @@ def run_module():
             expected_status=[200, 404],
         ).get("data", {}).get("keys", [])
         for secret_id_accessor in secret_id_accessors:
-            existing_secret_id = vault_api_request(
+            result["changed"] = True
+            vault_api_request(
                 module,
-                f"/v1/auth/{mount}/role/{approle_name}/secret-id-accessor/lookup",
+                f"/v1/auth/{mount}/role/{approle_name}/secret-id-accessor/destroy",
                 method="POST",
                 data={"secret_id_accessor": secret_id_accessor},
-                expected_status=(200, 404),
-            ).get("data")
-
-            if existing_secret_id is None:  # Already absent
-                continue
-
-            # Delete when appropriate
-            metadata_specified = "metadata" in parameters
-            metadata_matches = existing_secret_id["metadata"] == parameters.get(
-                "metadata", {}
             )
-            if (
-                state == "singular"
-                or (state == "replaced" and metadata_matches)
-                or (state == "absent" and not metadata_specified)
-                or (state == "absent" and metadata_matches)
-            ):
-                result["changed"] = True
-                vault_api_request(
-                    module,
-                    f"/v1/auth/{mount}/role/{approle_name}/secret-id-accessor/destroy",
-                    method="POST",
-                    data={"secret_id_accessor": secret_id_accessor},
-                )
-
 
     # Generate new secret
     if state != "absent":
         # Convert metadata parameter to a JSON string for use with the secret
-        # creation API
-        if "metadata" in parameters:
+        # creation API (as a convenience)
+        if "metadata" in parameters and not isinstance(parameters["metadata"], str):
             parameters["metadata"] = json.dumps(parameters["metadata"])
         
         if secret_id is None:
