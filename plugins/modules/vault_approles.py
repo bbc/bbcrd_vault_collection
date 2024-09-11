@@ -10,21 +10,20 @@ from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.dict_compare i
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_approle
+module: bbcrd.ansible_vault.vault_approles
 
-short_description: Create, update or delete a Vault AppRole auth method role
+short_description: Configure the approles for an AppRoles auth method.
 
 options:
-    name:
+    approles:
         description: |-
-            Name of the role.
-        required: true
-        type: str
-    parameters:
-        description: |-
-            The approle parameters, see the Vault docs:
+            A dictionary from approle names to approle parameters, per the
+            Vault docs:
             https://developer.hashicorp.com/vault/api-docs/auth/approle#parameters
-        required:
+            
+            Any approles not enumerated here will be deleted. Existing approles
+            will be updated. New approles will be created.
+        required: true
         type: dict
     mount:
         description: |-
@@ -33,12 +32,6 @@ options:
         required: false
         type: str
         default: "approle"
-    state:
-        description: |-
-            The state this policy should be in: 'present' or 'absent'
-        required: true
-        type: str
-        default: "present"
     vault_url:
         description: The base URL of the vault server. Defaults to the contents
         of the VAULT_ADDR environment variable.
@@ -60,56 +53,68 @@ options:
 """
 
 RETURN = r"""
-role_id:
+role_ids:
     description: |-
-        The role ID
-    type: str
-    returned: if present
+        A mapping from role names to role IDs.
+    type: dict
+    returned: always
 """
 
 EXAMPLES = r"""
-- name: Create an AppRole role
-  bbcrd.ansible_vault.vault_approle:
-    name: "my-role"
-    parameters:
-      token_ttl: 600
-
-- name: Delete an AppRole role
-  bbcrd.ansible_vault.vault_approle:
-    name: "obsolete-role"
-    state: absent
+- name: Manage approles
+  bbcrd.ansible_vault.vault_approles:
+    approles:
+      my-shortlived-role:
+        token_ttl: 60
+      my-longer-lived-role:
+        token_ttl: 3200
 """
 
 
 def run_module():
     # define available arguments/parameters a user can pass to the module
     module_args = dict(
-        name=dict(type="str", required=True),
+        approles=dict(type="dict", required=True),
         mount=dict(type="str", default="approle"),
-        parameters=dict(type="dict", default={}),
-        state=dict(
-            type="str", required=False, choices=["present", "absent"], default="present"
-        ),
         **get_vault_api_request_argument_spec(),
     )
 
     module = AnsibleModule(argument_spec=module_args)
-    result = {"changed": False}
+    result = {"changed": False, "role_ids": {}}
     
-    name = module.params["name"]
-    state = module.params["state"]
+    approles = module.params["approles"]
     mount = module.params["mount"]
-    parameters = module.params["parameters"]
 
-    existing_approle = vault_api_request(
+    existing_approle_names = vault_api_request(
         module,
-        f"/v1/auth/{mount}/role/{name}",
+        f"/v1/auth/{mount}/role",
+        method="LIST",
         expected_status=(200, 404),
-    ).get("data")
+    ).get("data", {}).get("keys", [])
 
-    if state == "present":
-        # Create-or-update
-        if existing_approle is None or not dict_issubset(parameters, existing_approle):
+    # Delete extra approles
+    for name in set(existing_approle_names) - set(approles):
+        result["changed"] = True
+        vault_api_request(module, f"/v1/auth/{mount}/role/{name}", method="DELETE")
+
+    # Create or update approles
+    for name, parameters in approles.items():
+        # To allow lazy YAML specification
+        if parameters is None:
+            parameters = {}
+        
+        existing_parameters = vault_api_request(
+            module,
+            f"/v1/auth/{mount}/role/{name}",
+            expected_status=(200, 404),
+        ).get("data")
+        if (
+            existing_parameters is None
+            or any(
+                key not in existing_parameters or existing_parameters[key] != value
+                for key, value in parameters.items()
+            )
+        ):
             result["changed"] = True
             vault_api_request(
                 module,
@@ -118,14 +123,10 @@ def run_module():
                 data=parameters,
             )
         
-        # Get role ID
-        result["role_id"] = vault_api_request(module, f"/v1/auth/{mount}/role/{name}/role-id")["data"]["role_id"]
-
-    elif state == "absent":
-        # Delete
-        if existing_approle is not None:
-            result["changed"] = True
-            vault_api_request(module, f"/v1/auth/{mount}/role/{name}", method="DELETE")
+        # Lookup approle ID
+        result["role_ids"][name] = vault_api_request(
+            module, f"/v1/auth/{mount}/role/{name}/role-id"
+        )["data"]["role_id"]
 
     module.exit_json(**result)
 
