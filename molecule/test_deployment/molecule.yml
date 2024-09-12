@@ -139,6 +139,10 @@ scenario:
     - converge  # Shrink cluster back down again
     - verify
     
+    # Verify backups are usable
+    - verify side_effects/test_backups.yml
+    - verify  # And that we didn't break anything
+    
     - cleanup
     - destroy
 
@@ -183,4 +187,20 @@ provisioner:
             ansible_vault_unseal_key_shares: 1
           test-user-3:
             ansible_vault_unseal_key_shares: 1
+        
+        # Make the token TTL short so that waiting for this to expire won't
+        # take too long. This is necessary as a work-around in this test suite
+        # for Vault/OpenBao bugs:
+        #
+        # https://github.com/hashicorp/vault/issues/28378
+        # https://github.com/openbao/openbao/issues/522
+        #
+        # These bugs cause token used to create the backup to live long enough
+        # to cause our "no left behind tokens" verify step to fail.
+        ansible_vault_backup_token_ttl: 20
+        
+        # Deliberately make the backup timer never fire. This avoids an
+        # unluckily timed backup causing a short-lived vault token to exist
+        # during the "no tokens left behind" verification step.
+        ansible_vault_backup_schedule: "2000-1-1 01:00:00"
 

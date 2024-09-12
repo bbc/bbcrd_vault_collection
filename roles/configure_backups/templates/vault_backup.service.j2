@@ -1,0 +1,24 @@
+[Unit]
+Description=Create a snapshot of the vault database
+Requires={{ ansible_vault_systemd_unit }}.service
+After={{ ansible_vault_systemd_unit }}.service
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=simple
+ExecStart={{ ansible_vault_backup_script | quote }} {{ ansible_vault_backup_location | quote }}
+
+User={{ ansible_vault_backup_user | quote }}
+
+Environment=NUM_BACKUPS={{ ansible_vault_backup_retention }}
+Environment=ENCRYPTED_UNSEAL_KEYS_FILE={{ ansible_vault_config_dir | quote }}/encrypted_unseal_keys.json
+Environment=VAULT_ADDR={{ ansible_vault_public_url | quote }}
+Environment=APPROLE_MOUNT={{ ansible_vault_backup_approle_mount | quote }}
+{% if ansible_vault_ca_path is defined %}
+Environment=SSL_CERT_FILE={{ ansible_vault_ca_path | quote }}
+{% endif %}
+
+# Defines SECRET_ID
+EnvironmentFile={{ ansible_vault_backup_auth_file | quote }}

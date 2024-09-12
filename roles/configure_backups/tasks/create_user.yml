@@ -1,0 +1,13 @@
+---
+
+- name: Create backup group
+  group:
+    name: "{{ ansible_vault_backup_group }}"
+    state: present
+
+- name: Create backup user
+  user:
+    name: "{{ ansible_vault_backup_user }}"
+    group: "{{ ansible_vault_backup_group }}"
+    state: present
+

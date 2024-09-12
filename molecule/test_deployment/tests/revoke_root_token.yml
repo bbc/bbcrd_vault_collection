@@ -7,3 +7,7 @@
     headers:
       X-Vault-Token: "{{ root_token }}"
     status_code: [200, 204]  # OK or No Content
+
+- name: Clear root_token variable
+  set_fact:
+    root_token: null
