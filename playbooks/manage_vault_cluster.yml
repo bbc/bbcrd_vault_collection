@@ -1,7 +1,8 @@
 ---
 
 # Setup and manage a Vault cluster. Handles installation, unsealing nodes,
-# managing cluster membership, rolling upgrades and unseal key management.
+# managing cluster membership, rolling upgrades, backups and unseal key
+# management.
 #
 # This playbook (should be!) declarative and idempotent and largely consists of
 # stringing together the major roles in this collection.
@@ -63,12 +64,17 @@
           tags:
             - ansible_vault_restart
         
-        
         - name: Rekey unseal keys (e.g. to add/remove admins)
           import_role:
             name: bbcrd.ansible_vault.rekey
           tags:
             - ansible_vault_rekey
+        
+        - name: Configure regular vault database backups
+          import_role:
+            name: bbcrd.ansible_vault.configure_backups
+          tags:
+            - ansible_vault_configure_backups
         
       always:
         - name: Revoke any generated root tokens

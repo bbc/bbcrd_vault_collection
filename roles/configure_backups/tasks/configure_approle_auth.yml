@@ -1,0 +1,91 @@
+---
+
+# The tasks in this file are responsible for configuring Vault AppRole-based
+# authentication for the backup process.
+
+- name: Check whether the AppRole credentials files already exist
+  stat:
+    path: "{{ ansible_vault_backup_auth_file }}"
+  when: not ansible_vault_backup_rotate_auth_credentials
+  register: auth_file
+
+- name: Update credentials files (if needed)
+  when: |-
+    ansible_vault_backup_rotate_auth_credentials
+    or (
+      ansible_play_hosts
+      | map("extract", hostvars)
+      | map(attribute="auth_file")
+      | map(attribute="stat")
+      | map(attribute="exists")
+    ) is not all
+  block:
+    - name: Obtain root token (if needed)
+      import_role:
+        name: bbcrd.ansible_vault.generate_root
+    
+    - run_once: true
+      block:
+        - name: Create AppRole auth endpoint for backup authentication
+          bbcrd.ansible_vault.vault_auth_method:
+            type: approle
+            mount: "{{ ansible_vault_backup_approle_mount }}"
+            vault_url: "{{ ansible_vault_public_url }}"
+            vault_token: "{{ ansible_vault_root_token }}"
+            vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        
+        - name: Create policy allowing access to the snapshot endpoint
+          bbcrd.ansible_vault.vault_policy:
+            name: "{{ ansible_vault_backup_policy_name }}"
+            policy: |-
+              path "sys/storage/raft/snapshot" {
+                capabilities = ["read"]
+              }
+            vault_url: "{{ ansible_vault_public_url }}"
+            vault_token: "{{ ansible_vault_root_token }}"
+            vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    
+        - name: Setup backup AppRole roles for each server in the cluster
+          bbcrd.ansible_vault.vault_approles:
+            mount: "{{ ansible_vault_backup_approle_mount }}"
+            approles: |-
+              {{
+                groups[ansible_vault_cluster_ansible_group_name]
+                | map('community.general.dict_kv', 'key')
+                | map('combine', parameters | community.general.dict_kv('value'))
+                | items2dict
+              }}
+            vault_url: "{{ ansible_vault_public_url }}"
+            vault_token: "{{ ansible_vault_root_token }}"
+            vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+          vars:
+            parameters:
+              token_type: service
+              token_policies:
+                - "{{ ansible_vault_backup_policy_name }}"
+              token_num_uses: 1
+              token_ttl: "{{ ansible_vault_backup_token_ttl }}"
+              token_max_ttl: "{{ ansible_vault_backup_token_ttl }}"
+              token_bound_cidrs: "{{ ansible_vault_backup_cidrs }}"
+          register: approles
+    
+    - name: Generate backup approle secret
+      bbcrd.ansible_vault.vault_approle_secret:
+        mount: "{{ ansible_vault_backup_approle_mount }}"
+        approle_name: "{{ inventory_hostname }}"
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      when: ansible_vault_backup_rotate_auth_credentials or not auth_file.stat.exists
+      register: backup_approle_secret
+    
+    - name: Write backup credentials file
+      when: backup_approle_secret.changed
+      copy:
+        content: |-
+          ROLE_ID={{ approles.role_ids[inventory_hostname] | quote }}
+          SECRET_ID={{ backup_approle_secret.secret_id | quote }}
+        dest: "{{ ansible_vault_backup_auth_file }}"
+        mode: "0600"
+        owner: "{{ ansible_vault_backup_user }}"
+        group: "{{ ansible_vault_backup_group }}"

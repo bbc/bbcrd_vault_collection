@@ -1,0 +1,10 @@
+---
+
+- name: Create user accounts for backup script
+  import_tasks: create_user.yml
+
+- name: Configure AppRole based auth for the backup process
+  import_tasks: configure_approle_auth.yml
+
+- name: Install backup script
+  import_tasks: install.yml

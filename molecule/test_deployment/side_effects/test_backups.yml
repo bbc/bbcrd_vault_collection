@@ -1,0 +1,117 @@
+---
+- name: Verify that backups can be restored
+  hosts: vault-1
+  
+  tasks:
+    - name: Verify presence of, and decrypt encrypted unseal keys
+      include_tasks: ../tests/decrypt_unseal_keys.yml
+    
+    - name: Generate root token (also verifying unseal keys are usable)
+      include_tasks: ../tests/generate_root_token.yml
+    
+    - block:
+        - name: Make sure no test_kv secrets engine exists (we'll create this after taking a backup)
+          bbcrd.ansible_vault.vault_secrets_engine:
+            mount: test_kv
+            type: kv
+            state: absent
+            vault_url: "http://{{ ansible_hostname }}:8200"
+            vault_token: "{{ root_token }}"
+        
+        - name: Trigger a backup
+          systemd:
+            name: vault_backup
+            state: started
+        
+        - name: Wait for backup to finish
+          systemd:
+            name: vault_backup
+          register: vault_backup
+          retries: 10
+          delay: 2
+          until: >-
+            vault_backup.status.Result == "success"
+            and vault_backup.status.ActiveState == "inactive"
+        
+        - name: Enumerate backup files
+          find:
+            paths: /var/lib/vault_backup
+            patterns: "vault_backup_*.zip"
+          register: backup_files
+        
+        - name: Make a copy of the latest backup file
+          copy:
+            src: |-
+              {{
+                backup_files.files
+                | map(attribute="path")
+                | sort
+                | last
+              }}
+            dest: /tmp/backup.zip
+            remote_src: true
+        
+        - name: Make an arbitrary change to vault (enable a secrets engine)
+          bbcrd.ansible_vault.vault_secrets_engine:
+            mount: test_kv
+            type: kv
+            vault_url: "http://{{ ansible_hostname }}:8200"
+            vault_token: "{{ root_token }}"
+        
+        - name: Unpack the backup
+          unarchive:
+            src: /tmp/backup.zip
+            dest: /tmp/
+            remote_src: true
+        
+        - name: Verify backed up encrypted unseal keys are correct
+          slurp:
+            src: /tmp/encrypted_unseal_keys.json
+          register: backup_encrypted_unseal_keys_slurp
+          failed_when: >-
+            (backup_encrypted_unseal_keys_slurp.content | b64decode | from_json)
+            != encrypted_unseal_keys
+      
+        - name: Verify test_kv endpoint exists prior to restore
+          uri:
+            url: "http://{{ ansible_hostname }}:8200/v1/sys/mounts"
+            headers:
+              X-Vault-Token: "{{ root_token }}"
+          register: mounts
+          failed_when: '"test_kv/" not in mounts.json.data'
+      
+        - name: Restore from snapshot
+          uri:
+            # vault operator raft snapshot restore
+            url: "http://{{ ansible_hostname }}:8200/v1/sys/storage/raft/snapshot"
+            method: POST
+            src: /tmp/vault.db
+            remote_src: true
+            headers:
+              X-Vault-Token: "{{ root_token }}"
+            status_code: [200, 204]
+          changed_when: true
+        
+        - name: Verify test_kv endpoint doesn't exist after restore
+          uri:
+            url: "http://{{ ansible_hostname }}:8200/v1/sys/mounts"
+            headers:
+              X-Vault-Token: "{{ root_token }}"
+          register: mounts
+          failed_when: '"test_kv/" in mounts.json.data'
+        
+        # Workaround for the following Vault/OpenBao bugs which cause the token
+        # used for the backup to reappear after the snapshot restore process
+        # until its TTL expires. Note that in reality the token has already
+        # expired (because it is single-use) and is still not usable. This is
+        # meerly an accounting bug.
+        #
+        # https://github.com/hashicorp/vault/issues/28378
+        # https://github.com/openbao/openbao/issues/522
+        - name: Wait for backup token to expire (workaround Vault/OpenBao bug)
+          pause:
+            seconds: "{{ ansible_vault_backup_token_ttl }}"
+      
+      always:
+        - name: (Cleanup) revoke the generated root token
+          include_tasks: ../tests/revoke_root_token.yml

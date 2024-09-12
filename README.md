@@ -13,7 +13,8 @@ major functions:
 
 * `bbcrd.ansible_vault.manage_vault_cluster`: Setup and manage a Vault cluster.
   Handles installation, unsealing nodes, managing cluster membership, rolling
-  upgrades and unseal key management.
+  upgrades, backups and unseal key management. Is *not* responsible for the
+  configuration of secrets engines, authentication methods and so on.
 
 * `bbcrd.ansible_vault.supply_additional_keys`: Submit additional unseal keys
   to assist another vault administrator running one of the "main"
@@ -41,6 +42,8 @@ desired, be used independently:
 * `bbcrd.ansible_vault.restart`: Restart and unseal vault cluster members in a
   rolling fashion.
 * `bbcrd.ansible_vault.rekey`: Rekey vault with a new set of unseal keys.
+* `bbcrd.ansible_vault.configure_backups`: Configures automated backups of the
+  vault database and encrypted unseal keys.
 
 There are also a some lower level roles which are in some cases used by the
 above roles but which might also be useful in isolation.

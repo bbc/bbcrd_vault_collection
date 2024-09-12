@@ -1,0 +1,81 @@
+---
+
+################################################################################
+# Vault-related options
+################################################################################
+
+# A sufficiently powerful vault token is needed when credential files are being
+# updated (e.g. during the first run). This role will call the
+# `bbcrd.ansible_vault.generate_root` role if required unless
+# ansible_vault_root_token is already defined.
+#
+#ansible_vault_root_token: "..."
+
+# The mountpoint for the AppRole auth method to be created for the backup
+# script to authenticate with (without the trailing slash).
+ansible_vault_backup_approle_mount: "vault_backup_approle"
+
+# The name of the policy to create which grants access for making backups.
+ansible_vault_backup_policy_name: vault_backup
+
+# The TLL of the ephemeral tokens granted by the AppRole.
+#
+# This can be very short since the backup script will authenticate and
+# request a snapshot immediately afterwards.
+ansible_vault_backup_token_ttl: 60  # 1 minute
+
+# A list of CIDRs from which to permit backups.
+#
+# If non-empty, restricts the tokens issued by the AppRole to only the given
+# CIDRs. For example, you could make the tokens only valid when used on the
+# vault cluster nodes.
+ansible_vault_backup_cidrs: []
+
+# If set to true, forces rotation of all AppRole secret IDs.
+ansible_vault_backup_rotate_auth_credentials: false
+
+
+################################################################################
+# Backup behaviour
+################################################################################
+
+# The directory to write the backup data to.
+#
+# Zip files with names of the form `vault_backup_2024-09-11_15-48-45.zip` will
+# be written to this directory. Each zip file is a complete, self-contained
+# backup including a copy of the encrypted unseal keys and a vault database
+# snapshot.
+ansible_vault_backup_location: /var/lib/vault_backup
+
+# The number of backup files to retain.
+#
+# When set to N, the most recent N backup files will be retained and all others
+# deleted at the end of each backup run.
+#
+# Set to 1 to keep only the latest backup file.
+#
+# Set to 0 to keep all backup files. (Not recommended as this will lead to
+# uncontrolled disk usage).
+ansible_vault_backup_retention: 168  # 1 week of hourly backups
+
+# The schedule on which to run backups, expressed as a systemd calendar event
+# (see `man systemd.time`).
+ansible_vault_backup_schedule: "*-*-* *:00:00"  # Hourly
+
+
+################################################################################
+# Misc options
+################################################################################
+
+# Path to install the backup script to
+ansible_vault_backup_script: /usr/local/bin/vault_backup.sh
+
+# Location of the file in which to store the approle secret ID.
+ansible_vault_backup_auth_file: /etc/vault_backup_credentials.env
+
+# The user and group to run the backup process under
+ansible_vault_backup_user: vault_backup
+ansible_vault_backup_group: vault_backup
+
+# The base name of the systemd service and timer to create for running backups.
+ansible_vault_backup_systemd_unit: "vault_backup"
