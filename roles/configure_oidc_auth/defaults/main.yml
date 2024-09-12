@@ -61,6 +61,12 @@ ansible_vault_oidc_redirect_urls:
   # For Vault UI login
   - "{{ ansible_vault_public_url }}/ui/vault/auth/oidc/oidc/callback"
 
+# If set to true, will force the replacement of the OIDC credentials and
+# settings. This is necessary because the role will otherwise only write these
+# credentials when the OIDC auth endpoint is first created. This is because it
+# is not possible to read them back to detect changes.
+ansible_vault_oidc_force_update: false
+
 
 ################################################################################
 # Identity and token config
