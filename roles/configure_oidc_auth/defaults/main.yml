@@ -33,6 +33,9 @@ ansible_vault_oidc_discovery_url: "https://sso-nbe.bbcis.uk/realms/jdh"
 # The associated OIDC client secret for Vault to use
 #ansible_vault_oidc_client_secret: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
+# A list of OIDC scopes to request beyond the mandatory `openid` scope.
+ansible_vault_oidc_extra_scopes: []
+
 # The OIDC claim to use as the entity-alias name for the entity-aliases
 # auto-created when a user authenticates with Vault. These claims are mapped
 # onto Vault entity names (i.e. users) by the
