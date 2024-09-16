@@ -13,6 +13,10 @@ NB: by default, this role will do nothing if `ansible_vault_unseal_keys` is
 already not-null. Set this variable to null before calling the role to force
 fetching and decryption of unseal keys.
 
+You can limit the set of unseal keys which will be decrypted by setting
+`ansible_vault_pgp_key_fingerprints` to a list of PGP key fingerprints to
+attempt to use.
+
 
 Skipping decryption
 -------------------
