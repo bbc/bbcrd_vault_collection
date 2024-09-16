@@ -1,9 +1,0 @@
----
-
-# The mountpoint for the approle auth method (without the trailing slash)
-ansible_vault_approle_mount: "approle"
-
-# The Vault token to use. Must have sufficient privileges to configure secrets
-# engines, identities and policies.
-#
-#ansible_vault_root_token: "..."
