@@ -72,6 +72,15 @@ of the following steps:
    $ vault operator raft snapshot restore --force vault.db
    ```
    
+   Warning: You *must* address this restore operation to the current Vault
+   leader node due to [Vault issue
+   15258](https://github.com/hashicorp/vault/issues/15258). If you don't you'll
+   get an opaque error message. You can discover the current leader node using:
+   
+   ```
+   $ vault operator raft autopilot state
+   ```
+   
    After restoring the database, the vault will become sealed again.
 
 3. Unseal vault using the backed up unseal keys.

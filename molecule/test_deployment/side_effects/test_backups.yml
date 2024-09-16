@@ -80,17 +80,49 @@
           register: mounts
           failed_when: '"test_kv/" not in mounts.json.data'
       
+        # Due the the following Vault bug:
+        #
+        #     https://github.com/hashicorp/vault/issues/15258
+        #
+        # We must send the restore command to the current Vault leader node or
+        # it will fail.
+        - name: Query vault raft state
+          uri:
+            # vault operator raft autopilot state
+            url: "http://{{ ansible_hostname }}:8200/v1/sys/storage/raft/autopilot/state"
+            headers:
+              X-Vault-Token: "{{ root_token }}"
+          register: autopilot_state
+        
+        - name: Determine vault leader
+          set_fact:
+            vault_leader_node: |-
+              {{
+                autopilot_state.json.data.servers.values()
+                | selectattr("status", "==", "leader")
+                | map(attribute="id")
+                | first
+              }}
+        
         - name: Restore from snapshot
           uri:
             # vault operator raft snapshot restore
-            url: "http://{{ ansible_hostname }}:8200/v1/sys/storage/raft/snapshot"
+            url: "http://{{ vault_leader_node }}:8200/v1/sys/storage/raft/snapshot"
             method: POST
-            src: /tmp/vault.db
             remote_src: true
+            src: "/tmp/vault.db"
             headers:
               X-Vault-Token: "{{ root_token }}"
             status_code: [200, 204]
           changed_when: true
+        
+        # Just hit an arbitrary API endpoint from the leader node and wait for
+        # it to start responding again.
+        - name: Wait for restore to complete
+          uri:
+            url: "http://{{vault_leader_node }}:8200/v1/sys/mounts"
+            headers:
+              X-Vault-Token: "{{ root_token }}"
         
         - name: Verify test_kv endpoint doesn't exist after restore
           uri:

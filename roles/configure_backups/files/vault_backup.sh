@@ -54,13 +54,35 @@ VAULT_TOKEN="$(
 )"
 
 # Download a Vault database snapshot
+#
+# Due the the following Vault bug:
+#
+#     https://github.com/hashicorp/vault/issues/15258
+#
+# Any snapshot API call sent to a non-leader node will result in a 307 redirect
+# to the leader. The `--location` argument to curl is needed to ensure that
+# we follow the redirect.
+#
+# It is due to this bug that we cannot use the ordinary vault client: it
+# appears unable to follow the 307 redirect.
 curl \
     --silent \
     --show-error \
     --fail \
     --header "X-Vault-Token: $VAULT_TOKEN" \
+    --location \
     "${VAULT_ADDR:-https://localhost:8200}/v1/sys/storage/raft/snapshot" \
     --output "$WORKING_DIR/vault.db"
+
+# Sanity check that we've received a valid snapshot. This manually recreates
+# Vault's own logic for checking snapshots are complete. See:
+#
+#     https://github.com/hashicorp/vault/pull/12388
+if ! ( tar --list --file "$WORKING_DIR/vault.db" SHA256SUMS.sealed > /dev/null); then
+  echo "FATAL ERROR: Incomplete (corrupt) snapshot received from vault. Abandoning backup."
+  exit 2
+fi
+
 
 # Copy the encrypted unseal key file
 cp \
