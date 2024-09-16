@@ -1,0 +1,6 @@
+---
+- name: Converge intentionally left blank...
+  hosts: vault
+  tasks:
+    - debug:
+        msg: Nothing to do here!
