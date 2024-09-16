@@ -1,0 +1,162 @@
+---
+
+- hosts: vault
+  tasks:
+    - import_tasks: ../load_credentials_and_reset_vault.yml
+    
+    - name: Check nothing is done when deleting non-existant group
+      bbcrd.ansible_vault.vault_group:
+        name: missing
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Check creating empty group
+      bbcrd.ansible_vault.vault_group:
+        name: my_group
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Make sure no change reported if still empty
+      bbcrd.ansible_vault.vault_group:
+        name: my_group
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Add some non-existing entities
+      bbcrd.ansible_vault.vault_group:
+        name: my_group
+        members:
+          - jonathan
+          - andrew
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Get group info
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/group/name/my_group"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: group
+    
+    - name: Check entites now exist
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/entity/name/{{ item }}"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: entities
+      loop:
+        - jonathan
+        - andrew
+
+    - name: Check entity IDs correct
+      assert:
+        that:
+          - |-
+            (group.json.data.member_entity_ids | sort)
+            == (
+              entities.results
+              | map(attribute="json")
+              | map(attribute="data")
+              | map(attribute="id")
+              | sort
+            )
+        quiet: true
+    
+    - name: Shouldn't change if entities not changed
+      bbcrd.ansible_vault.vault_group:
+        name: my_group
+        members:
+          - jonathan
+          - andrew
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Add some policies
+      bbcrd.ansible_vault.vault_group:
+        name: my_group
+        members:
+          - jonathan
+          - andrew
+        policies:
+          - foo
+          - bar
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check policies added
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/group/name/my_group"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: group
+      failed_when: (group.json.data.policies | sort) != (["foo", "bar"] | sort)
+    
+    - name: Remove some members and policies
+      bbcrd.ansible_vault.vault_group:
+        name: my_group
+        members:
+          - jonathan
+        policies:
+          - foo
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check updated
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/group/name/my_group"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: group
+      failed_when: |-
+        group.json.data.policies != ["foo"]
+        or group.json.data.member_entity_ids != [entities.results[0].json.data.id]
+    
+    - name: Add group to another group
+      bbcrd.ansible_vault.vault_group:
+        name: another_group
+        member_groups:
+          - my_group
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check correctly referenced
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/group/name/another_group"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+      register: another_group
+      failed_when: |-
+        another_group.json.data.member_group_ids != [group.json.data.id]
+    
+    - name: Check deletion
+      bbcrd.ansible_vault.vault_group:
+        name: my_group
+        state: absent
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check deleted
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/identity/group/name/my_group"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_root_token }}"
+        status_code: 404
