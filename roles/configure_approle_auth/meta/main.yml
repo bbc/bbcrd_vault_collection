@@ -1,2 +1,0 @@
-dependencies:
-  - role: bbcrd.ansible_vault.common_defaults
