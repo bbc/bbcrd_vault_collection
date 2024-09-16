@@ -148,7 +148,7 @@ scenario:
 
 provisioner:
   env:
-    # Run in an ephemeral GnuPG environment
+    # Run in an custom ephemeral GnuPG environment
     GNUPGHOME: $MOLECULE_EPHEMERAL_DIRECTORY/gnupghome
   
   config_options:
@@ -203,4 +203,8 @@ provisioner:
         # unluckily timed backup causing a short-lived vault token to exist
         # during the "no tokens left behind" verification step.
         ansible_vault_backup_schedule: "2000-1-1 01:00:00"
+        
+        # Use the test suite's GnuPG environment rather than letting the
+        # playbook create its own.
+        ansible_vault_gnupg_home: "{{ lookup('env', 'GNUPGHOME') }}"
 

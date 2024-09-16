@@ -22,14 +22,24 @@
   set_fact:
     encrypted_unseal_keys: "{{ encrypted_unseal_keys_slurp.content | b64decode | from_json }}"
 
+
 - name: Decrypt the unseal keys
+  run_once: true
+  bbcrd.ansible_vault.pgp_decrypt:
+    ciphertext: "{{ item.encrypted_unseal_key }}"
+  loop: "{{ encrypted_unseal_keys.shares }}"
+  loop_control:
+    label: "{{ item.user }}"
+  register: decrypted
+
+- name: Base64 decode decrypted unseal keys
   run_once: true
   set_fact:
     unseal_keys: |-
       {{
-        encrypted_unseal_keys.shares
-          | map(attribute="encrypted_unseal_key")
-          | map("bbcrd.ansible_vault.pgp_decrypt")
+        decrypted.results
+          | map(attribute="plaintext")
           | map("b64decode")
       }}
     unseal_key_users: "{{ encrypted_unseal_keys.shares | map(attribute='user') }}"
+

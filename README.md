@@ -212,3 +212,10 @@ database.
 </details>
 
 
+By default, the top-level playbooks in this collection will use the
+`ephemeral_gnupg_home` role to create an ephemeral GnuPG environment isolated
+from any other you might be using. The public keys in the Ansible data will be
+automatically imported and a connected PGP smart card detected. This design
+works on the assumption that your private key is stored on a PGP card (e.g. a
+Yubikey). You can opt-out of this and use an existing GnuPG environment by
+setting the `ansible_vault_gnupg_home` variable.

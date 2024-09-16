@@ -12,83 +12,101 @@
   become: "{{ ansible_vault_become | default(True) }}"
   
   tasks:
-    - name: Install Vault software and systemd service
-      import_role:
-        name: bbcrd.ansible_vault.install
-      tags:
-        - ansible_vault_install
-
-    - name: Write Vault server configuration files
-      import_role:
-        name: bbcrd.ansible_vault.configure_server
-      tags:
-        - ansible_vault_configure_server
-
-    - name: Perform cluster-wide operations
-      # All remaining tasks in this role enact logically cluster-wide operations.
-      # Therefore, there is no sense in hobbling on if some node doesn't respond
-      # correctly.
-      any_errors_fatal: true
+    - name: Block to ensure ephemeral GnuPG environment cleaned up
       block:
-        - name: Initialise first vault node
+        - name: Create ephemeral GnuPG environment for handling unseal keys
           import_role:
-            name: bbcrd.ansible_vault.init_first_node
+            name: bbcrd.ansible_vault.ephemeral_gnupg_home
           tags:
-            - ansible_vault_init_first_node
-        
-        - name: Unseal the cluster (and join new nodes)
+            - always
+            - ansible_vault_ephemeral_gnupg_home
+    
+        - name: Install Vault software and systemd service
           import_role:
-            name: bbcrd.ansible_vault.unseal
+            name: bbcrd.ansible_vault.install
           tags:
-            - ansible_vault_unseal
-        
-        - name: Propagate encrypted unseal keys to new nodes
+            - ansible_vault_install
+
+        - name: Write Vault server configuration files
           import_role:
-            name: bbcrd.ansible_vault.propagate_unseal_keys
+            name: bbcrd.ansible_vault.configure_server
           tags:
-            - ansible_vault_propagate_unseal_keys
-        
-        - name: Remove old nodes from the cluster
-          import_role:
-            name: bbcrd.ansible_vault.remove_old_cluster_nodes
-          tags:
-            - ansible_vault_remove_old_cluster_nodes
-        
-        # NB: This process is deliberately perormed *after* unsealing and pruning
-        # the cluster of old nodes since it maximises the chances that the cluster
-        # will be in a state where we can safely restart a server without causing
-        # an outage.
-        - name: Restart vault servers if required
-          import_role:
-            name: bbcrd.ansible_vault.restart
-          tags:
-            - ansible_vault_restart
-        
-        - name: Rekey unseal keys (e.g. to add/remove admins)
-          import_role:
-            name: bbcrd.ansible_vault.rekey
-          tags:
-            - ansible_vault_rekey
-        
-        - name: Configure regular vault database backups
-          import_role:
-            name: bbcrd.ansible_vault.configure_backups
-          tags:
-            - ansible_vault_configure_backups
-        
+            - ansible_vault_configure_server
+
+        - name: Perform cluster-wide operations
+          # All remaining tasks in this role enact logically cluster-wide operations.
+          # Therefore, there is no sense in hobbling on if some node doesn't respond
+          # correctly.
+          any_errors_fatal: true
+          block:
+            - name: Initialise first vault node
+              import_role:
+                name: bbcrd.ansible_vault.init_first_node
+              tags:
+                - ansible_vault_init_first_node
+            
+            - name: Unseal the cluster (and join new nodes)
+              import_role:
+                name: bbcrd.ansible_vault.unseal
+              tags:
+                - ansible_vault_unseal
+            
+            - name: Propagate encrypted unseal keys to new nodes
+              import_role:
+                name: bbcrd.ansible_vault.propagate_unseal_keys
+              tags:
+                - ansible_vault_propagate_unseal_keys
+            
+            - name: Remove old nodes from the cluster
+              import_role:
+                name: bbcrd.ansible_vault.remove_old_cluster_nodes
+              tags:
+                - ansible_vault_remove_old_cluster_nodes
+            
+            # NB: This process is deliberately perormed *after* unsealing and pruning
+            # the cluster of old nodes since it maximises the chances that the cluster
+            # will be in a state where we can safely restart a server without causing
+            # an outage.
+            - name: Restart vault servers if required
+              import_role:
+                name: bbcrd.ansible_vault.restart
+              tags:
+                - ansible_vault_restart
+            
+            - name: Rekey unseal keys (e.g. to add/remove admins)
+              import_role:
+                name: bbcrd.ansible_vault.rekey
+              tags:
+                - ansible_vault_rekey
+            
+            - name: Configure regular vault database backups
+              import_role:
+                name: bbcrd.ansible_vault.configure_backups
+              tags:
+                - ansible_vault_configure_backups
+            
+          always:
+            - name: Revoke any generated root tokens
+              import_role:
+                name: bbcrd.ansible_vault.generate_root
+                tasks_from: revoke.yml
+              tags:
+                - always
+                - ansible_vault_revoke_root_token
+            
+            - name: Clear any decrypted unseal keys
+              import_role:
+                name: bbcrd.ansible_vault.decrypt_unseal_keys
+                tasks_from: clear.yml
+              tags:
+                - always
+                - ansible_vault_clear_unesal_keys
+    
       always:
-        - name: Revoke any generated root tokens
+        - name: Clean up ephemeral GnuPG environment
           import_role:
-            name: bbcrd.ansible_vault.generate_root
-            tasks_from: revoke.yml
+            name: bbcrd.ansible_vault.ephemeral_gnupg_home
+            tasks_from: cleanup.yml
           tags:
             - always
-            - ansible_vault_revoke_root_token
-        
-        - name: Clear any decrypted unseal keys
-          import_role:
-            name: bbcrd.ansible_vault.decrypt_unseal_keys
-            tasks_from: clear.yml
-          tags:
-            - always
-            - ansible_vault_clear_unesal_keys
+            - ansible_vault_ephemeral_gnupg_home

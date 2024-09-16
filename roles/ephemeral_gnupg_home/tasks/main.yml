@@ -1,0 +1,31 @@
+---
+
+- name: Decide whether to create an ephemeral GnuPG home
+  set_fact:
+    # This also serves as the flag used by the cleanup process to decide
+    # whether cleanup is actually required
+    ansible_vault_gnupg_home_created: "{{ ansible_vault_gnupg_home is none }}"
+
+- run_once: true
+  when: ansible_vault_gnupg_home_created
+  block:
+    - name: Create ephemeral GnuPG home
+      bbcrd.ansible_vault.create_ephemeral_gnupg_home:
+        set_fact: ansible_vault_gnupg_home
+      changed_when: false  # Don't pollute change logs
+    
+    - name: Import public keys
+      bbcrd.ansible_vault.pgp_import:
+        public_key: "{{ item.value.ansible_vault_pgp_public_key }}"
+        gnupg_home: "{{ ansible_vault_gnupg_home }}"
+      when: item.value.ansible_vault_pgp_public_key is defined
+      loop: |-
+        {{ ansible_vault_administrators | dict2items }}
+      loop_control:
+        label: "{{ item.key }}"
+      changed_when: false  # Don't pollute change logs
+    
+    - name: Detect PGP card
+      bbcrd.ansible_vault.pgp_detect_card:
+        gnupg_home: "{{ ansible_vault_gnupg_home }}"
+      changed_when: false  # Don't pollute change logs

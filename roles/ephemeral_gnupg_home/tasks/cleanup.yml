@@ -1,0 +1,9 @@
+---
+
+- run_once: true
+  when: ansible_vault_gnupg_home_created is true
+  block:
+    - name: Cleanup ephemeral GnuPG home
+      bbcrd.ansible_vault.cleanup_ephemeral_gnupg_home:
+        gnupg_home: "{{ ansible_vault_gnupg_home }}"
+      changed_when: false  # Don't pollute change logs
