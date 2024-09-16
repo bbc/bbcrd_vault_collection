@@ -2,6 +2,7 @@
 *.swo
 *.swn
 *.swm
+*.swl
 *~
 __pycache__
 venv
