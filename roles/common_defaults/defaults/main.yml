@@ -77,7 +77,7 @@ ansible_vault_public_url: >-
 #
 # Each user may have the following entries:
 #
-# * ansible_vault_pgp_public_key: (Required) The base64-encoded PGP public key
+# * ansible_vault_pgp_public_key: (Required) The ASCII armored PGP public key
 #   of the user. This will be used to encrypt unseal all needed keys.
 # * ansible_vault_unseal_key_shares: (Optional) The number of key shares to
 #   generate for this user. Defaults to 1.
