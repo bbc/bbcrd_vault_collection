@@ -5,11 +5,14 @@ A collection for deploying and managing Hashicorp Vault/OpenBao clusters.
 
 **A work in progress.**
 
-Main playbooks and roles
-------------------------
+Deployment and cluster management playbooks and roles
+-----------------------------------------------------
 
-The following high-level playbooks are defined which carry out the following
-major functions:
+A number of playbooks and roles are provided which implement a generic Vault
+cluster deployment and management tasks. These are likely to be useful for most
+Vault deployments.
+
+The relevant playbooks are:
 
 * `bbcrd.ansible_vault.manage_vault_cluster`: Setup and manage a Vault cluster.
   Handles installation, unsealing nodes, managing cluster membership, rolling
@@ -44,6 +47,7 @@ desired, be used independently:
 * `bbcrd.ansible_vault.rekey`: Rekey vault with a new set of unseal keys.
 * `bbcrd.ansible_vault.configure_backups`: Configures automated backups of the
   vault database and encrypted unseal keys.
+* `bbcrd.ansible_vault.enabled_audit_log`: Enables audit logging.
 
 There are also a some lower level roles which are in some cases used by the
 above roles but which might also be useful in isolation.
@@ -51,13 +55,62 @@ above roles but which might also be useful in isolation.
 * `bbcrd.ansible_vault.generate_root`: Generate an (ephemeral) root token using
   unseal keys.
 * `bbcrd.ansible_vault.decrypt_unseal_keys`: Decrypts unseal keys.
+* `bbcrd.ansible_vault.ephemeral_gnupg_home`: Creates a temporary GnuPG home
+  directory on the Ansible control node, isolated from the user's own GnuPG
+  environment.
 
 
-### Common default variables
+Vault secrets engine provisioning roles and modules
+---------------------------------------------------
 
-Almost all of the roles above automatically pull in the common default variable
-values defined in the otherwise empty `bbcrd.ansible_vault.common_defaults`
-role.
+Whilst the manner of deployment of vault clusters may be common betwen Vault
+deployments, the provisioning of secrets engines, identities and policies is
+not. As a result, this collection only provides a selection of potentially
+useful Ansible roles and modules though these are very far from complete.
+
+In brief, the available roles are:
+
+* `bbcrd.ansible_vault.configure_kv_secrets_engine` -- Deploys an empty KV
+  secrets engine.
+* `bbcrd.ansible_vault.configure_oidc_auth` -- Setup basic OpenID Connect based
+  single-sign-on (SSO) authentication for vault.
+* `bbcrd.ansible_vault.configure_ssh_client_signer` -- Setup a simple SSH
+  client certificate signing secrets engine.
+
+The available modules are:
+
+* Policy management
+  * `bbcrd.ansible_vault.vault_policy` -- Create vault policies.
+* Secret/auth/audit engine management
+  * `bbcrd.ansible_vault.vault_audit` -- Configure auditing engines.
+  * `bbcrd.ansible_vault.vault_auth_method` -- Enable and configure auth methods.
+  * `bbcrd.ansible_vault.vault_secrets_engine` -- Enable or configure secrets
+    engines.
+* Entity/Group management
+  * `bbcrd.ansible_vault.vault_auth_method_entity_aliases` -- Configure entity
+    alias mappings for a particular auth method. (That is, map auth method users
+    to Vault entities).
+  * `bbcrd.ansible_vault.vault_group` -- Create and configure vault (entity) groups.
+  * `bbcrd.ansible_vault.vault_entity` -- Create and configure entities.
+* AppRole auth configuration
+  * `bbcrd.ansible_vault.vault_approles` -- Manage the set of roles for an
+    AppRoles auth endpoint.
+  * `bbcrd.ansible_vault.vault_approle_secret` -- Generate (or set) AppRole
+    secret IDs.
+* OIDC Auth configuration
+  * `bbcrd.ansible_vault.vault_oidc_configure` -- Configure the OIDC auth method.
+  * `bbcrd.ansible_vault.vault_oidc_roles` -- Configure roles for the OIDC auth
+    method.
+* SSH Secrets engine configuration
+  * `bbcrd.ansible_vault.vault_ssh_signer` -- Configure the SSH signer secrets
+    engine.
+
+
+Common default variables
+------------------------
+
+The majority of roles automatically pull in the common default variable values
+defined in the otherwise empty `bbcrd.ansible_vault.common_defaults` role.
 
 
 Unseal key management
