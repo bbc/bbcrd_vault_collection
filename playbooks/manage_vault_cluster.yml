@@ -85,6 +85,12 @@
               tags:
                 - ansible_vault_configure_backups
             
+            - name: Enable audit log
+              import_role:
+                name: bbcrd.ansible_vault.configure_auditing
+              tags:
+                - ansible_vault_configure_auditing
+            
           always:
             - name: Revoke any generated root tokens
               import_role:

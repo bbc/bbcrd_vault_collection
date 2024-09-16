@@ -1,0 +1,16 @@
+---
+
+- name: Obtain root token (if needed)
+  import_role:
+    name: bbcrd.ansible_vault.generate_root
+
+- name: Enable audit engine
+  run_once: true
+  bbcrd.ansible_vault.vault_audit:
+    type: file
+    mount: stdout
+    options:
+      file_path: stdout
+    vault_url: "{{ ansible_vault_public_url }}"
+    vault_token: "{{ ansible_vault_root_token }}"
+    vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"

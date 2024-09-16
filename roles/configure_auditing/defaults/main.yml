@@ -1,0 +1,19 @@
+---
+
+# The audit engine type (see vault docs)
+#
+# Default to simple file-based auditing
+ansible_vault_audit_type: file
+
+# The mountpoint of the audit engine (without the trailing slash)
+ansible_vault_audit_mount: stdout
+
+# Human readable description of the audit engine
+ansible_vault_audit_description: Send audit logs to stdout
+
+# Audit engine options (see specific audit engine docs)
+#
+# Default (with ansible_vault_audit_type = file) is to write the audit log to
+# stdout.
+ansible_vault_audit_options:
+  file_path: stdout
