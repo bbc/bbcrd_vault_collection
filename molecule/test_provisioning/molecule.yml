@@ -39,6 +39,7 @@ scenario:
     - side_effect tests/test_vault_audit.yml
     - side_effect tests/test_vault_auth_method.yml
     - side_effect tests/test_vault_entity.yml
+    - side_effect tests/test_vault_group.yml
     - side_effect tests/test_vault_auth_method_entity_aliases.yml
     - side_effect tests/test_vault_policy.yml
     - side_effect tests/test_vault_approles.yml
