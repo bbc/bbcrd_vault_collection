@@ -10,7 +10,7 @@ Once configured, an SSH key can be signed using a command such as:
 
     $ vault write \
         -field=signed_key \
-        ssh_client_signer/sign/my-role \
+        ssh_client_signer/sign/admin \
         public_key=@$HOME/.ssh/id_rsa.pub \
           > ~/.ssh/id_rsa-cert.pub
 
