@@ -272,3 +272,15 @@ automatically imported and a connected PGP smart card detected. This design
 works on the assumption that your private key is stored on a PGP card (e.g. a
 Yubikey). You can opt-out of this and use an existing GnuPG environment by
 setting the `ansible_vault_gnupg_home` variable.
+
+
+Utilities
+---------
+
+The `utils/` directory contains a selection of scripts which may be useful for
+users of a Vault deployment.
+
+* `utils/vault_auth.py` -- Logs into Vault using OIDC and signs your SSH key.
+* `utils/vault_token_send.sh` -- Use your Vault token to log into Vault on a
+  remote machine.
+
