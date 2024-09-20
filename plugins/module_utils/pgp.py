@@ -62,7 +62,7 @@ def pgp_list_fingerprints(private_keys: bool = False) -> list[str]:
         )
         if output.returncode != 0:
             raise AnsibleError(
-                f"Could not decrypt data.\n{output.stderr.decode()})".rstrip()
+                f"Could enumerate keys.\n{output.stderr.decode()})".rstrip()
             )
         # See GnuPG DETAILS documentation for output format:
         # https://github.com/gpg/gnupg/blob/master/doc/DETAILS
