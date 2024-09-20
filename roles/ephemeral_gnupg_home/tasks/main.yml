@@ -43,3 +43,34 @@
       bbcrd.ansible_vault.pgp_detect_card:
         gnupg_home: "{{ ansible_vault_gnupg_home }}"
       changed_when: false  # Don't pollute change logs
+    
+    # In the step below we encrypt then decrypt dummy data using the private
+    # key(s) detected on the PGP card. If the card has a PIN configured, this
+    # will cause the PIN prompt to be shown. This has two benefits: first we
+    # can fail early if the user doesn't know their PIN and second the PIN will
+    # be cached for the remainder of the playbook. This avoids PIN prompt
+    # timeouts occurring whilst a playbook runs in the background.
+    - name: Pre-check all private key PINs
+      tags: ansible_vault_precheck_pin
+      block:
+        - name: Enumerate available private keys
+          bbcrd.ansible_vault.pgp_list:
+            type: private
+            gnupg_home: "{{ ansible_vault_gnupg_home }}"
+          register: private_keys
+        
+        - name: Encrypt dummy data
+          bbcrd.ansible_vault.pgp_encrypt:
+            plaintext: "{{ 'dummy data' | b64encode() }}"
+            public_key: "{{ item }}"
+            gnupg_home: "{{ ansible_vault_gnupg_home }}"
+          loop: "{{ private_keys.fingerprints }}"
+          register: dummy_data
+        
+        - name: Decrypt dummy data (to trigger PIN entry)
+          bbcrd.ansible_vault.pgp_decrypt:
+            ciphertext: "{{ item }}"
+            gnupg_home: "{{ ansible_vault_gnupg_home }}"
+          loop_control:
+            label: "<encrypted dummy data>"
+          loop: "{{ dummy_data.results | map(attribute='ciphertext') }}"
