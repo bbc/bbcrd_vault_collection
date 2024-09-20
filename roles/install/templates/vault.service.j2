@@ -38,5 +38,18 @@ LimitNOFILE=65536
 LimitMEMLOCK=infinity
 LimitCORE=0
 
+{% if ansible_vault_https_proxy is defined %}
+Environment=HTTPS_PROXY={{ ansible_vault_https_proxy | quote }}
+Environment=https_proxy={{ ansible_vault_https_proxy | quote }}
+{% endif %}
+{% if ansible_vault_http_proxy is defined %}
+Environment=HTTP_PROXY={{ ansible_vault_http_proxy | quote }}
+Environment=http_proxy={{ ansible_vault_http_proxy | quote }}
+{% endif %}
+{% if ansible_vault_no_proxy is defined %}
+Environment=NO_PROXY={{ ansible_vault_no_proxy | join(",") | quote }}
+Environment=no_proxy={{ ansible_vault_no_proxy | join(",") | quote }}
+{% endif %}
+
 [Install]
 WantedBy=multi-user.target
