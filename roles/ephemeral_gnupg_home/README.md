@@ -10,6 +10,9 @@ already defined as something other than null.
 This role makes the somewhat opinionated assumption that unseal keys will be
 protected by private keys held on PGP compatible smart cards.
 
+Use of this role can be nested: only the first and last matching pair of
+invocation and cleanup will have any effect.
+
 
 Cleaning up the ephemeral GnuPG home
 ------------------------------------

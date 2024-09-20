@@ -1,13 +1,14 @@
 ---
 
 - name: Decide whether to create an ephemeral GnuPG home
+  run_once: true
   set_fact:
-    # This also serves as the flag used by the cleanup process to decide
-    # whether cleanup is actually required
-    ansible_vault_gnupg_home_created: "{{ ansible_vault_gnupg_home is none }}"
+    # Detect the nesting level of this role to skip doing anything except
+    # during the outer-most invocations
+    ansible_vault_gnupg_home_nesting_level: "{{ (ansible_vault_gnupg_home_nesting_level|default(0)|int) + 1}}"
 
 - run_once: true
-  when: ansible_vault_gnupg_home_created
+  when: ansible_vault_gnupg_home_nesting_level|int == 1
   block:
     - name: Create ephemeral GnuPG home
       bbcrd.ansible_vault.create_ephemeral_gnupg_home:
