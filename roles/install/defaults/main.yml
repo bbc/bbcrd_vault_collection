@@ -24,3 +24,9 @@ ansible_vault_download_url: "https://releases.hashicorp.com/vault/{{ ansible_vau
 # Force re-download and reinstall of Vault binary
 ansible_vault_force_reinstall: false
 
+# The following variables, if defined, will set up the Vault server to use the
+# defined proxy server.
+#
+#ansible_vault_https_proxy: "http://..."
+#ansible_vault_http_proxy: "http://..."
+#ansible_vault_no_proxy: ["127.0.0.1", ...]
