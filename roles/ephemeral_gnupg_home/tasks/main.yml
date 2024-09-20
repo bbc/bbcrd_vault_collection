@@ -15,6 +15,19 @@
         set_fact: ansible_vault_gnupg_home
       changed_when: false  # Don't pollute change logs
     
+    # The create_ephemeral_gnupg_home module will try to gracefully shut down
+    # any existing gpg-agent instances so in an ideal world this wouldn't be
+    # necessary. Unfortunately, gpg-agents belonging to long-forgotten
+    # temporary GnuPG homes which weren't correctly cleaned up cannot be
+    # gracefully shut down, hence this step.
+    - name: Stop any existing gpg-agents
+      delegate_to: localhost
+      become: false
+      command:
+        argv: ["killall", "gpg-agent"]
+      changed_when: false
+      failed_when: false
+    
     - name: Import public keys
       bbcrd.ansible_vault.pgp_import:
         public_key: "{{ item.value.ansible_vault_pgp_public_key }}"
