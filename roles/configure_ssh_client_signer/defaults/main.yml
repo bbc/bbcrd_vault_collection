@@ -13,9 +13,6 @@
 # no trailing slash.
 ansible_vault_ssh_client_signer_mount: "ssh_client_signer"
 
-# The name of the SSH key signer role to create
-ansible_vault_ssh_client_signer_role_name: admin
-
 # The name of the Vault policy to create which permits the signing of SSH keys
 # by this secrets engine.
 ansible_vault_ssh_client_signer_policy: "ssh_admin"
