@@ -25,7 +25,7 @@
           }}
         state: "{{ 'replaced' if ansible_vault_ssh_client_signer_replace_key else 'present' }}"
         roles:
-          "{{ ansible_vault_ssh_client_signer_role_name }}":
+          default:
             key_type: ca
             allow_user_certificates: true
             algorithm_signer: "{{ ansible_vault_ssh_client_signer_algorithm }}"
@@ -49,7 +49,7 @@
       bbcrd.ansible_vault.vault_policy:
         name: "{{ ansible_vault_ssh_client_signer_policy }}"
         policy: |-
-          path "{{ ansible_vault_ssh_client_signer_mount }}/sign/{{ ansible_vault_ssh_client_signer_role_name }}" {
+          path "{{ ansible_vault_ssh_client_signer_mount }}/sign/default" {
             capabilities = ["create", "update"]
           }
         vault_url: "{{ ansible_vault_public_url }}"
