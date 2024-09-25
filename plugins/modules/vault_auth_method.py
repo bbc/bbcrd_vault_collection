@@ -60,6 +60,14 @@ options:
         default: null
 """
 
+RETURN = r"""
+accessor:
+    description: |-
+        The accessor of the auth method.
+    type: str
+    returned: unless state = "absent"
+"""
+
 EXAMPLES = r"""
 - name: Create setup auth methods
   bbcrd.ansible_vault.vault_auth_method:
@@ -146,6 +154,12 @@ def run_module():
                     method="POST",
                     data=dict(config, description=description),
                 )
+        
+        # Add the accessor to the response
+        result["accessor"] = vault_api_request(
+            module,
+            f"/v1/sys/auth/{mount}",
+        )["data"]["accessor"]
     elif state == "absent":
         if actual is not None:
             result["changed"] = True
