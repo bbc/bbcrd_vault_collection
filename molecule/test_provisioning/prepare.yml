@@ -81,6 +81,12 @@
           copy:
             content: "{{ vault_init.json | to_nice_json }}"
             dest: "/vault_credentials"
+    
+        - name: Enable auditing (to aid debugging)
+          import_role:
+            name: bbcrd.ansible_vault.configure_auditing
+          vars:
+            ansible_vault_root_token: "{{ vault_init.json.root_token }}"
         
         - name: Create a snapshot of the pristine vault database
           get_url:
