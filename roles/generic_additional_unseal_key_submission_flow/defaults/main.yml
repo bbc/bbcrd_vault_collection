@@ -1,5 +1,9 @@
 ---
 
+# One or more unseal keys.
+#
+#ansible_vault_unseal_keys: [...]
+
 # If true, skip interactive confirmation (and verification of the nonce, if
 # applicable) before supplying additional unseal keys.
 ansible_vault_skip_additional_unseal_confirmation: false

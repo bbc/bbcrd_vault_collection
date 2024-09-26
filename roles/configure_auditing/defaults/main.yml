@@ -1,5 +1,9 @@
 ---
 
+# A sufficiently powerful vault token.
+#
+#ansible_vault_root_token: "..."
+
 # The audit engine type (see vault docs)
 #
 # Default to simple file-based auditing

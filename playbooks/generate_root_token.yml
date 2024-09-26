@@ -19,11 +19,14 @@
           import_role:
             name: bbcrd.ansible_vault.ephemeral_gnupg_home
           tags:
-            - always
             - ansible_vault_ephemeral_gnupg_home
             # The molecule test suite uses its own GnuPG environment with its
             # own test keypairs.
             - molecule-notest
+
+        - name: Decrypt unseal keys for root token generation
+          import_role:
+            name: bbcrd.ansible_vault.decrypt_unseal_keys
 
         - name: Obtain root token
           import_role:
@@ -61,6 +64,17 @@
           import_role:
             name: bbcrd.ansible_vault.generate_root
             tasks_from: revoke.yml
+          tags:
+            - always
+            - ansible_vault_revoke_root_token
+        
+        - name: Clear any decrypted unseal keys
+          import_role:
+            name: bbcrd.ansible_vault.decrypt_unseal_keys
+            tasks_from: clear.yml
+          tags:
+            - always
+            - ansible_vault_clear_unesal_keys
 
         - name: Clean up ephemeral GnuPG environment
           import_role:

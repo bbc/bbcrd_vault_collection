@@ -3,10 +3,6 @@
 # This is important since if these are left in the database, the quorum size
 # may be larger than it needs to be.
 
-- name: Obtain root token
-  import_role:
-    name: bbcrd.ansible_vault.generate_root
-
 - name: Remove any old nodes from the cluster
   run_once: true
   block:

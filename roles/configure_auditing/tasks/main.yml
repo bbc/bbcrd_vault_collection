@@ -1,9 +1,5 @@
 ---
 
-- name: Obtain root token (if needed)
-  import_role:
-    name: bbcrd.ansible_vault.generate_root
-
 - name: Enable audit engine
   run_once: true
   bbcrd.ansible_vault.vault_audit:

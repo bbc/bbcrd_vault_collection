@@ -1,5 +1,9 @@
 ---
 
+# One or more unseal keys.
+#
+#ansible_vault_unseal_keys: [...]
+
 # Override: The vault root token to use. If not provided, one will be created
 # using unseal keys (and automatically revoked).
 ansible_vault_root_token: null

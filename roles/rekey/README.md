@@ -18,3 +18,11 @@ the new keys take effect. This ensures that the newly generated keys are
 decryptable and protects against accidental lockout. During this phase, the
 candidate unesal keys are written to `encrypted_unseal_keys.json.candidate`,
 adjacent to the usual encrypted key file.
+
+This role will accept and use any unseal keys provided via the
+`ansible_vault_unseal_keys` variable to begin rekeying. These may be obtained
+using `bbcrd.ansible_vault.decrypt_unseal_keys` but may be supplied separately.
+However, if verify mode is used (i.e. `ansible_vault_verify_rekey` is True, the
+default), the role will use the `bbcrd.ansible_vault.decrypt_unseal_keys` role
+to decrypt the newly generated unseal keys for verification. If this is not
+acceptable, you must disable verify mode.

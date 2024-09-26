@@ -1,0 +1,5 @@
+---
+
+# One or more unseal keys.
+#
+#ansible_vault_unseal_keys: [...]

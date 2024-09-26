@@ -20,10 +20,6 @@
       | map(attribute="exists")
     ) is not all
   block:
-    - name: Obtain root token (if needed)
-      import_role:
-        name: bbcrd.ansible_vault.generate_root
-    
     - run_once: true
       block:
         - name: Create AppRole auth endpoint for backup authentication

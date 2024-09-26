@@ -1,5 +1,13 @@
 ---
 
+# One or more unseal keys.
+#
+#ansible_vault_unseal_keys: [...]
+
+# A sufficiently powerful vault token.
+#
+#ansible_vault_root_token: "..."
+
 # Override: Set to a list of servers to be restarted (and unsealed again)
 # one-by-one, in the order specified during the execution of the role.
 #
