@@ -27,6 +27,10 @@ The relevant playbooks are:
 * `bbcrd.ansible_vault.generate_root_token`: Generate an ephemeral root token
   for the vault cluster using unseal keys.
 
+* `bbcrd.ansible_vault.decrypt_unseal_keys_file`: Decrypts an encrypted unseal
+  keys file (e.g. extracted from a backup archive) for disaster recovery
+  purposes. (See also: `utils/run_disaster_recovery_vault_server.py`).
+
 The following roles implement the tasks within the playbooks above and may, if
 desired, be used independently:
 
@@ -283,4 +287,6 @@ users of a Vault deployment.
 * `utils/vault_auth.py` -- Logs into Vault using OIDC and signs your SSH key.
 * `utils/vault_token_send.sh` -- Use your Vault token to log into Vault on a
   remote machine.
-
+* `utils/run_disaster_recovery_vault_server.sh` -- Spin up an ephemeral vault
+  server on your local machine, optionally loading a Vault snapshot (i.e.
+  backup) into it for disaster recovery or backup validation purposes.

@@ -27,46 +27,9 @@ Each backup file contains a copy of the encrypted unseal keys (and associated
 public keys) and a snapshot of the Vault database. The restore process consists
 of the following steps:
 
-1. Bring up a new Vault cluster using the raft storage engine.
-   
-   Note: You cannot restore a snapshot to non-raft storage backends, for
-   example the in-memory backend used by the dev server.
-   
-   If you are trying to temporarily restore a backup to a minimal Vault
-   deployment on your laptop in an emergency (for example), you could use the
-   following configuration:
-   
-   ```
-   storage "raft" {
-     path = "data"
-     node_id = "vault"
-   }
-   listener "tcp" {
-     address = "127.0.0.1:8200"
-     cluster_address = "127.0.0.1:8201"
-     tls_disable = true
-   }
-   api_addr = "http://127.0.0.1:8200"
-   cluster_addr = "https://127.0.0.1:8201"
-   disable_mlock = true
-   ```
-   
-   This vault server could then be started using:
-   
-   ```
-   $ vault server -config=config.hcl
-   ```
-   
-   And then initialised and unsealed like so:
-   
-   ```
-   $ export VAULT_ADDR=http://127.0.0.1:8200
-   $ vault operator init -key-shares=1 -key-threshold=1
-   $ vault operator unseal <unseal key printed during init>
-   $ vault login <root token printed during init>
-   ```
+1. Bring up a new (empty) Vault cluster using the raft storage engine.
 
-2. Restore the backed up database snapshot using:
+2. Restore the backed up database snapshot inside the backup file using:
    
    ```
    $ vault operator raft snapshot restore --force vault.db
@@ -87,35 +50,58 @@ of the following steps:
    
    If you're restoring to a cluster managed by the roles and playbooks in this
    role, you should copy the encrypted unseal key file onto all cluster nodes
-   in `/etc/vault/encrypted_unseal_keys.json` (by default). At this point, you
-   can use the usual playbooks/procedures to unseal the cluster.
+   in `/etc/vault/encrypted_unseal_keys.json` (by default), overwriting the
+   existing file. At this point, you can use the usual playbooks/procedures to
+   unseal the cluster.
    
    If you're manually restoring into a temporary vault instance, you will need
-   to manually decrypt a sufficient set of unseal keys and unseal vault. You
-   could do this using the following procedure.
+   to manually provide sufficient set of unseal keys associated with the
+   snapshot and unseal vault.
 
-   First, identify a suitable key share in the encrypted unseal key file. You
-   can then extract the public key and encrypted data into files using `jq` and
-   `base64` as follows:
-   
-   ```
-   $ jq -r .shares[0].public_key encrypted_unseal_keys.json > public_key.pgp
-   $ jq -r .shares[0].encrypted_unseal_key encrypted_unseal_keys.json | base64 -d > encrypted_unseal_key.pgp
-   ```
-   
-   You can then use [Cryptie](https://github.com/bbc/cryptie/) to decrypt the
-   unseal key. (You could alternatively use GnuPG/OpenPGP to do this if your
-   PGP setup is more complicated).
-   
-   ```
-   $ cryptie decrypt public_key.pgp encrypted_unseal_key.pgp
-   ```
-   
-   You can now submit this unseal key to vault using:
-   
-   ```
-   $ vault operator unseal
-   ```
-   
-   This process may need to be repeated until enough unseal keys have been
-   presented.
+In a disaster-recovery situation, or to non-invasively validate your backups
+you may wish to spin-up an ephemeral Vault cluster on your laptop with a
+minimum of fuss. The `bbcrd.ansible_vault.decrypt_unseal_keys_file` playbook
+and
+[`utils/run_disaster_recovery_vault_server.py`](../utils/run_disaster_recovery_vault_server.py)
+utility are provided to facilitate these tasks.
+
+1. Extract the backup you want to load:
+
+       $ unzip vault_backup_XXXX-XX-XX_XX-XX-XX.zip
+
+3. Start a local ephemeral vault server using the snapshot:
+
+       $ python3 utils/run_disaster_recovery_vault_server.py vault.db
+
+2. In another terminal, decrypt the unseal keys and unseal vault:
+
+       $ ansible-playbook bbcrd.ansible_vault.decrypt_unseal_keys_file
+       
+       $ export VAULT_ADDR=http://localhost:8200
+       $ vault operator unseal
+
+4. Either authenticate with this vault however your normally would or generate
+   a root token to use.
+
+       $ vault login -method oidc
+       
+       or
+       
+       $ vault operator generate-root -init
+       $ vault operator generate-root
+       <supply unseal key>
+       $ vault login $(vault operator generate-root -decode <encoded token> -otp <otp from -init command>)
+
+NB: If you require multiple people's unseal keys to unseal vault you will need
+to contrive a secure way for your colleagues to supply these to your server.
+Options might include:
+
+* Having them set up an SSH port forward to your server and issuing vault API
+  commands via that (e.g. using):
+
+     $ ssh -L 8200:localhost:8200 <your machine>
+
+* Having them physically decrypt and enter them using your computer
+
+Note that the `run_disaster_recovery_vault_server.py` script *only* listens on
+loopback and cannot be reached over the network.

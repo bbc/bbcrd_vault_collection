@@ -1,0 +1,61 @@
+---
+
+# This playbook decrypts unseal keys contained within a named, local, encrypted
+# unseal key JSON file. It is intended for use in disaster recovery scenarios.
+#
+# The encrypted unseal key file should be placed in
+# `encrypted_unseal_keys.json` in the working directory or the
+# `encrypted_unseal_keys_filename` must be set to the absolute path of the
+# file's location.
+
+- name: Decrypt an unseal key
+  hosts: localhost
+
+  vars:
+    encrypted_unseal_keys_filename: "{{ lookup('env', 'PWD') }}/encrypted_unseal_keys.json"
+
+  tasks:
+    - name: Read encrypted unseal keys
+      set_fact:
+        encrypted_unseal_keys: "{{ lookup('file', encrypted_unseal_keys_filename) | from_json }}"
+    
+    - name: Create ephemeral GnuPG environment for handling unseal keys
+      import_role:
+        name: bbcrd.ansible_vault.ephemeral_gnupg_home
+      tags:
+        - ansible_vault_ephemeral_gnupg_home
+        # The molecule test suite uses its own GnuPG environment with its
+        # own test keypairs.
+        - molecule-notest
+      vars:
+        # Use whatever public keys are present in the encrypted unseal keys
+        # file to decrypt the unseal keys.
+        ansible_vault_administrators: |-
+          {{
+            encrypted_unseal_keys.shares
+            | map(attribute="user")
+            | zip(
+              encrypted_unseal_keys.shares
+              | map(attribute="public_key")
+              | map("community.general.dict_kv", "ansible_vault_pgp_public_key")
+            )
+            | community.general.dict
+          }}
+    
+    - block:
+        - name: Decrypt unseal keys
+          import_role:
+            name: bbcrd.ansible_vault.decrypt_unseal_keys
+            tasks_from: decrypt.yml
+      always:
+        - name: Clean up ephemeral GnuPG environment
+          import_role:
+            name: bbcrd.ansible_vault.ephemeral_gnupg_home
+            tasks_from: cleanup.yml
+          tags:
+            - always
+            - ansible_vault_ephemeral_gnupg_home
+    
+    - name: Display decrypted unseal keys
+      debug:
+        var: ansible_vault_unseal_keys
