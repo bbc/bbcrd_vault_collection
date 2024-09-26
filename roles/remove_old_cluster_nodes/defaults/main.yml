@@ -1,5 +1,9 @@
 ---
 
+# A sufficiently powerful vault token.
+#
+#ansible_vault_root_token: "..."
+
 # If set to False, this role will refuse to remove nodes from the cluster when
 # it would cause the cluster to fall out of quorum.
 #

@@ -1,5 +1,12 @@
 ---
 
+# One or more unseal keys.
+#
+# If rekeying takes place, this variable will be overwritten with the new
+# unseal keys which are decryptable by the current user.
+#
+#ansible_vault_unseal_keys: [...]
+
 # Override: If set to True, rekey the unseal keys even if the set of managers
 # has not changed.
 ansible_vault_force_rekey: false

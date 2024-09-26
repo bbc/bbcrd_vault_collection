@@ -4,10 +4,7 @@
 # Vault-related options
 ################################################################################
 
-# A sufficiently powerful vault token is needed when credential files are being
-# updated (e.g. during the first run). This role will call the
-# `bbcrd.ansible_vault.generate_root` role if required unless
-# ansible_vault_root_token is already defined.
+# A sufficiently powerful vault token.
 #
 #ansible_vault_root_token: "..."
 

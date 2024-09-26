@@ -63,10 +63,6 @@
         quiet: true
         fail_msg: "All cluster members must be up or ansible_vault_skip_rekey_sanity_check set to true."
     
-    - name: Obtain unseal key
-      import_role:
-        name: bbcrd.ansible_vault.decrypt_unseal_keys
-    
     - name: Perform rekeying on one host
       run_once: true
       block:
@@ -160,4 +156,3 @@
             remote_src: true
             dest: "{{ ansible_vault_config_dir }}/encrypted_unseal_keys.json"
             backup: true
-          

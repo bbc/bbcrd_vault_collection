@@ -45,33 +45,27 @@
           ? (y/N)
       register: confirmation
     
-    - name: Obtain and submit unseal keys
+    - name: "Submit unseal key {{ purpose }}"
+      no_log: "{{ ansible_vault_no_log_sensitive }}"
       when: >-
         (
           (confirmation.user_input.strip().lower() in ["y", "yes"])
           if not ansible_vault_skip_additional_unseal_confirmation else
           True
         )
-      block:
-        - name: Obtain unseal keys
-          import_role:
-            name: bbcrd.ansible_vault.decrypt_unseal_keys
-        
-        - name: "Submit unseal key {{ purpose }}"
-          no_log: "{{ ansible_vault_no_log_sensitive }}"
-          run_once: "{{ submit_once }}"
-          uri:
-            url: "{{ submit_api_url }}"
-            method: POST
-            body_format: json
-            body:
-              key: "{{ item }}"
-              nonce: "{{ status.json.nonce if ('nonce' in status.json) != '' else omit }}"
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
-          # Never submit the last unseal key (we leave this to the person
-          # running the main playbook so any outputs at that point don't need
-          # forwarding on via a side-channel).
-          loop: "{{ (ansible_vault_unseal_keys or [])[:(required | int) - 1] }}"
-          loop_control:
-            index_var: idx
-            label: "{{ idx }}"
+      run_once: "{{ submit_once }}"
+      uri:
+        url: "{{ submit_api_url }}"
+        method: POST
+        body_format: json
+        body:
+          key: "{{ item }}"
+          nonce: "{{ status.json.nonce if ('nonce' in status.json) != '' else omit }}"
+        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      # Never submit the last unseal key (we leave this to the person
+      # running the main playbook so any outputs at that point don't need
+      # forwarding on via a side-channel).
+      loop: "{{ (ansible_vault_unseal_keys or [])[:(required | int) - 1] }}"
+      loop_control:
+        index_var: idx
+        label: "{{ idx }}"

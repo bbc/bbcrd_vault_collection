@@ -20,12 +20,6 @@
       | selectattr("vault_sealed", "true")
       | length
   block:
-    # NB: We do this *before* asking for other people's unseal keys in later steps
-    # so that we can fail-early.
-    - name: Obtain unseal key
-      import_role:
-        name: bbcrd.ansible_vault.decrypt_unseal_keys
-
     # Before unsealing a sealed host, we always restart it since its configuration
     # or binary *could* have changed. There are two reasons for doing this right
     # now: one important, one just nice-to-have:
@@ -38,7 +32,7 @@
     #
     # * Nice-to-have reason to restart now: If the vault binary has been
     #   updated since the server was started, restarting now saves us having to
-    #   unsealing it again following a later restart.
+    #   unseal it again following a later restart.
     - name: Restart hosts to be unsealed
       when: vault_sealed
       systemd:

@@ -48,6 +48,13 @@
               tags:
                 - ansible_vault_init_first_node
             
+            - name: Decrypt unseal keys
+              import_role:
+                name: bbcrd.ansible_vault.decrypt_unseal_keys
+              tags:
+                - always
+                - ansible_vault_decrypt_unseal_keys
+            
             - name: Unseal the cluster (and join new nodes)
               import_role:
                 name: bbcrd.ansible_vault.unseal
@@ -59,6 +66,13 @@
                 name: bbcrd.ansible_vault.propagate_unseal_keys
               tags:
                 - ansible_vault_propagate_unseal_keys
+            
+            - name: Generate root token
+              import_role:
+                name: bbcrd.ansible_vault.generate_root
+              tags:
+                - always
+                - ansible_vault_generate_root
             
             - name: Remove old nodes from the cluster
               import_role:
