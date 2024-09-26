@@ -6,11 +6,11 @@
   bbcrd.ansible_vault.cleanup_ephemeral_gnupg_home:
     gnupg_home: "{{ ansible_vault_gnupg_home }}"
   changed_when: false  # Don't pollute change logs
-  when: ansible_vault_gnupg_home_nesting_level|int == 1
+  when: ansible_vault_gnupg_home_nesting_level|default(0)|int == 1
 
 - name: Record exit of GnuPG home
   run_once: true
   set_fact:
     # Detect the nesting level of this role to skip doing anything except
     # during the outer-most invocations
-    ansible_vault_gnupg_home_nesting_level: "{{ [0, ansible_vault_gnupg_home_nesting_level|int - 1] | max }}"
+    ansible_vault_gnupg_home_nesting_level: "{{ [0, ansible_vault_gnupg_home_nesting_level|default(0)|int - 1] | max }}"
