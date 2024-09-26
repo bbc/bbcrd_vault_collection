@@ -38,30 +38,13 @@
             # The molecule test suite uses its own GnuPG environment with its
             # own test keypairs.
             - molecule-notest
+
+        # Below we deliberately try each of the different unseal tasks in the
+        # reverse-order to the order they're performed in the
+        # manage_vault_cluster playbook. This avoids a potential race condition
+        # between this playbook and the management playbook in which this
+        # playbook ends up submitting too many keys.
         
-        - name: Provide keys for unsealing vault
-          import_role:
-            name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
-          vars:
-            purpose: "to unseal vault"
-            submit_once: false
-            # vault status
-            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
-            # vault operator unseal
-            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
-          tags: ansible_vault_supply_unseal_keys
-
-        - name: Supply unseal keys for root token generation
-          import_role:
-            name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
-          vars:
-            purpose: "to generate a root token"
-            submit_once: true
-            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
-            # vault operator generate-root ...
-            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/update"
-          tags: ansible_vault_supply_generate_root_keys
-
         - name: "Check if rekey verification in progress"
           run_once: true
           uri:
@@ -71,6 +54,47 @@
             # NB: 503 returned if vault is sealed
             status_code: [200, 400, 503]
           register: verify_status
+          tags: always
+        
+        - name: Supply candidate unseal keys for verification
+          when: |-
+            verify_status.json.nonce | default("") != ""
+            and decrypt_candidate_unseal_keys_failed is not defined
+          tags:
+            - ansible_vault_supply_verify_keys
+          block:
+            - name: Skip rekey verification check if candidate keys not available
+              block:
+                - name: Decrypt candidate unseal keys
+                  import_role:
+                    name: bbcrd.ansible_vault.decrypt_unseal_keys
+                  vars:
+                    encrypted_unseal_keys_filename: "encrypted_unseal_keys.json.candidate"
+              rescue:
+                - name: Skip rekey verification if couldn't decrypt candidate unseal keys
+                  set_fact:
+                    decrypt_candidate_unseal_keys_failed: true
+
+            - name: Supply candidate unseal keys to verify rekey
+              import_role:
+                name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+              vars:
+                purpose: "to verify new unseal keys"
+                submit_once: true
+                status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+                # vault operator rekey -verify ...
+                submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+                status_status_code: [200, 400, 503]  # Returns 400 when no verification in progress
+            
+            - name: Clear candidate unseal keys
+              set_fact:
+                ansible_vault_unseal_keys: null
+        
+        - name: Decrypt unseal keys
+          import_role:
+            name: bbcrd.ansible_vault.decrypt_unseal_keys
+          tags:
+            - always
 
         - name: Supply unseal keys for rekeying
           # NB: The rekeying endpoint does not provide any indication that rekeying has
@@ -88,20 +112,38 @@
             submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/update"
           tags: ansible_vault_supply_rekey_keys
 
-        - name: Supply candidate unseal keys to verify rekey
+        - name: Supply unseal keys for root token generation
           import_role:
             name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
           vars:
-            purpose: "to verify new unseal keys"
+            purpose: "to generate a root token"
             submit_once: true
-            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
-            # vault operator rekey -verify ...
-            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
-            encrypted_unseal_keys_filename: "encrypted_unseal_keys.json.candidate"
-            status_status_code: [200, 400, 503]  # Returns 400 when no verification in progress
-          tags: ansible_vault_supply_verify_keys
+            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+            # vault operator generate-root ...
+            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/update"
+          tags: ansible_vault_supply_generate_root_keys
+        
+        - name: Provide keys for unsealing vault
+          import_role:
+            name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+          vars:
+            purpose: "to unseal vault"
+            submit_once: false
+            # vault status
+            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+            # vault operator unseal
+            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
+          tags: ansible_vault_supply_unseal_keys
 
       always:
+        - name: Clear any decrypted unseal keys
+          import_role:
+            name: bbcrd.ansible_vault.decrypt_unseal_keys
+            tasks_from: clear.yml
+          tags:
+            - always
+            - ansible_vault_clear_unesal_keys
+        
         - name: Clean up ephemeral GnuPG environment
           import_role:
             name: bbcrd.ansible_vault.ephemeral_gnupg_home
