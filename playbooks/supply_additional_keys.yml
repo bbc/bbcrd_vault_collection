@@ -35,6 +35,9 @@
           tags:
             - always
             - ansible_vault_ephemeral_gnupg_home
+            # The molecule test suite uses its own GnuPG environment with its
+            # own test keypairs.
+            - molecule-notest
         
         - name: Provide keys for unsealing vault
           import_role:

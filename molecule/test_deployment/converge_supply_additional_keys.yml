@@ -47,6 +47,10 @@
           - --inventory
           - "{{ inventory_dir }}"
           - "{{ playbook_dir }}/supply_additional_keys.yml"
+          - --skip-tags
+          - molecule-notest
+          - --skip-tags
+          - notest
           - --extra-vars
           - |-
             {{
