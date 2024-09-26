@@ -20,6 +20,9 @@
           tags:
             - always
             - ansible_vault_ephemeral_gnupg_home
+            # The molecule test suite uses its own GnuPG environment with its
+            # own test keypairs.
+            - molecule-notest
     
         - name: Install Vault software and systemd service
           import_role:
