@@ -23,8 +23,8 @@ pgp_keys_base64: "{{ pgp_keys | map('bbcrd.ansible_vault.ascii_armor_to_base64')
 
 # A list of names (and emails and comments) for each PGP public key, in the
 # same iteration order as unseal_key_shares.
-pgp_key_names: "{{ pgp_keys | map('b64encode') | map('bbcrd.ansible_vault.pgp_public_key_to_name') }}"
+pgp_key_names: "{{ pgp_keys_base64 | map('bbcrd.ansible_vault.pgp_public_key_to_name') }}"
 
 # A list of fingerprints for each PGP public key, in the same iteration order
 # as unseal_key_shares.
-pgp_key_fingerprints: "{{ pgp_keys | map('b64encode') | map('bbcrd.ansible_vault.pgp_public_key_to_fingerprint') }}"
+pgp_key_fingerprints: "{{ pgp_keys_base64 | map('bbcrd.ansible_vault.pgp_public_key_to_fingerprint') }}"
