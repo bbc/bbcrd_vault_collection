@@ -35,9 +35,11 @@ This script is a wrapper around the following commands:
 
 from typing import NamedTuple
 from argparse import ArgumentParser
-from subprocess import run, DEVNULL, PIPE
+from subprocess import run, DEVNULL, PIPE, CalledProcessError
 from pathlib import Path
 import json
+import shlex
+import sys
 
 
 def oidc_login(vault_command: str, verbose: bool) -> None:
@@ -63,7 +65,7 @@ def app_role_login(vault_command: str, verbose: bool, credentials_file: Path) ->
             f"role_id={credentials['role_id']}",
             f"secret_id=-",
         ],
-        input=credentials['secret_id'].encode("ascii"),
+        input=credentials["secret_id"].encode("ascii"),
         stdout=PIPE,
         check=True,
     ).stdout
@@ -209,26 +211,32 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if args.login:
-        if args.app_role is not None:
-            app_role_login(
-                vault_command=args.vault_command,
-                verbose=args.verbose,
-                credentials_file=args.app_role,
-            )
-        else:
-            oidc_login(
-                vault_command=args.vault_command,
-                verbose=args.verbose,
-            )
+    try:
+        if args.login:
+            if args.app_role is not None:
+                app_role_login(
+                    vault_command=args.vault_command,
+                    verbose=args.verbose,
+                    credentials_file=args.app_role,
+                )
+            else:
+                oidc_login(
+                    vault_command=args.vault_command,
+                    verbose=args.verbose,
+                )
 
-    if args.ssh:
-        ssh_sign(
-            vault_command=args.vault_command,
-            ssh_public_key=Path(args.ssh_public_key),
-            ssh_signer_mount=args.ssh_signer_mount.rstrip("/"),
-            verbose=args.verbose,
+        if args.ssh:
+            ssh_sign(
+                vault_command=args.vault_command,
+                ssh_public_key=Path(args.ssh_public_key),
+                ssh_signer_mount=args.ssh_signer_mount.rstrip("/"),
+                verbose=args.verbose,
+            )
+    except CalledProcessError as exc:
+        print(
+            f"ERROR: {shlex.join(exc.cmd)} returned {exc.returncode}", file=sys.stderr
         )
+        sys.exit(exc.returncode)
 
 
 if __name__ == "__main__":
