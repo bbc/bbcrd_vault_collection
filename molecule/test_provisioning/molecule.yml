@@ -3,10 +3,8 @@ driver:
   name: docker
 
 platforms:
-  # Two groups are defined: vault and vault_all. The vault_all group contains
-  # all of the nodes in vault along with an extra pair of nodes.
-  
-  - name: vault
+  - &instance_config
+    name: vault
     groups:
       - vault
     image: docker.io/geerlingguy/docker-ubuntu2204-ansible
@@ -24,6 +22,21 @@ platforms:
     cgroupns_mode: host
     volumes:
       - "/sys/fs/cgroup:/sys/fs/cgroup:rw"
+    
+    # Internal network to allow communication between nodes
+    networks:
+      - name: internal
+  
+  # A pair of dummy hosts for testing approle deployment of machine credentials
+  - <<: *instance_config
+    name: machine-1
+    groups:
+      - machines
+  
+  - <<: *instance_config
+    name: machine-2
+    groups:
+      - machines
 
 scenario:
   test_sequence:
@@ -42,11 +55,12 @@ scenario:
     - side_effect tests/test_vault_group.yml
     - side_effect tests/test_vault_auth_method_entity_aliases.yml
     - side_effect tests/test_vault_policy.yml
-    - side_effect tests/test_vault_approles.yml
-    - side_effect tests/test_vault_approle_secret.yml
     - side_effect tests/test_vault_oidc.yml
     - side_effect tests/test_vault_secrets_engine.yml
     - side_effect tests/test_vault_ssh_signer.yml
+    - side_effect tests/test_vault_approles.yml
+    - side_effect tests/test_vault_approle_secret.yml
+    - side_effect tests/test_approle_roles.yml
     
     - cleanup
     - destroy
@@ -58,6 +72,9 @@ provisioner:
   
   inventory:
     group_vars:
+      all:
+        ansible_vault_public_url: "http://vault:8200"
+      
       vault:
         ansible_vault_version: "1.17.1"
         
@@ -67,5 +84,23 @@ provisioner:
         # Use HTTP to avoid need to setup certificates in test environment
         ansible_vault_listen_protocol: http
         
-        ansible_vault_public_url: "http://{{ ansible_host | default(inventory_hostname) }}:8200"
+        ansible_vault_approle:
+          test_machines:
+            token_policies:
+              - foo
+              - bar
+    
+      # Group for approle role testing
+      machines:
 
+    host_vars:
+      # For approle role testing
+      machine-1:
+        ansible_vault_approle:
+          test_machines:
+            token_ttl: 60
+      machine-2:
+        ansible_vault_approle:
+          test_machines:
+            token_policies:
+              - baz
