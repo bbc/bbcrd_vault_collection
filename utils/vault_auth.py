@@ -18,10 +18,11 @@ This script is a wrapper around the following commands:
     $ vault login -method oidc
 
     $ # For AppRole-based login
-    $ vault write -field token \
+    $ jq -r .secret_id credentials.json \
+      | vault write -field token \
         "auth/$(jq -r .approle_mount credentials.json)/login" \
         role_id="$(jq -r .role_id credentials.json)" \
-        secret_id="$(jq -r .secret_id credentials.json)" \
+        secret_id=- \
       | vault login -
 
     $ # For SSH key signing
@@ -60,8 +61,9 @@ def app_role_login(vault_command: str, verbose: bool, credentials_file: Path) ->
             "token",
             f"auth/{credentials['approle_mount']}/login",
             f"role_id={credentials['role_id']}",
-            f"secret_id={credentials['secret_id']}",
+            f"secret_id=-",
         ],
+        input=credentials['secret_id'].encode("ascii"),
         stdout=PIPE,
         check=True,
     ).stdout
@@ -160,10 +162,8 @@ def main() -> None:
         help="""
             Login using AppRole authentication. The argument should be a file
             containing the credentials to use for AppRole authentication. It
-            should contain lines starting "ROLE_ID=", "SECRET_ID=" and
-            "APPROLE_MOUNT=" giving the role ID, secret ID and AppRole auth
-            mount point respectively (escaped following shell quoting rules).
-            All other lines are ignored.
+            should contain a JSON object containing the fields 'role_id',
+            'secret_id' and 'approle_mount'.
         """,
     )
 
