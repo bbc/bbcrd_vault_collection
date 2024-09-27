@@ -43,7 +43,7 @@
         headers:
           X-Vault-Token: "{{ ansible_vault_token }}"
         ca_path: "{{ ansible_vault_ca_path | default(omit, True) }}"
-        status_code: [200, 404]
+        status_code: [200, 204, 404]
       register: secret_id_lookup
 
 - name: Write credentials file (if needed)
