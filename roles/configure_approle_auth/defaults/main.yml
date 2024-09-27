@@ -1,0 +1,46 @@
+---
+
+################################################################################
+# Vault-related parameters
+################################################################################
+
+# A sufficiently powerful token.
+#
+#ansible_vault_root_token: "..."
+
+
+# The name of the AppRole auth mountpoint to create (without the trailing
+# slash). This must be unique for each use of this role.
+ansible_vault_approle_mount: "machine"
+
+
+################################################################################
+# Policy-related parameters
+################################################################################
+
+
+# The name of the Vault policy to create which will allow the policy-holder to
+# look up role information and generate secret IDs for this approle. It does
+# not, however, allow the holder to create or modify roles.
+ansible_vault_approle_admin_policy: "approle_{{ ansible_vault_approle_mount }}_admin"
+
+
+################################################################################
+# Approle configuration parameters
+################################################################################
+
+# The Ansible group for which each host will be given an AppRole role.
+ansible_vault_approle_ansible_group_name: "{{ ansible_vault_approle_mount }}"
+
+# The configuration of each role is defined by the values defined in
+# ansible_vault_approle[ansible_vault_approle_mount]. This should be a
+# dictionary of values which are expected by the Vault API:
+# https://developer.hashicorp.com/vault/api-docs/auth/approle#parameters
+# Each role is named after the Ansible host's inventory hostname. All other
+# role configuration parameters come from this dictionary.
+#
+# The values defined on the host running this role are treated as defaults. These
+# can be overridden for each host by setting this variable in the hostvars of
+# the relevant host.
+#
+#ansible_vault_approle[ansible_vault_approle_mount].*

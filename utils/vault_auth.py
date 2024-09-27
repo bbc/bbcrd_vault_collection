@@ -1,16 +1,30 @@
 #!/usr/bin/env python3
 
 r"""
-Authenticate with Vault using OIDC and sign your SSH key.
+Authenticate with Vault using OIDC (for humans) or AppAuth (for machines) and
+sign your SSH key.
 
-Usage:
+Usage (for humans):
 
     $ ./vault_auth.py
 
-This script is a wrapper around the following pair of commands:
+Usage (for machines):
 
+    $ ./vault_auth.py --app-role /path/to/credentials_file.json
+
+This script is a wrapper around the following commands:
+
+    $ # For OIDC-based login
     $ vault login -method oidc
-    
+
+    $ # For AppRole-based login
+    $ vault write -field token \
+        "auth/$(jq -r .approle_mount credentials.json)/login" \
+        role_id="$(jq -r .role_id credentials.json)" \
+        secret_id="$(jq -r .secret_id credentials.json)" \
+      | vault login -
+
+    $ # For SSH key signing
     $ vault write \
         -field=signed_key \
         ssh_signer_mount/sign/default \
@@ -18,15 +32,43 @@ This script is a wrapper around the following pair of commands:
         > $HOME/.ssh/id_rsa-cert.pub
 """
 
+from typing import NamedTuple
 from argparse import ArgumentParser
-from subprocess import run, DEVNULL
+from subprocess import run, DEVNULL, PIPE
 from pathlib import Path
+import json
 
 
-def login(vault_command: str, verbose: bool) -> None:
-    """Log into Vault."""
+def oidc_login(vault_command: str, verbose: bool) -> None:
+    """Log into Vault using OIDC."""
     run(
         [vault_command, "login", "-method", "oidc"],
+        stdout=None if verbose else DEVNULL,
+        check=True,
+    )
+
+
+def app_role_login(vault_command: str, verbose: bool, credentials_file: Path) -> None:
+    """Log into Vault using AppRole."""
+    credentials = json.load(credentials_file.open())
+
+    token = run(
+        [
+            vault_command,
+            "write",
+            "-field",
+            "token",
+            f"auth/{credentials['approle_mount']}/login",
+            f"role_id={credentials['role_id']}",
+            f"secret_id={credentials['secret_id']}",
+        ],
+        stdout=PIPE,
+        check=True,
+    ).stdout
+
+    run(
+        [vault_command, "login", "-"],
+        input=token,
         stdout=None if verbose else DEVNULL,
         check=True,
     )
@@ -99,6 +141,32 @@ def main() -> None:
         """,
     )
 
+    login_type_group = parser.add_argument_group(
+        "auth method"
+    ).add_mutually_exclusive_group()
+    login_type_group.add_argument(
+        "--oidc",
+        action="store_true",
+        default=False,
+        help="""
+            Login using OpenID Connect. (The default)
+        """,
+    )
+    login_type_group.add_argument(
+        "--app-role",
+        type=Path,
+        metavar="CREDENTIALS_FILE",
+        default=None,
+        help="""
+            Login using AppRole authentication. The argument should be a file
+            containing the credentials to use for AppRole authentication. It
+            should contain lines starting "ROLE_ID=", "SECRET_ID=" and
+            "APPROLE_MOUNT=" giving the role ID, secret ID and AppRole auth
+            mount point respectively (escaped following shell quoting rules).
+            All other lines are ignored.
+        """,
+    )
+
     login_group = parser.add_argument_group("login options")
     login_group.add_argument(
         "--no-login",
@@ -142,10 +210,17 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.login:
-        login(
-            vault_command=args.vault_command,
-            verbose=args.verbose,
-        )
+        if args.oidc:
+            oidc_login(
+                vault_command=args.vault_command,
+                verbose=args.verbose,
+            )
+        elif args.app_role is not None:
+            app_role_login(
+                vault_command=args.vault_command,
+                verbose=args.verbose,
+                credentials_file=args.app_role,
+            )
 
     if args.ssh:
         ssh_sign(

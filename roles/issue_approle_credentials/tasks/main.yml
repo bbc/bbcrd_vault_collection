@@ -1,0 +1,88 @@
+---
+
+- name: Read AppRole IDs
+  delegate_to: "{{ ansible_vault_api_delegate_host }}"
+  become: "{{ ansible_vault_api_delegate_host_become }}"
+  uri:
+    url: "{{ ansible_vault_public_url }}/v1/auth/{{ ansible_vault_approle_mount }}/role/{{ inventory_hostname }}/role-id"
+    headers:
+      X-Vault-Token: "{{ ansible_vault_token }}"
+    ca_path: "{{ ansible_vault_ca_path | default(omit, True) }}"
+  register: get_approle_id
+
+- name: Check whether existing credentials are up-to-date
+  when: not ansible_vault_approle_rotate_secret_ids
+  block:
+    - name: Read existing credentials
+      slurp:
+        src: "{{ ansible_vault_approle_credentials_file }}"
+      failed_when: false  # Ignore failure if file doesn't exist yet
+      register: get_current_credentials
+    
+    - name: Parse existing credentials
+      set_fact:
+        current_credentials: |-
+          {{
+            get_current_credentials.content
+            | default("")
+            | b64decode
+            | default("{}", True)
+            | from_json
+          }}
+
+    - name: Check secret ID is valid
+      when: current_credentials.secret_id_accessor is defined
+      delegate_to: "{{ ansible_vault_api_delegate_host }}"
+      become: "{{ ansible_vault_api_delegate_host_become }}"
+      uri:
+        url: "{{ ansible_vault_public_url }}/v1/auth/{{ ansible_vault_approle_mount }}/role/{{ inventory_hostname }}/secret-id-accessor/lookup"
+        method: POST
+        body_format: json
+        body:
+          secret_id_accessor: "{{ current_credentials.secret_id_accessor }}"
+        headers:
+          X-Vault-Token: "{{ ansible_vault_token }}"
+        ca_path: "{{ ansible_vault_ca_path | default(omit, True) }}"
+        status_code: [200, 404]
+      register: secret_id_lookup
+
+- name: Write credentials file (if needed)
+  when: |-
+    ansible_vault_approle_rotate_secret_ids
+    or (current_credentials.role_id | default(None)) != get_approle_id.json.data.role_id
+    or secret_id_lookup.json.data is not defined
+    or (current_credentials.approle_mount | default(None)) != ansible_vault_approle_mount
+  block:
+    - name: (Re)generate the secret ID
+      delegate_to: "{{ ansible_vault_api_delegate_host }}"
+      become: "{{ ansible_vault_api_delegate_host_become }}"
+      bbcrd.ansible_vault.vault_approle_secret:
+        mount: "{{ ansible_vault_approle_mount }}"
+        approle_name: "{{ inventory_hostname }}"
+        state: singular  # Delete any previously existing secrets
+        vault_url: "{{ ansible_vault_public_url }}"
+        vault_token: "{{ ansible_vault_token }}"
+        vault_ca_path: "{{ ansible_vault_ca_path | default(omit, True) }}"
+      register: secret_id
+
+    - name: Write credentials file
+      copy:
+        content: "{{ credentials | to_nice_json }}"
+        dest: "{{ ansible_vault_approle_credentials_file }}"
+        owner: "{{ ansible_vault_approle_credentials_file_owner | default(omit, True) }}"
+        group: "{{ ansible_vault_approle_credentials_file_group | default(omit, True) }}"
+        mode: "{{ ansible_vault_approle_credentials_file_mode | default(omit, True) }}"
+      vars:
+        credentials:
+          role_id: "{{ get_approle_id.json.data.role_id }}"
+          secret_id: "{{ secret_id.secret_id }}"
+          secret_id_accessor: "{{ secret_id.secret_id_accessor }}"
+          approle_mount: "{{ ansible_vault_approle_mount }}"
+
+# Handles the case where we change the permissions but the secret is up-to-date
+- name: Ensure credentials file has correct permissions
+  file:
+    dest: "{{ ansible_vault_approle_credentials_file }}"
+    owner: "{{ ansible_vault_approle_credentials_file_owner | default(omit, True) }}"
+    group: "{{ ansible_vault_approle_credentials_file_group | default(omit, True) }}"
+    mode: "{{ ansible_vault_approle_credentials_file_mode | default(omit, True) }}"

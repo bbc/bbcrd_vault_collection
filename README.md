@@ -64,13 +64,14 @@ above roles but which might also be useful in isolation.
   environment.
 
 
-Vault secrets engine provisioning roles and modules
----------------------------------------------------
+Vault secrets engine and auth provisioning roles and modules
+------------------------------------------------------------
 
 Whilst the manner of deployment of vault clusters may be common betwen Vault
-deployments, the provisioning of secrets engines, identities and policies is
-not. As a result, this collection only provides a selection of potentially
-useful Ansible roles and modules though these are very far from complete.
+deployments, the provisioning of secrets engines, auth methods, identities and
+policies is not. As a result, this collection only provides a selection of
+potentially useful Ansible roles and modules though these are very far from
+complete.
 
 In brief, the available roles are:
 
@@ -80,6 +81,12 @@ In brief, the available roles are:
   single-sign-on (SSO) authentication for vault.
 * `bbcrd.ansible_vault.configure_ssh_client_signer` -- Setup a simple SSH
   client certificate signing secrets engine.
+* `bbcrd.ansible_vault.configure_approle_auth` -- Configure an AppRole auth
+  endpoint with roles for each host in an Ansible group for machine auth
+  purposes.
+* `bbcrd.ansible_vault.issue_approle_credentials` -- Issues AppRole credentials
+  (role IDs and secret IDs) to Ansible hosts. For use with
+  `bbcrd.ansible_vault.configure_approle_auth`.
 
 The available modules are:
 
@@ -284,7 +291,8 @@ Utilities
 The `utils/` directory contains a selection of scripts which may be useful for
 users of a Vault deployment.
 
-* `utils/vault_auth.py` -- Logs into Vault using OIDC and signs your SSH key.
+* `utils/vault_auth.py` -- Logs into Vault using either OIDC (for humans) or
+  AppAuth (for machines) and signs your SSH key.
 * `utils/vault_token_send.sh` -- Use your Vault token to log into Vault on a
   remote machine.
 * `utils/run_disaster_recovery_vault_server.sh` -- Spin up an ephemeral vault
