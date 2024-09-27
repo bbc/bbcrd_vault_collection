@@ -210,16 +210,16 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.login:
-        if args.oidc:
-            oidc_login(
-                vault_command=args.vault_command,
-                verbose=args.verbose,
-            )
-        elif args.app_role is not None:
+        if args.app_role is not None:
             app_role_login(
                 vault_command=args.vault_command,
                 verbose=args.verbose,
                 credentials_file=args.app_role,
+            )
+        else:
+            oidc_login(
+                vault_command=args.vault_command,
+                verbose=args.verbose,
             )
 
     if args.ssh:
