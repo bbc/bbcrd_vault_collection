@@ -8,6 +8,8 @@
 - name: Create backup user
   user:
     name: "{{ ansible_vault_backup_user }}"
-    group: "{{ ansible_vault_backup_group }}"
+    groups:
+      - "{{ ansible_vault_backup_group }}"
+    append: true
     state: present
 
