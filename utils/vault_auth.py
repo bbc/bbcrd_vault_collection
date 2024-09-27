@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 r"""
-Authenticate with Vault using OIDC (for humans) or AppAuth (for machines) and
+Authenticate with Vault using OIDC (for humans) or AppRole (for machines) and
 sign your SSH key.
 
 Usage (for humans):

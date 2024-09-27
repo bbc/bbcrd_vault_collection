@@ -292,7 +292,7 @@ The `utils/` directory contains a selection of scripts which may be useful for
 users of a Vault deployment.
 
 * `utils/vault_auth.py` -- Logs into Vault using either OIDC (for humans) or
-  AppAuth (for machines) and signs your SSH key.
+  AppRole (for machines) and signs your SSH key.
 * `utils/vault_token_send.sh` -- Use your Vault token to log into Vault on a
   remote machine.
 * `utils/run_disaster_recovery_vault_server.sh` -- Spin up an ephemeral vault
