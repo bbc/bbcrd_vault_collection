@@ -19,7 +19,7 @@ The following variables must be set:
 
 * `submit_api_url`: The API endpoint to POST the final unseal key to.
 
-* `ansible_vault_unseal_keys`: A valid set of unseal keys. See the
+* `bbcrd_vault_unseal_keys`: A valid set of unseal keys. See the
   [`bbcrd.vault.decrypt_unseal_keys`](../decrypt_unseal_keys) role.
 
 * `nonce`: The nonce for the submission process. If null, no nonce is used
@@ -67,7 +67,7 @@ channel.
 Provide additional keys hook
 ----------------------------
 
-The `ansible_vault_provide_additional_unseal_keys_tasks` variable may be
+The `bbcrd_vault_provide_additional_unseal_keys_tasks` variable may be
 changed from its default `None` to a task file to import whenever additional
 unseal keys are required (i.e. immediately prior to step '2' above). When
 imported, the following additional variables will be set:

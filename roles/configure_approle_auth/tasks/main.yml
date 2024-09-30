@@ -5,60 +5,60 @@
     - name: Create AppRole auth endpoint
       bbcrd.vault.vault_auth_method:
         type: approle
-        mount: "{{ ansible_vault_approle_mount }}"
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        mount: "{{ bbcrd_vault_approle_mount }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
     - name: Create, update or delete AppRole roles
       bbcrd.vault.vault_approles:
-        mount: "{{ ansible_vault_approle_mount }}"
+        mount: "{{ bbcrd_vault_approle_mount }}"
         approles: |-
           {{
-            groups[ansible_vault_approle_ansible_group_name]
+            groups[bbcrd_vault_approle_ansible_group_name]
             | bbcrd.vault.aggregate_approle_parameters(
-              ansible_vault_approle_mount,
-              ansible_vault_approle | default({}),
+              bbcrd_vault_approle_mount,
+              bbcrd_vault_approle | default({}),
               hostvars,
             )
           }}
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
     
     - name: Create policy allowing approle management
       bbcrd.vault.vault_policy:
-        name: "{{ ansible_vault_approle_admin_policy }}"
+        name: "{{ bbcrd_vault_approle_admin_policy }}"
         policy: |
           # This policy is intended to enable policy holders to obtain
           # credentials for the roles already configured for the AppRole
-          # auth mounted at {{ ansible_vault_approle_mount }}.
+          # auth mounted at {{ bbcrd_vault_approle_mount }}.
           
           # Allow enumerating reading role IDs
-          path "auth/{{ ansible_vault_approle_mount }}/role/+/role-id" {
+          path "auth/{{ bbcrd_vault_approle_mount }}/role/+/role-id" {
             capabilities = ["read"]
           }
           
           # Allow creating new secrets
-          path "auth/{{ ansible_vault_approle_mount }}/role/+/secret-id" {
+          path "auth/{{ bbcrd_vault_approle_mount }}/role/+/secret-id" {
             capabilities = ["create", "update"]
             allowed_parameters = {}
           }
-          path "auth/{{ ansible_vault_approle_mount }}/role/+/custom-secret-id" {
+          path "auth/{{ bbcrd_vault_approle_mount }}/role/+/custom-secret-id" {
             capabilities = ["create", "update"]
             allowed_parameters = {}
           }
           
           # Allow enumerating and deleting existing secrets
-          path "auth/{{ ansible_vault_approle_mount }}/role/+/secret-id" {
+          path "auth/{{ bbcrd_vault_approle_mount }}/role/+/secret-id" {
             capabilities = ["list"]
           }
-          path "auth/{{ ansible_vault_approle_mount }}/role/+/secret-id-accessor/lookup" {
+          path "auth/{{ bbcrd_vault_approle_mount }}/role/+/secret-id-accessor/lookup" {
             capabilities = ["create", "update"]
           }
-          path "auth/{{ ansible_vault_approle_mount }}/role/+/secret-id-accessor/destroy" {
+          path "auth/{{ bbcrd_vault_approle_mount }}/role/+/secret-id-accessor/destroy" {
             capabilities = ["create", "update"]
           }
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"

@@ -27,5 +27,5 @@
   run_once: false  # NB: Make sure we put the secret everywhere!
   copy:
     content: "{{ unseal_key_bundle | to_nice_json }}"
-    dest: "{{ ansible_vault_config_dir }}/{{ encrypted_unseal_keys_filename | default('encrypted_unseal_keys.json') }}"
+    dest: "{{ bbcrd_vault_config_dir }}/{{ encrypted_unseal_keys_filename | default('encrypted_unseal_keys.json') }}"
     backup: true

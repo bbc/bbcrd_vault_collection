@@ -23,21 +23,21 @@
       import_role:
         name: bbcrd.vault.ephemeral_gnupg_home
       tags:
-        - ansible_vault_ephemeral_gnupg_home
+        - bbcrd_vault_ephemeral_gnupg_home
         # The molecule test suite uses its own GnuPG environment with its
         # own test keypairs.
         - molecule-notest
       vars:
         # Use whatever public keys are present in the encrypted unseal keys
         # file to decrypt the unseal keys.
-        ansible_vault_administrators: |-
+        bbcrd_vault_administrators: |-
           {{
             encrypted_unseal_keys.shares
             | map(attribute="user")
             | zip(
               encrypted_unseal_keys.shares
               | map(attribute="public_key")
-              | map("community.general.dict_kv", "ansible_vault_pgp_public_key")
+              | map("community.general.dict_kv", "bbcrd_vault_pgp_public_key")
             )
             | community.general.dict
           }}
@@ -54,8 +54,8 @@
             tasks_from: cleanup.yml
           tags:
             - always
-            - ansible_vault_ephemeral_gnupg_home
+            - bbcrd_vault_ephemeral_gnupg_home
     
     - name: Display decrypted unseal keys
       debug:
-        var: ansible_vault_unseal_keys
+        var: bbcrd_vault_unseal_keys

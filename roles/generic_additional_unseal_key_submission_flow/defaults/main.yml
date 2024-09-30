@@ -2,11 +2,11 @@
 
 # One or more unseal keys.
 #
-#ansible_vault_unseal_keys: [...]
+#bbcrd_vault_unseal_keys: [...]
 
 # If true, skip interactive confirmation (and verification of the nonce, if
 # applicable) before supplying additional unseal keys.
-ansible_vault_skip_additional_unseal_confirmation: false
+bbcrd_vault_skip_additional_unseal_confirmation: false
 
 # If True, send API commands to a single node (with run once), if False, send
 # them to all nodes.

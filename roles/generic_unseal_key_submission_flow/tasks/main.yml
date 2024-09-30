@@ -13,7 +13,7 @@
 - name: Fetch unseal key submission state
   uri:
     url: "{{ status_api_url }}"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   register: status
 
 - name: Work out how many unseal keys are required
@@ -25,7 +25,7 @@
       }}
 
 - name: Submitting initial unseal keys
-  no_log: "{{ ansible_vault_no_log_sensitive }}"
+  no_log: "{{ bbcrd_vault_no_log_sensitive }}"
   uri:
     url: "{{ submit_api_url }}"
     method: POST
@@ -33,11 +33,11 @@
     body:
       key: "{{ item }}"
       nonce: "{{ nonce if nonce is not none else omit }}"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   # We must save an unseal key to supply as the final required key (the first
   # subscript makes sure we save one of our keys and the second makes sure we
   # don't submit more than the threshold!)
-  loop: "{{ (ansible_vault_unseal_keys or [])[:-1][:(remaining | int) - 1] }}"
+  loop: "{{ (bbcrd_vault_unseal_keys or [])[:-1][:(remaining | int) - 1] }}"
   loop_control:
     index_var: idx
     label: "{{ idx }}"
@@ -45,7 +45,7 @@
 - name: Fetch updated unseal key submission state
   uri:
     url: "{{ status_api_url }}"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   register: status
 
 - name: Work out how many more unseal keys are required
@@ -56,11 +56,11 @@
         - status.json.progress
       }}
 
-- name: Run ansible_vault_provide_additional_unseal_keys_tasks tasks
+- name: Run bbcrd_vault_provide_additional_unseal_keys_tasks tasks
   when:
-    - ansible_vault_provide_additional_unseal_keys_tasks is not none
+    - bbcrd_vault_provide_additional_unseal_keys_tasks is not none
     - (remaining | int) - 1 > 0
-  include_tasks: "{{ ansible_vault_provide_additional_unseal_keys_tasks or 'nop.yml' }}"
+  include_tasks: "{{ bbcrd_vault_provide_additional_unseal_keys_tasks or 'nop.yml' }}"
   vars:
     required: "{{ (remaining | int) - 1 }}"
 
@@ -70,7 +70,7 @@
     nonce {{ nonce }}{% endif %}
   uri:
     url: "{{ status_api_url }}"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   retries: 9999999  # ~forever
   delay: 10
   until: >-
@@ -86,15 +86,15 @@
   register: status
 
 - name: Submit final unseal key
-  no_log: "{{ ansible_vault_no_log_sensitive }}"
+  no_log: "{{ bbcrd_vault_no_log_sensitive }}"
   uri:
     url: "{{ submit_api_url }}"
     method: POST
     body_format: json
     body:
-      key: "{{ ansible_vault_unseal_keys[-1] }}"
+      key: "{{ bbcrd_vault_unseal_keys[-1] }}"
       nonce: "{{ nonce if nonce is not none else omit }}"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   # Make sure nonce is the one we expected and that we really did submit the
   # final key
   failed_when: >-

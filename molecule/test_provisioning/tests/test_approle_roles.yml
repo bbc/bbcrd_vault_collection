@@ -8,15 +8,15 @@
       import_role:
         name: bbcrd.vault.configure_approle_auth
       vars:
-        ansible_vault_approle_mount: "test_machines"
-        ansible_vault_approle_ansible_group_name: "machines"
+        bbcrd_vault_approle_mount: "test_machines"
+        bbcrd_vault_approle_ansible_group_name: "machines"
     
 - hosts: machines
   tasks:
     - name: Create token with approle administrator policies
       run_once: true
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/auth/token/create"
+        url: "{{ bbcrd_vault_public_url }}/v1/auth/token/create"
         method: POST
         body_format: json
         body:
@@ -24,20 +24,20 @@
             - "approle_test_machines_admin"
           ttl: 3600
         headers:
-          X-Vault-Token: "{{ hostvars['vault'].ansible_vault_root_token }}"
+          X-Vault-Token: "{{ hostvars['vault'].bbcrd_vault_root_token }}"
       register: create_token
     
     - name: Extract approle admin token
       set_fact:
-        ansible_vault_root_token: "{{ hostvars['vault'].ansible_vault_root_token }}"
-        ansible_vault_token: "{{ create_token.json.auth.client_token }}"
+        bbcrd_vault_root_token: "{{ hostvars['vault'].bbcrd_vault_root_token }}"
+        bbcrd_vault_token: "{{ create_token.json.auth.client_token }}"
     
     - name: Deploy approle credentials
       import_role:
         name: bbcrd.vault.issue_approle_credentials
       vars:
-        ansible_vault_approle_mount: "test_machines"
-        ansible_vault_api_delegate_host: vault  # Can't use localhost for molecule
+        bbcrd_vault_approle_mount: "test_machines"
+        bbcrd_vault_api_delegate_host: vault  # Can't use localhost for molecule
     
     - name: Read the credentials file
       slurp:
@@ -55,7 +55,7 @@
     
     - name: Verify credentials work
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/auth/{{ approle_credentials.approle_mount }}/login"
+        url: "{{ bbcrd_vault_public_url }}/v1/auth/{{ approle_credentials.approle_mount }}/login"
         method: POST
         body_format: json
         body:
@@ -70,17 +70,17 @@
           # Vault default token lease is 32 days
           - |
             auth.json.auth.lease_duration
-            == ansible_vault_approle.test_machines.token_ttl | default(2764800)
+            == bbcrd_vault_approle.test_machines.token_ttl | default(2764800)
           - |
             auth.json.auth.policies|sort
-            == (["default"] + ansible_vault_approle.test_machines.token_policies | default(["foo", "bar"])) | sort
+            == (["default"] + bbcrd_vault_approle.test_machines.token_policies | default(["foo", "bar"])) | sort
     
     - name: Re-deploy credentials to make sure nothing changes
       import_role:
         name: bbcrd.vault.issue_approle_credentials
       vars:
-        ansible_vault_approle_mount: "test_machines"
-        ansible_vault_api_delegate_host: vault  # Can't use localhost for molecule
+        bbcrd_vault_approle_mount: "test_machines"
+        bbcrd_vault_api_delegate_host: vault  # Can't use localhost for molecule
     
     - name: Check credentials file hasn't changed
       slurp:
@@ -92,9 +92,9 @@
       import_role:
         name: bbcrd.vault.issue_approle_credentials
       vars:
-        ansible_vault_approle_mount: "test_machines"
-        ansible_vault_api_delegate_host: vault  # Can't use localhost for molecule
-        ansible_vault_approle_rotate_secret_ids: true
+        bbcrd_vault_approle_mount: "test_machines"
+        bbcrd_vault_api_delegate_host: vault  # Can't use localhost for molecule
+        bbcrd_vault_approle_rotate_secret_ids: true
     
     - name: Check credentials file changed
       slurp:
@@ -104,7 +104,7 @@
     
     - name: Verify old credentials don't work any more
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/auth/{{ approle_credentials.approle_mount }}/login"
+        url: "{{ bbcrd_vault_public_url }}/v1/auth/{{ approle_credentials.approle_mount }}/login"
         method: POST
         body_format: json
         body:
@@ -123,7 +123,7 @@
     
     - name: Verify new credentials work
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/auth/{{ approle_credentials.approle_mount }}/login"
+        url: "{{ bbcrd_vault_public_url }}/v1/auth/{{ approle_credentials.approle_mount }}/login"
         method: POST
         body_format: json
         body:

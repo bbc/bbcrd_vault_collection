@@ -3,7 +3,7 @@
 
 This role configures a simple SSH client key signing service.
 
-Add the policy named in `ansible_vault_ssh_client_signer_policy` (defaulting to
+Add the policy named in `bbcrd_vault_ssh_client_signer_policy` (defaulting to
 `ssh_admin`) to any Vault user whom you wish to be able to sign their SSH keys.
 
 Once configured, an SSH key can be signed using a command such as:
@@ -17,7 +17,7 @@ Once configured, an SSH key can be signed using a command such as:
 Vault also provides an unauthenticated API endpoint for obtaining the public
 key used for signing:
 
-    $ curl {{ ansible_vault_public_url }}/v1/ssh-client-signer/public_key
+    $ curl {{ bbcrd_vault_public_url }}/v1/ssh-client-signer/public_key
 
 For now, anything beyond a single class of users is out of scope. You should
 instead use `bbcrd.vault.vault_ssh_signer` directly.

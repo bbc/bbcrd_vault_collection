@@ -1,7 +1,7 @@
 ---
 # Restart (then unseal) a single vault server specified by the variable 'target
 
-# Unless ansible_vault_allow_loss_of_quorum_on_restart is set, we'll refuse to
+# Unless bbcrd_vault_allow_loss_of_quorum_on_restart is set, we'll refuse to
 # restart a server which would result in the cluster becoming unavailable due
 # to a loss of quorum.
 #
@@ -16,14 +16,14 @@
 # restarted and is not yet back in the cluster.
 - name: "Check that restarting {{ target }} would not result in downtime"
   run_once: true
-  when: not ansible_vault_allow_loss_of_quorum_on_restart
-  no_log: "{{ ansible_vault_no_log_sensitive }}"
+  when: not bbcrd_vault_allow_loss_of_quorum_on_restart
+  no_log: "{{ bbcrd_vault_no_log_sensitive }}"
   uri:
     # vault operator raft autopilot state
-    url: "{{ ansible_vault_public_url }}/v1/sys/storage/raft/autopilot/state"
+    url: "{{ bbcrd_vault_public_url }}/v1/sys/storage/raft/autopilot/state"
     headers:
-      X-Vault-Token: "{{ ansible_vault_root_token }}"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+      X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   register: vault_autopilot_state
   # Either the cluster has enough fault tolerance to cope with a restarted node
   # or the node we're about to restart is already down for some reason.
@@ -42,7 +42,7 @@
 
     - name: "Restart Vault on {{ target }}"
       systemd:
-        name: "{{ ansible_vault_systemd_unit }}"
+        name: "{{ bbcrd_vault_systemd_unit }}"
         state: restarted
 
     # Note: We retry with a generous delay here in case we're accessing Vault
@@ -51,8 +51,8 @@
     - name: Wait for Vault on "{{ target }}" to come back up
       uri:
         # vault status
-        url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
-        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
+        ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
       retries: 5
       delay: 5
       until: vault_status.status == 200  # i.e. connection successful

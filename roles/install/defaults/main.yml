@@ -1,17 +1,17 @@
 ---
 
 # Extra distribution packages required alongside vault
-ansible_vault_required_packages:
+bbcrd_vault_required_packages:
   - unzip  # To support extracting downloaded binary
 
 # The command to run vault. (e.g. 'bao' for OpenBao)
-ansible_vault_binary: vault
+bbcrd_vault_binary: vault
 
 # Install dir for vault binary
-ansible_vault_install_dir: /usr/local/bin
+bbcrd_vault_install_dir: /usr/local/bin
 
 # Architecture name to use (as used in download URL)
-ansible_vault_architecture_name: |-
+bbcrd_vault_architecture_name: |-
   {{
     "amd64" if ansible_architecture == "x86_64" else
     "arm64" if ansible_architecture == "aarch64" else
@@ -19,14 +19,14 @@ ansible_vault_architecture_name: |-
   }}
 
 # Vault ZIP download URL
-ansible_vault_download_url: "https://releases.hashicorp.com/vault/{{ ansible_vault_version }}/vault_{{ ansible_vault_version }}_linux_{{ ansible_vault_architecture_name }}.zip"
+bbcrd_vault_download_url: "https://releases.hashicorp.com/vault/{{ bbcrd_vault_version }}/vault_{{ bbcrd_vault_version }}_linux_{{ bbcrd_vault_architecture_name }}.zip"
 
 # Force re-download and reinstall of Vault binary
-ansible_vault_force_reinstall: false
+bbcrd_vault_force_reinstall: false
 
 # The following variables, if defined, will set up the Vault server to use the
 # defined proxy server.
 #
-#ansible_vault_https_proxy: "http://..."
-#ansible_vault_http_proxy: "http://..."
-#ansible_vault_no_proxy: ["127.0.0.1", ...]
+#bbcrd_vault_https_proxy: "http://..."
+#bbcrd_vault_http_proxy: "http://..."
+#bbcrd_vault_no_proxy: ["127.0.0.1", ...]

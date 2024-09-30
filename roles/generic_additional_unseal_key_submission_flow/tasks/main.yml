@@ -4,7 +4,7 @@
   run_once: "{{ submit_once }}"
   uri:
     url: "{{ status_api_url }}"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
     # NB: 400 returned by verify endpoint when no verification is in progress.
     # NB: 503 returned if vault is sealed
     status_code: "{{ status_status_code }}"
@@ -28,14 +28,14 @@
 - name: Provide unseal key
   when: |-
     (
-      groups[ansible_vault_cluster_ansible_group_name]
+      groups[bbcrd_vault_cluster_ansible_group_name]
         | map("extract", hostvars)
         | map(attribute="submission_in_progress")
     ) is any
   block:
     - name: "Confirm unseal key submission {{ purpose }}"
       run_once: true
-      when: not ansible_vault_skip_additional_unseal_confirmation
+      when: not bbcrd_vault_skip_additional_unseal_confirmation
       pause:
         prompt: >-
           Supply unseal keys {{ purpose }}
@@ -46,11 +46,11 @@
       register: confirmation
     
     - name: "Submit unseal key {{ purpose }}"
-      no_log: "{{ ansible_vault_no_log_sensitive }}"
+      no_log: "{{ bbcrd_vault_no_log_sensitive }}"
       when: >-
         (
           (confirmation.user_input.strip().lower() in ["y", "yes"])
-          if not ansible_vault_skip_additional_unseal_confirmation else
+          if not bbcrd_vault_skip_additional_unseal_confirmation else
           True
         )
       run_once: "{{ submit_once }}"
@@ -61,11 +61,11 @@
         body:
           key: "{{ item }}"
           nonce: "{{ status.json.nonce if ('nonce' in status.json) != '' else omit }}"
-        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
       # Never submit the last unseal key (we leave this to the person
       # running the main playbook so any outputs at that point don't need
       # forwarding on via a side-channel).
-      loop: "{{ (ansible_vault_unseal_keys or [])[:(required | int) - 1] }}"
+      loop: "{{ (bbcrd_vault_unseal_keys or [])[:(required | int) - 1] }}"
       loop_control:
         index_var: idx
         label: "{{ idx }}"

@@ -5,12 +5,12 @@
 - name: Reset the unseal process
   uri:
     # vault operator unseal -reset
-    url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
+    url: "{{ bbcrd_vault_public_url }}/v1/sys/unseal"
     method: POST
     body_format: json
     body:
       reset: true
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   changed_when: true
 
 - name: Supply unseal keys
@@ -20,9 +20,9 @@
     purpose: "to unseal vault"
     nonce: null
     # vault status
-    status_api_url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+    status_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
     # vault operator unseal
-    submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
+    submit_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/unseal"
     # When unsealing a node for the first time (i.e. joining it to the
     # cluster), the unseal API doesn't return "sealed: false" immediately. As
     # such, we postpone this check to allow us to wait as necessary
@@ -30,8 +30,8 @@
 
 - name: Confirm vault is unsealed
   uri:
-    url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   register: status
   retries: 30
   delay: 2

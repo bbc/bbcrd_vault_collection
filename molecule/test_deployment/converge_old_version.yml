@@ -3,7 +3,7 @@
 - name: Roll-back version
   import_playbook: converge.yml
   vars:
-    ansible_vault_version: "{{ ansible_vault_rollback_version }}"
+    bbcrd_vault_version: "{{ bbcrd_vault_rollback_version }}"
 
 - name: Confirm rollback occurred
   hosts: vault
@@ -15,5 +15,5 @@
 
     - name: Check if running rolled-back version
       assert:
-        that: vault_status.json.version == ansible_vault_rollback_version
+        that: vault_status.json.version == bbcrd_vault_rollback_version
         quiet: true

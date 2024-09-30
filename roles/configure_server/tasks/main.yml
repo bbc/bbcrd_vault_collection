@@ -4,45 +4,45 @@
 
 - name: Create data directory
   file:
-    path: "{{ ansible_vault_data_dir }}"
+    path: "{{ bbcrd_vault_data_dir }}"
     state: directory
     mode: 0700
-    owner: "{{ ansible_vault_user }}"
-    group: "{{ ansible_vault_group }}"
+    owner: "{{ bbcrd_vault_user }}"
+    group: "{{ bbcrd_vault_group }}"
 
 - name: Create raft database directory
   file:
-    path: "{{ ansible_vault_data_dir }}/data"
+    path: "{{ bbcrd_vault_data_dir }}/data"
     state: directory
     mode: 0700
-    owner: "{{ ansible_vault_user }}"
-    group: "{{ ansible_vault_group }}"
+    owner: "{{ bbcrd_vault_user }}"
+    group: "{{ bbcrd_vault_group }}"
 
 - name: Create config directory
   file:
-    path: "{{ ansible_vault_config_dir }}"
+    path: "{{ bbcrd_vault_config_dir }}"
     state: directory
     mode: 0755
 
 # This check is required due to a shortcoming of Ansible whereby
-# hostvars[...]["ansible_vault_public_url"] does not exist if the variable
+# hostvars[...]["bbcrd_vault_public_url"] does not exist if the variable
 # is only defined as a role default value. The config template below relies on
 # this pattern.
-- name: Check ansible_vault_public_url is explicitly defined
+- name: Check bbcrd_vault_public_url is explicitly defined
   run_once: true
   assert:
-    that: "'ansible_vault_public_url' in hostvars[item]"
+    that: "'bbcrd_vault_public_url' in hostvars[item]"
     quiet: true
     fail_msg: >-
-      You must explicitly define 'ansible_vault_public_url' for all vault
+      You must explicitly define 'bbcrd_vault_public_url' for all vault
       hosts (even if just to the same value as the default). This is needed to
       work around a limitation of Ansible.
-  loop: "{{ groups[ansible_vault_cluster_ansible_group_name] }}"
+  loop: "{{ groups[bbcrd_vault_cluster_ansible_group_name] }}"
 
 - name: Write vault configuration
   template:
     src: config.hcl.j2
-    dest: "{{ ansible_vault_config_dir }}/config.hcl"
+    dest: "{{ bbcrd_vault_config_dir }}/config.hcl"
   register: write_vault_config
 
 # Note: Vault barely reloads any of its config at runtime. We perform this step
@@ -54,7 +54,7 @@
 # manually!
 - name: Reload vault configuration
   systemd:
-    name: "{{ ansible_vault_systemd_unit }}"
+    name: "{{ bbcrd_vault_systemd_unit }}"
     state: reloaded
   when: write_vault_config.changed
 

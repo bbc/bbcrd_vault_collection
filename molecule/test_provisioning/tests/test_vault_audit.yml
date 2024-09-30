@@ -9,8 +9,8 @@
         type: file
         mount: stdout
         state: absent
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
     
     - name: Enable file audit device
       bbcrd.vault.vault_audit:
@@ -18,16 +18,16 @@
         mount: stdout
         options:
           file_path: stdout
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
 
     - name: Check created
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/sys/audit"
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/audit"
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: |-
         result.json.data["stdout/"].options.file_path != "stdout"
@@ -38,8 +38,8 @@
         mount: stdout
         options:
           file_path: stdout
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: result.changed
 
@@ -49,16 +49,16 @@
         mount: stdout
         options:
           file_path: discard
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
 
     - name: Check updated
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/sys/audit"
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/audit"
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: |-
         result.json.data["stdout/"].options.file_path != "discard"
@@ -70,16 +70,16 @@
         options:
           file_path: discard
         state: absent
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
     - name: Check deleted
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/sys/audit"
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/audit"
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: |-
         "stdout/" in result.json.data
@@ -89,7 +89,7 @@
         type: file
         mount: stdout
         state: absent
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: result.changed

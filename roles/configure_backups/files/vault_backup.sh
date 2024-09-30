@@ -8,7 +8,7 @@
 #
 #    $ export ROLE_ID=...
 #    $ export SECRET_ID=...
-#    $ ./bbcrd_ansible_vault_shapshot.sh /path/to/backup_dir
+#    $ ./bbcrd_bbcrd_vault_shapshot.sh /path/to/backup_dir
 #
 # The following environment variables are used:
 #

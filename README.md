@@ -182,11 +182,11 @@ Its structure is as follows:
       # The enecrypted unseal key shares
       "shares": [
         {
-          # The key of ansible_vault_administrators where the public key used
+          # The key of bbcrd_vault_administrators where the public key used
           # to encrypted this key share came from. (For information only).
           "user": "...",
           # The ASCII Armor encoded PGP public key, reproduced from
-          # ansible_vault_administrators.
+          # bbcrd_vault_administrators.
           "public_key": "...",
           # The full name field extracted from the public key (for information
           # only)
@@ -219,7 +219,7 @@ kept in sync with backups of the encrypted unseal keys.
 > rekeying operation. This is intended to prevent different cluster members
 > from holding stale (and inconsistent) encrypted key files. If missing members
 > of the cluster cannot be brought up when rekeying is performed, this check
-> can be disabled (using `ansible_vault_skip_rekey_sanity_check`). In this
+> can be disabled (using `bbcrd_vault_skip_rekey_sanity_check`). In this
 > case, however, it is the operator's responsibility to ensure that the updated
 > encrypted key files are propagated correctly once machines have been brought
 > back into service.
@@ -282,7 +282,7 @@ from any other you might be using. The public keys in the Ansible data will be
 automatically imported and a connected PGP smart card detected. This design
 works on the assumption that your private key is stored on a PGP card (e.g. a
 Yubikey). You can opt-out of this and use an existing GnuPG environment by
-setting the `ansible_vault_gnupg_home` variable.
+setting the `bbcrd_vault_gnupg_home` variable.
 
 
 Utilities

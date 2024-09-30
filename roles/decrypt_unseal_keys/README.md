@@ -1,7 +1,7 @@
 `bbcrd.vault.decrypt_unseal_keys` role
 ======================================
 
-Decrypts as many unseal keys as possible into `ansible_vault_unseal_keys`. Also
+Decrypts as many unseal keys as possible into `bbcrd_vault_unseal_keys`. Also
 sets `encrypted_unseal_keys` to the JSON-decoded contents of the encrypted
 unseal key bundle.
 
@@ -12,12 +12,12 @@ You can override the filename of the encrypted key bundle the encrypted unseal
 keys are loaded from by setting the `encrypted_unseal_keys_filename` variable.
 It defaults to `encrypted_unseal_keys.json`.
 
-NB: by default, this role will do nothing if `ansible_vault_unseal_keys` is
+NB: by default, this role will do nothing if `bbcrd_vault_unseal_keys` is
 already not-null. Set this variable to null before calling the role to force
 fetching and decryption of unseal keys.
 
 You can limit the set of unseal keys which will be decrypted by setting
-`ansible_vault_pgp_key_fingerprints` to a list of PGP key fingerprints to
+`bbcrd_vault_pgp_key_fingerprints` to a list of PGP key fingerprints to
 attempt to use.
 
 
@@ -53,7 +53,7 @@ Clearing decrypted unseal keys
 ------------------------------
 
 The `clear.yml` utility task is included in this role which will automatically
-clear the `ansible_vault_unseal_keys` variable iff it was set by this role.
+clear the `bbcrd_vault_unseal_keys` variable iff it was set by this role.
 (The `unseal_keys_decrypted` variable is set by this role during decryption and
 used to decide whehter to clear the unseal keys or not).
 

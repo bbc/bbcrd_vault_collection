@@ -1,5 +1,5 @@
 - name: Fetch and decrypt unseal keys if not already loaded
-  when: (ansible_vault_unseal_keys | default(None)) is none
+  when: (bbcrd_vault_unseal_keys | default(None)) is none
   block:
     - name: Fetch encrypted unseal keys
       import_tasks: fetch.yml

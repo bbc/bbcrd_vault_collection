@@ -5,20 +5,20 @@
 ################################################################################
 
 # The Vault server URL.
-ansible_vault_public_url: "{{ lookup('env', 'VAULT_ADDR', default='https://localhost:8200') }}"
+bbcrd_vault_public_url: "{{ lookup('env', 'VAULT_ADDR', default='https://localhost:8200') }}"
 
 # The Vault token to use.
-ansible_vault_token: "{{ lookup('pipe', 'vault print token') }}"
+bbcrd_vault_token: "{{ lookup('pipe', 'vault print token') }}"
 
 # The location of a PEM file from which to read the CA to trust when
 # connecting to the Vault server.
-ansible_vault_ca_path: "{{ lookup('env', 'VAULT_CAPATH') | default(None, True) }}"
+bbcrd_vault_ca_path: "{{ lookup('env', 'VAULT_CAPATH') | default(None, True) }}"
 
 # The Anisble host to defer all Vault API accesses to.
-ansible_vault_api_delegate_host: localhost
+bbcrd_vault_api_delegate_host: localhost
 
 # Should 'become' be used for the deleted hosts for API accesses
-ansible_vault_api_delegate_host_become: false
+bbcrd_vault_api_delegate_host_become: false
 
 
 ################################################################################
@@ -28,10 +28,10 @@ ansible_vault_api_delegate_host_become: false
 # The name of the AppRole auth mountpoint configured by the
 # `bbcrd.vault.configure_approle_auth` role (without any trailing
 # slash).
-ansible_vault_approle_mount: "machine"
+bbcrd_vault_approle_mount: "machine"
 
 # If set to True, replace all existing secret IDs
-ansible_vault_approle_rotate_secret_ids: false
+bbcrd_vault_approle_rotate_secret_ids: false
 
 # The filename to write the AppRole credentials to.
 #
@@ -42,10 +42,10 @@ ansible_vault_approle_rotate_secret_ids: false
 # * "secret_id_accessor" -- The secret ID accessor. This is used by this role
 #   to detect secret revocations. This value is not used during authentication.
 # * "approle_mount" -- The AppRole mountpoint (without the trailing slash)
-ansible_vault_approle_credentials_file: "/etc/vault_approle_{{ ansible_vault_approle_mount }}_credentials.json"
+bbcrd_vault_approle_credentials_file: "/etc/vault_approle_{{ bbcrd_vault_approle_mount }}_credentials.json"
 
 # The user, group and mode for the credentials file. This file contains secret
 # material which should not be readable except where necessary.
-ansible_vault_approle_credentials_file_owner: null
-ansible_vault_approle_credentials_file_group: null
-ansible_vault_approle_credentials_file_mode: "0600"
+bbcrd_vault_approle_credentials_file_owner: null
+bbcrd_vault_approle_credentials_file_group: null
+bbcrd_vault_approle_credentials_file_mode: "0600"

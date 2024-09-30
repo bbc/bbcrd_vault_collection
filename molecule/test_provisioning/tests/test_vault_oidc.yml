@@ -7,8 +7,8 @@
     - name: Enable OIDC auth
       bbcrd.vault.vault_auth_method:
         type: oidc
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
     
     - name: Configure OIDC
       bbcrd.vault.vault_oidc_configure:
@@ -16,20 +16,20 @@
           # For test purposes, point at Vault's own built in OIDC provider (see
           # https://developer.hashicorp.com/vault/docs/secrets/identity/oidc-provider)
           # since this must be a valid URL.
-          oidc_discovery_url: "{{ ansible_vault_public_url }}/v1/identity/oidc/provider/default"
+          oidc_discovery_url: "{{ bbcrd_vault_public_url }}/v1/identity/oidc/provider/default"
           oidc_client_id: "foo"
           oidc_client_secret: "bar"
           default_role: default
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: oidc_configure
       failed_when: not oidc_configure.changed
     
     - name: Ensure reconfigure OIDC doesn't result in change
       bbcrd.vault.vault_oidc_configure:
         config: {}
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: oidc_configure
       failed_when: oidc_configure.changed
     
@@ -37,13 +37,13 @@
       bbcrd.vault.vault_oidc_configure:
         config:
           # See note above
-          oidc_discovery_url: "{{ ansible_vault_public_url }}/v1/identity/oidc/provider/default"
+          oidc_discovery_url: "{{ bbcrd_vault_public_url }}/v1/identity/oidc/provider/default"
           oidc_client_id: "qux"
           oidc_client_secret: "quo"
           default_role: default
         state: updated
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: oidc_configure
       failed_when: not oidc_configure.changed
 
@@ -58,17 +58,17 @@
             user_claim: sub
             allowed_redirect_uris:
               - https://vault.example.com:8200/ui/vault/auth/oidc/oidc/callback
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: oidc_configure
       failed_when: not oidc_configure.changed
     
     - name: Check expected roles exist
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/auth/oidc/role"
+        url: "{{ bbcrd_vault_public_url }}/v1/auth/oidc/role"
         method: LIST
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: list
       failed_when: (list.json.data["keys"] | sort) != (["default", "other" ] | sort)
 
@@ -83,8 +83,8 @@
             user_claim: sub
             allowed_redirect_uris:
               - https://vault.example.com:8200/ui/vault/auth/oidc/oidc/callback
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: oidc_configure
       failed_when: oidc_configure.changed
 
@@ -95,17 +95,17 @@
             user_claim: email
             allowed_redirect_uris:
               - http://localhost:8250/oidc/callback
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: oidc_configure
       failed_when: not oidc_configure.changed
     
     - name: Check role was deleted
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/auth/oidc/role"
+        url: "{{ bbcrd_vault_public_url }}/v1/auth/oidc/role"
         method: LIST
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: list
       failed_when: (list.json.data["keys"] | sort) != (["default"] | sort)
 
@@ -116,15 +116,15 @@
             user_claim: sub
             allowed_redirect_uris:
               - http://localhost:8250/oidc/callback
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: oidc_configure
       failed_when: not oidc_configure.changed
     
     - name: Check role was updated
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/auth/oidc/role/default"
+        url: "{{ bbcrd_vault_public_url }}/v1/auth/oidc/role/default"
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: role
       failed_when: role.json.data.user_claim != "sub"

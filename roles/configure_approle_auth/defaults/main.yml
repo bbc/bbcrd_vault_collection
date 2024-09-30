@@ -6,12 +6,12 @@
 
 # A sufficiently powerful token.
 #
-#ansible_vault_root_token: "..."
+#bbcrd_vault_root_token: "..."
 
 
 # The name of the AppRole auth mountpoint to create (without the trailing
 # slash). This must be unique for each use of this role.
-ansible_vault_approle_mount: "machine"
+bbcrd_vault_approle_mount: "machine"
 
 
 ################################################################################
@@ -22,7 +22,7 @@ ansible_vault_approle_mount: "machine"
 # The name of the Vault policy to create which will allow the policy-holder to
 # look up role information and generate secret IDs for this approle. It does
 # not, however, allow the holder to create or modify roles.
-ansible_vault_approle_admin_policy: "approle_{{ ansible_vault_approle_mount }}_admin"
+bbcrd_vault_approle_admin_policy: "approle_{{ bbcrd_vault_approle_mount }}_admin"
 
 
 ################################################################################
@@ -30,10 +30,10 @@ ansible_vault_approle_admin_policy: "approle_{{ ansible_vault_approle_mount }}_a
 ################################################################################
 
 # The Ansible group for which each host will be given an AppRole role.
-ansible_vault_approle_ansible_group_name: "{{ ansible_vault_approle_mount }}"
+bbcrd_vault_approle_ansible_group_name: "{{ bbcrd_vault_approle_mount }}"
 
 # The configuration of each role is defined by the values defined in
-# ansible_vault_approle[ansible_vault_approle_mount]. This should be a
+# bbcrd_vault_approle[bbcrd_vault_approle_mount]. This should be a
 # dictionary of values which are expected by the Vault API:
 # https://developer.hashicorp.com/vault/api-docs/auth/approle#parameters
 # Each role is named after the Ansible host's inventory hostname. All other
@@ -43,4 +43,4 @@ ansible_vault_approle_ansible_group_name: "{{ ansible_vault_approle_mount }}"
 # can be overridden for each host by setting this variable in the hostvars of
 # the relevant host.
 #
-#ansible_vault_approle[ansible_vault_approle_mount].*
+#bbcrd_vault_approle[bbcrd_vault_approle_mount].*

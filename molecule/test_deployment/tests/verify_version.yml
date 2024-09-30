@@ -9,5 +9,5 @@
 
 - name: Check if running rolled-back version
   assert:
-    that: vault_status.json.version == ansible_vault_version
+    that: vault_status.json.version == bbcrd_vault_version
     quiet: true
