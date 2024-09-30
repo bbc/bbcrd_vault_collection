@@ -148,6 +148,6 @@
         
         - name: Create encrypted unseal key bundle
           import_role:
-            name: bbcrd.ansible_vault.save_encrypted_unseal_keys
+            name: bbcrd.vault.save_encrypted_unseal_keys
           vars:
             encrypted_unseal_keys_base64: "{{ vault_rekey_update.json.keys_base64 }}"

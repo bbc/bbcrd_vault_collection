@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.common_defaults` role
-==========================================
+`bbcrd.vault.common_defaults` role
+==================================
 
 This role does nothing except set a number of default variables which are
 common to many or all of the roles in this collection.

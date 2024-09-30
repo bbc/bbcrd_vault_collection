@@ -1,17 +1,17 @@
 import os
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.dict_compare import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.dict_compare import (
     dict_issubset,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_oidc_roles
+module: bbcrd.vault.vault_oidc_roles
 
 short_description: Configure roles for the OIDC auth method.
 
@@ -53,17 +53,17 @@ options:
 
 EXAMPLES = r"""
 - name: Enable OIDC auth endpoint
-  bbcrd.ansible_vault.vault_auth_method:
+  bbcrd.vault.vault_auth_method:
     type: oidc
 
 - name: Configure OIDC
-  bbcrd.ansible_vault.vault_oidc_configure:
+  bbcrd.vault.vault_oidc_configure:
     config:
       # ...
       default_role: default
 
 - name: Create OIDC roles
-  bbcrd.ansible_vault.vault_oidc_roles:
+  bbcrd.vault.vault_oidc_roles:
     default:
       user_claim: email
       allowed_redirect_uris:

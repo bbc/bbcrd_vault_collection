@@ -56,7 +56,7 @@
     - name: (Re)generate the secret ID
       delegate_to: "{{ ansible_vault_api_delegate_host }}"
       become: "{{ ansible_vault_api_delegate_host_become }}"
-      bbcrd.ansible_vault.vault_approle_secret:
+      bbcrd.vault.vault_approle_secret:
         mount: "{{ ansible_vault_approle_mount }}"
         approle_name: "{{ inventory_hostname }}"
         state: singular  # Delete any previously existing secrets

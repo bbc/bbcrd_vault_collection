@@ -1,13 +1,13 @@
 from ansible.plugins.action import ActionBase
 from ansible.errors import AnsibleError
 
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.pgp import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.pgp import (
     in_specified_gnupg_home
     kill_gpg_agent,
 )
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.kill_gpg_agent
+module: bbcrd.vault.kill_gpg_agent
 
 short_description: Kill the running GnuPG agent on the control node.
 
@@ -22,7 +22,7 @@ options:
 
 EXAMPLES = r"""
 - name: Kill the GnuPG agent
-  bbcrd.ansible_vault.kill_gpg_agent:
+  bbcrd.vault.kill_gpg_agent:
 """
 
 class ActionModule(ActionBase):

@@ -1,7 +1,7 @@
 from ansible.plugins.action import ActionBase
 from ansible.errors import AnsibleError
 
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.pgp import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.pgp import (
     in_specified_gnupg_home,
     pgp_list_fingerprints,
 )
@@ -13,7 +13,7 @@ from subprocess import run
 from base64 import b64decode, b64encode
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.pgp_list
+module: bbcrd.vault.pgp_list
 
 short_description: Enumerate the fingerprints of available public or private PGP keys on the control node.
 
@@ -41,7 +41,7 @@ fingerprints:
 
 EXAMPLES = r"""
 - name: Enumerate private key fingerprints
-  bbcrd.ansible_vault.pgp_list
+  bbcrd.vault.pgp_list
     type: private
   register: result
 """

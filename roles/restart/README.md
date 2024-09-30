@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.restart` role
-==================================
+`bbcrd.vault.restart` role
+==========================
 
 Restart and unseal vault cluster members in a rolling fashion.
 

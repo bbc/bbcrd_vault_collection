@@ -1,7 +1,7 @@
 from subprocess import run, PIPE, DEVNULL
 from base64 import b64decode, b64encode
 
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.pgp import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.pgp import (
     ascii_armor_to_base64,
     pgp_key_metadata,
 )

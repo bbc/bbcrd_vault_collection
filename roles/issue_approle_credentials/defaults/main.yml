@@ -26,7 +26,7 @@ ansible_vault_api_delegate_host_become: false
 ################################################################################
 
 # The name of the AppRole auth mountpoint configured by the
-# `bbcrd.ansible_vault.configure_approle_auth` role (without any trailing
+# `bbcrd.vault.configure_approle_auth` role (without any trailing
 # slash).
 ansible_vault_approle_mount: "machine"
 

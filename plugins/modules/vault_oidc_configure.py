@@ -1,17 +1,17 @@
 import os
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.dict_compare import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.dict_compare import (
     dict_issubset,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_oidc_configure
+module: bbcrd.vault.vault_oidc_configure
 
 short_description: Configure the OIDC auth method.
 
@@ -60,11 +60,11 @@ options:
 
 EXAMPLES = r"""
 - name: Enable OIDC auth endpoint
-  bbcrd.ansible_vault.vault_auth_method:
+  bbcrd.vault.vault_auth_method:
     type: oidc
 
 - name: Configure OIDC
-  bbcrd.ansible_vault.vault_oidc_configure:
+  bbcrd.vault.vault_oidc_configure:
     config:
       oidc_discovery_url: "https://sso-nbe.bbcis.uk/realms/example"
       oidc_discovery_ca_pem: |-

@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.generate_root` role
-========================================
+`bbcrd.vault.generate_root` role
+================================
 
 Generate an (ephemeral) root token using unseal keys and place it in the
 variable `ansible_vault_root_token`.
@@ -22,7 +22,7 @@ Run this role with the `revoke.yml` task like so to revoke a generated root
 token:
 
     - import_role:
-        name: bbcrd.ansible_vault.generate_root
+        name: bbcrd.vault.generate_root
         tasks_from: revoke.yml
 
 This will only revoke the token if `root_token_generated` is True (which is set

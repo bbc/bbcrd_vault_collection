@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.rekey` role
-================================
+`bbcrd.vault.rekey` role
+========================
 
 Rekey vault with a new set of unseal keys.
 
@@ -21,8 +21,8 @@ adjacent to the usual encrypted key file.
 
 This role will accept and use any unseal keys provided via the
 `ansible_vault_unseal_keys` variable to begin rekeying. These may be obtained
-using `bbcrd.ansible_vault.decrypt_unseal_keys` but may be supplied separately.
+using `bbcrd.vault.decrypt_unseal_keys` but may be supplied separately.
 However, if verify mode is used (i.e. `ansible_vault_verify_rekey` is True, the
-default), the role will use the `bbcrd.ansible_vault.decrypt_unseal_keys` role
+default), the role will use the `bbcrd.vault.decrypt_unseal_keys` role
 to decrypt the newly generated unseal keys for verification. If this is not
 acceptable, you must disable verify mode.

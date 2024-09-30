@@ -1,5 +1,5 @@
 namespace: "bbcrd"
-name: "ansible_vault"
+name: "vault"
 version: "0.0.9"
 readme: "README.md"
 authors:

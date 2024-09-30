@@ -1,9 +1,9 @@
-`bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow` role
-========================================================================
+`bbcrd.vault.generic_additional_unseal_key_submission_flow` role
+================================================================
 
 Low-level role which supplies additional unseal keys to vault when required to
 meet an unseal key threshold. This role is the logical companion to the
-[`bbcrd.ansible_vault.generic_unseal_key_submission_flow`](../generic_unseal_key_submission_flow)
+[`bbcrd.vault.generic_unseal_key_submission_flow`](../generic_unseal_key_submission_flow)
 role, but intended for the 'other' administrators.
 
 This role will attempt to supply all but the last key required. The final key

@@ -1,7 +1,7 @@
 from ansible.plugins.action import ActionBase
 from ansible.errors import AnsibleError
 
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.pgp import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.pgp import (
     in_specified_gnupg_home,
     pgp_key_metadata,
     ascii_armor_to_base64,
@@ -15,7 +15,7 @@ from subprocess import run
 from base64 import b64decode, b64encode
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.pgp_import
+module: bbcrd.vault.pgp_import
 
 short_description: Import a PGP public key into the GnuPG environment on the control host.
 
@@ -35,7 +35,7 @@ options:
 
 EXAMPLES = r"""
 - name: Import a public key
-  bbcrd.ansible_vault.pgp_import:
+  bbcrd.vault.pgp_import:
     public_key: "{{ lookup('file', 'public_key.pgp') }}"
   register: result
 """

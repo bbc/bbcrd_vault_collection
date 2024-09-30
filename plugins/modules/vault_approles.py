@@ -1,16 +1,16 @@
 import os
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.dict_compare import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.dict_compare import (
     dict_issubset,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_approles
+module: bbcrd.vault.vault_approles
 
 short_description: Configure the approles for an AppRoles auth method.
 
@@ -62,7 +62,7 @@ role_ids:
 
 EXAMPLES = r"""
 - name: Manage approles
-  bbcrd.ansible_vault.vault_approles:
+  bbcrd.vault.vault_approles:
     approles:
       my-shortlived-role:
         token_ttl: 60

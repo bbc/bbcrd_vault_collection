@@ -1,7 +1,7 @@
 from ansible.plugins.action import ActionBase
 from ansible.errors import AnsibleError
 
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.pgp import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.pgp import (
     in_specified_gnupg_home,
 )
 
@@ -12,7 +12,7 @@ from subprocess import run
 from base64 import b64decode, b64encode
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.pgp_detect_card
+module: bbcrd.vault.pgp_detect_card
 
 short_description: Detect any inserted PGP card (e.g. a yubikey) on the control node.
 
@@ -40,7 +40,7 @@ fingerprint:
 
 EXAMPLES = r"""
 - name: Detect a Yubikey
-  bbcrd.ansible_vault.pgp_detect_card:
+  bbcrd.vault.pgp_detect_card:
   register: card
 """
 

@@ -18,4 +18,4 @@
 - name: Supply additional unseal keys
   vars:
     ansible_vault_skip_additional_unseal_confirmation: true
-  import_playbook: bbcrd.ansible_vault.supply_additional_keys
+  import_playbook: bbcrd.vault.supply_additional_keys

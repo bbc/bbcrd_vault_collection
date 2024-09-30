@@ -4,12 +4,12 @@ from pathlib import Path
 from ansible.plugins.action import ActionBase
 from ansible.errors import AnsibleError
 
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.pgp import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.pgp import (
     kill_gpg_agent,
 )
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.create_ephemeral_gnupg_home
+module: bbcrd.vault.create_ephemeral_gnupg_home
 
 short_description: Create an ephemeral GnuPG home on the control node.
 
@@ -37,7 +37,7 @@ gnupg_home:
 
 EXAMPLES = r"""
 - name: Create an ephemeral GnuPG home
-  bbcrd.ansible_vault.create_ephemeral_gnupg_home:
+  bbcrd.vault.create_ephemeral_gnupg_home:
     set_fact: gnupg_home
 """
 

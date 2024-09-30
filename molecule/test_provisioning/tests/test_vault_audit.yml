@@ -5,7 +5,7 @@
     - import_tasks: ../load_credentials_and_reset_vault.yml
     
     - name: Remove auditor enabled in test suite
-      bbcrd.ansible_vault.vault_audit:
+      bbcrd.vault.vault_audit:
         type: file
         mount: stdout
         state: absent
@@ -13,7 +13,7 @@
         vault_token: "{{ ansible_vault_root_token }}"
     
     - name: Enable file audit device
-      bbcrd.ansible_vault.vault_audit:
+      bbcrd.vault.vault_audit:
         type: file
         mount: stdout
         options:
@@ -33,7 +33,7 @@
         result.json.data["stdout/"].options.file_path != "stdout"
 
     - name: Do nothing if already enabled
-      bbcrd.ansible_vault.vault_audit:
+      bbcrd.vault.vault_audit:
         type: file
         mount: stdout
         options:
@@ -44,7 +44,7 @@
       failed_when: result.changed
 
     - name: Change when required
-      bbcrd.ansible_vault.vault_audit:
+      bbcrd.vault.vault_audit:
         type: file
         mount: stdout
         options:
@@ -64,7 +64,7 @@
         result.json.data["stdout/"].options.file_path != "discard"
 
     - name: Deletion
-      bbcrd.ansible_vault.vault_audit:
+      bbcrd.vault.vault_audit:
         type: file
         mount: stdout
         options:
@@ -85,7 +85,7 @@
         "stdout/" in result.json.data
     
     - name: Do nothing when device already deleted
-      bbcrd.ansible_vault.vault_audit:
+      bbcrd.vault.vault_audit:
         type: file
         mount: stdout
         state: absent
@@ -93,4 +93,3 @@
         vault_token: "{{ ansible_vault_root_token }}"
       register: result
       failed_when: result.changed
-

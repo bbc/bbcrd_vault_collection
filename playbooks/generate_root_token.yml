@@ -17,7 +17,7 @@
     - block:
         - name: Create ephemeral GnuPG environment for handling unseal keys
           import_role:
-            name: bbcrd.ansible_vault.ephemeral_gnupg_home
+            name: bbcrd.vault.ephemeral_gnupg_home
           tags:
             - ansible_vault_ephemeral_gnupg_home
             # The molecule test suite uses its own GnuPG environment with its
@@ -26,11 +26,11 @@
 
         - name: Decrypt unseal keys for root token generation
           import_role:
-            name: bbcrd.ansible_vault.decrypt_unseal_keys
+            name: bbcrd.vault.decrypt_unseal_keys
 
         - name: Obtain root token
           import_role:
-            name: bbcrd.ansible_vault.generate_root
+            name: bbcrd.vault.generate_root
 
         - name: Run `vault login` on Ansible control node
           delegate_to: localhost
@@ -62,7 +62,7 @@
       always:
         - name: Revoke root token
           import_role:
-            name: bbcrd.ansible_vault.generate_root
+            name: bbcrd.vault.generate_root
             tasks_from: revoke.yml
           tags:
             - always
@@ -70,7 +70,7 @@
         
         - name: Clear any decrypted unseal keys
           import_role:
-            name: bbcrd.ansible_vault.decrypt_unseal_keys
+            name: bbcrd.vault.decrypt_unseal_keys
             tasks_from: clear.yml
           tags:
             - always
@@ -78,7 +78,7 @@
 
         - name: Clean up ephemeral GnuPG environment
           import_role:
-            name: bbcrd.ansible_vault.ephemeral_gnupg_home
+            name: bbcrd.vault.ephemeral_gnupg_home
             tasks_from: cleanup.yml
           tags:
             - always

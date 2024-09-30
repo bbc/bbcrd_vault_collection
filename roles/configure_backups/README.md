@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.configure_backups` role
-============================================
+`bbcrd.vault.configure_backups` role
+====================================
 
 This role configures simple local backups on every Vault server in the cluster.
 
@@ -60,7 +60,7 @@ of the following steps:
 
 In a disaster-recovery situation, or to non-invasively validate your backups
 you may wish to spin-up an ephemeral Vault cluster on your laptop with a
-minimum of fuss. The `bbcrd.ansible_vault.decrypt_unseal_keys_file` playbook
+minimum of fuss. The `bbcrd.vault.decrypt_unseal_keys_file` playbook
 and
 [`utils/run_disaster_recovery_vault_server.py`](../utils/run_disaster_recovery_vault_server.py)
 utility are provided to facilitate these tasks.
@@ -75,7 +75,7 @@ utility are provided to facilitate these tasks.
 
 2. In another terminal, decrypt the unseal keys and unseal vault:
 
-       $ ansible-playbook bbcrd.ansible_vault.decrypt_unseal_keys_file
+       $ ansible-playbook bbcrd.vault.decrypt_unseal_keys_file
        
        $ export VAULT_ADDR=http://localhost:8200
        $ vault operator unseal

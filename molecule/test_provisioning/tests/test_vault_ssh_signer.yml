@@ -5,14 +5,14 @@
     - import_tasks: ../load_credentials_and_reset_vault.yml
 
     - name: Enable SSH signing engine
-      bbcrd.ansible_vault.vault_secrets_engine:
+      bbcrd.vault.vault_secrets_engine:
         type: ssh
         mount: ssh
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
     
     - name: Check nothing is done if absent and already unconfigured
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         state: absent
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
@@ -20,7 +20,7 @@
       failed_when: result.changed
     
     - name: Check generates CA on first run
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
         vault_url: "{{ ansible_vault_public_url }}"
@@ -35,7 +35,7 @@
       register: first_public_key
     
     - name: Check no changing of key on subsequent run
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
         vault_url: "{{ ansible_vault_public_url }}"
@@ -51,7 +51,7 @@
       failed_when: first_public_key.content != second_public_key.content
     
     - name: Check adding of roles
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
         roles:
@@ -75,7 +75,7 @@
       failed_when: not result.changed
     
     - name: Check no change if role unchanged
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
         roles:
@@ -99,7 +99,7 @@
       failed_when: result.changed
     
     - name: Check change if role changed
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
         roles:
@@ -131,7 +131,7 @@
       failed_when: role.json.data.ttl != 3600  # Sanity check
     
     - name: Check role deletion
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
         roles: {}
@@ -149,7 +149,7 @@
       register: role
     
     - name: Add role again
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
         roles:
@@ -162,7 +162,7 @@
       failed_when: not result.changed
     
     - name: Check state=absent works
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
         roles:

@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.configure_kv_secrets_engine` role
-======================================================
+`bbcrd.vault.configure_kv_secrets_engine` role
+==============================================
 
 This role sets up the kv secrets engine and creates a policy which grants
 unlimited access to its contents (named by

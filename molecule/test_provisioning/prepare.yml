@@ -28,11 +28,11 @@
   tasks:
     - name: Install vault
       import_role:
-        name: bbcrd.ansible_vault.install
+        name: bbcrd.vault.install
     
     - name: Configure vault
       import_role:
-        name: bbcrd.ansible_vault.configure_server
+        name: bbcrd.vault.configure_server
 
     - name: Start vault
       systemd:
@@ -84,7 +84,7 @@
     
         - name: Enable auditing (to aid debugging)
           import_role:
-            name: bbcrd.ansible_vault.configure_auditing
+            name: bbcrd.vault.configure_auditing
           vars:
             ansible_vault_root_token: "{{ vault_init.json.root_token }}"
         

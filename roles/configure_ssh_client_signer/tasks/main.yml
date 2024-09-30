@@ -1,7 +1,7 @@
 - run_once: true
   block:
     - name: Enable SSH secrets engine
-      bbcrd.ansible_vault.vault_secrets_engine:
+      bbcrd.vault.vault_secrets_engine:
         mount: "{{ ansible_vault_ssh_client_signer_mount }}"
         type: ssh
         vault_url: "{{ ansible_vault_public_url }}"
@@ -9,7 +9,7 @@
         vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
 
     - name: Configure SSH client key signer
-      bbcrd.ansible_vault.vault_ssh_signer:
+      bbcrd.vault.vault_ssh_signer:
         mount: "{{ ansible_vault_ssh_client_signer_mount }}"
         ca: |-
           {{
@@ -46,7 +46,7 @@
         vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
 
     - name: Create policy to grant access for SSH key signing
-      bbcrd.ansible_vault.vault_policy:
+      bbcrd.vault.vault_policy:
         name: "{{ ansible_vault_ssh_client_signer_policy }}"
         policy: |-
           path "{{ ansible_vault_ssh_client_signer_mount }}/sign/default" {

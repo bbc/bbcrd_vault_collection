@@ -1,7 +1,7 @@
 from ansible.plugins.action import ActionBase
 from ansible.errors import AnsibleError
 
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.pgp import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.pgp import (
     in_specified_gnupg_home
 )
 
@@ -12,7 +12,7 @@ from subprocess import run
 from base64 import b64decode, b64encode
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.pgp_encrypt
+module: bbcrd.vault.pgp_encrypt
 
 short_description: Encrypt PGP-encrypted data (runs on the control host).
 
@@ -46,7 +46,7 @@ ciphertext:
 
 EXAMPLES = r"""
 - name: Encrypt some data
-  bbcrd.ansible_vault.pgp_encrypt:
+  bbcrd.vault.pgp_encrypt:
     plaintext: "{{ lookup('file', 'plaintext.txt') | b64encode }}"
     public_key: 50D33D60B705C5AD601C0214C0035C10517F50F6
   register: result

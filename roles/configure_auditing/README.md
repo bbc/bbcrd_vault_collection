@@ -1,7 +1,7 @@
-`bbcrd.ansible_vault.configure_auditing` role
-=============================================
+`bbcrd.vault.configure_auditing` role
+=====================================
 
-This role is a wrapper around the `bbcrd.ansible_vault.vault_audit` module
+This role is a wrapper around the `bbcrd.vault.vault_audit` module
 which defaults to simple stdout auditing.
 
 Warning: changing any setting will result in the audit engine being replaced,

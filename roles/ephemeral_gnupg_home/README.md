@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.ephemeral_gnupg_home` role
-===============================================
+`bbcrd.vault.ephemeral_gnupg_home` role
+=======================================
 
 Create an ephemeral GnuPG home on the Ansible control node with all public keys
 listed in `ansible_vault_administrators` imported and the currently connected
@@ -26,5 +26,5 @@ You must clean up the ephemeral GnuPG home (and related gpg-agent process), iff
 this role previously created one, using the following
 
     - import_role:
-        name: bbcrd.ansible_vault.ephemeral_gnupg_home
+        name: bbcrd.vault.ephemeral_gnupg_home
         tasks_from: cleanup.yml

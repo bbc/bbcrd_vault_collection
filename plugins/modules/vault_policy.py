@@ -1,13 +1,13 @@
 import os
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_policy
+module: bbcrd.vault.vault_policy
 
 short_description: Create, update or delete a Vault policy.
 
@@ -50,7 +50,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create a vault policy
-  bbcrd.ansible_vault.vault_policy:
+  bbcrd.vault.vault_policy:
     name: "cluster-status-reader"
     policy: |-
       path "sys/storage/raft/autopilot/state" {
@@ -58,7 +58,7 @@ EXAMPLES = r"""
       }
 
 - name: Delete a policy
-  bbcrd.ansible_vault.vault_policy:
+  bbcrd.vault.vault_policy:
     name: "obsolete-policy"
     state: absent
 """

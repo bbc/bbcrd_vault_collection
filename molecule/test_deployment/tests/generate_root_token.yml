@@ -57,7 +57,7 @@
                 if vault_generate_root_init.json.otp_length != 0 else
                 vault_generate_root_init.json.otp ~ "=="
             )
-              | bbcrd.ansible_vault.xor_b64_bytes(vault_generate_root_update.json.encoded_token ~ '==')
+              | bbcrd.vault.xor_b64_bytes(vault_generate_root_update.json.encoded_token ~ '==')
               | b64decode
           }}
     
