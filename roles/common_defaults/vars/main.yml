@@ -1,7 +1,7 @@
 ---
 
 ################################################################################
-# PGP key data (various views of ansible_vault_administrators)
+# PGP key data (various views of bbcrd_vault_administrators)
 ################################################################################
 
 # An enumeration of the unseal key shares to be created. A list of objects of
@@ -12,7 +12,7 @@
 #       "share_index": <index of key share>,
 #       "pgp_public_key": <ASCII Armor PGP key>,
 #   }
-unseal_key_shares: "{{ ansible_vault_administrators | bbcrd.vault.enumerate_key_shares }}"
+unseal_key_shares: "{{ bbcrd_vault_administrators | bbcrd.vault.enumerate_key_shares }}"
 
 # The list of PGP public keys, in the same iteration order as
 # unseal_key_shares.

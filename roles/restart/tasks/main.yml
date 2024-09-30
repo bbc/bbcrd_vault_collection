@@ -1,7 +1,7 @@
 ---
 
 - name: Check vault versions
-  when: ansible_vault_restart_servers is none
+  when: bbcrd_vault_restart_servers is none
   block:
     - name: Discover installed Vault binary version
       import_role:
@@ -11,8 +11,8 @@
     - name: Get running vault version
       uri:
         # vault status
-        url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
-        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
+        ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
       register: vault_status
 
     - name: Check if running and installed versions match
@@ -23,10 +23,10 @@
   set_fact:
     to_restart: |-
       {{
-        ansible_vault_restart_servers
-        if ansible_vault_restart_servers is not none else
+        bbcrd_vault_restart_servers
+        if bbcrd_vault_restart_servers is not none else
         (
-          groups[ansible_vault_cluster_ansible_group_name]
+          groups[bbcrd_vault_cluster_ansible_group_name]
           | map("extract", hostvars)
           | selectattr("running_out_of_date_version", "true")
           | map(attribute="inventory_hostname")

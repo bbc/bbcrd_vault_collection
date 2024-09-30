@@ -142,7 +142,7 @@
         # https://github.com/openbao/openbao/issues/522
         - name: Wait for backup token to expire (workaround Vault/OpenBao bug)
           pause:
-            seconds: "{{ ansible_vault_backup_token_ttl }}"
+            seconds: "{{ bbcrd_vault_backup_token_ttl }}"
       
       always:
         - name: (Cleanup) revoke the generated root token

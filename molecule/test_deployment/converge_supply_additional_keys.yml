@@ -10,7 +10,7 @@
 - name: Add extra administrators to vault
   import_playbook: converge.yml
   vars:
-    ansible_vault_skip_confirm_rekey_changes: true
+    bbcrd_vault_skip_confirm_rekey_changes: true
     enabled_administrators:
       - test-user-1
       - test-user-2  # Only has one unseal key
@@ -40,7 +40,7 @@
       set_fact:
         # Supply the extra unseal key by running the supply_additional_keys.yml
         # playbook
-        ansible_vault_provide_additional_unseal_keys_tasks: "{{ playbook_dir }}/tests/run_command.yml"
+        bbcrd_vault_provide_additional_unseal_keys_tasks: "{{ playbook_dir }}/tests/run_command.yml"
         
         run_command_argv:
           - ansible-playbook
@@ -71,12 +71,12 @@
     playbook_administrator_name: test-user-2
     
     # Make sure we test supply of unseal keys for the rekeying flow.
-    ansible_vault_force_rekey: true
+    bbcrd_vault_force_rekey: true
 
 - name: Revert to single administrator
   import_playbook: converge.yml
   vars:
-    ansible_vault_skip_confirm_rekey_changes: true
+    bbcrd_vault_skip_confirm_rekey_changes: true
 
 - name: Verify administrators reverted back
   hosts: vault
@@ -92,4 +92,4 @@
     
     - name: Disable additional key supply script
       set_fact:
-        ansible_vault_provide_additional_unseal_keys_tasks: null
+        bbcrd_vault_provide_additional_unseal_keys_tasks: null

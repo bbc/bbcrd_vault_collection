@@ -1,13 +1,13 @@
 ---
 - name: Verify vault deployment
-  hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+  hosts: "{{ bbcrd_vault_cluster_ansible_group_name | default('vault') }}"
   any_errors_fatal: true
   
   tasks:
   
     # Save fussing over setting a default later on
     - set_fact:
-        ansible_vault_cluster_ansible_group_name: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+        bbcrd_vault_cluster_ansible_group_name: "{{ bbcrd_vault_cluster_ansible_group_name | default('vault') }}"
     
     - name: Check all hosts are unsealed
       include_tasks: tests/verify_all_hosts_unsealed.yml

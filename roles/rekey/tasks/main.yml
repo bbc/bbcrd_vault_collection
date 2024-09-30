@@ -28,7 +28,7 @@
 - name: Rekey the Vault unseal keys if the keyholders have changed
   when: >-
     existing_fingerprints_and_names != new_fingerprints_and_names
-    or ansible_vault_force_rekey
+    or bbcrd_vault_force_rekey
   any_errors_fatal: true
   block:
     - name: Show diff of unseal key holders
@@ -45,7 +45,7 @@
       run_once: true
       when: >-
         existing_fingerprints_and_names != new_fingerprints_and_names
-        and not ansible_vault_skip_confirm_rekey_changes
+        and not bbcrd_vault_skip_confirm_rekey_changes
       pause:
         prompt: "Rekey with new list of keys (see above)? y/N"
       register: confirm
@@ -56,12 +56,12 @@
     # requirement of the rekeying process.
     - name: Sanity check that all servers in the cluster are up
       run_once: true
-      when: not ansible_vault_skip_rekey_sanity_check
+      when: not bbcrd_vault_skip_rekey_sanity_check
       assert:
         that: |-
-          (ansible_play_hosts | length) == (groups[ansible_vault_cluster_ansible_group_name] | length)
+          (ansible_play_hosts | length) == (groups[bbcrd_vault_cluster_ansible_group_name] | length)
         quiet: true
-        fail_msg: "All cluster members must be up or ansible_vault_skip_rekey_sanity_check set to true."
+        fail_msg: "All cluster members must be up or bbcrd_vault_skip_rekey_sanity_check set to true."
     
     - name: Perform rekeying on one host
       run_once: true
@@ -69,16 +69,16 @@
         - name: Cancel any previous rekeying operation
           uri:
             # vault operator generate-root -cancel ...
-            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
+            url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/init"
             method: DELETE
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
             status_code: [200, 204]  # OK or No Content
         
         - name: Begin rekeying operation
-          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          no_log: "{{ bbcrd_vault_no_log_sensitive }}"
           uri:
             # vault operator rekey -init ...
-            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
+            url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/init"
             method: POST
             body_format: json
             # Note: Whilst we don't use the backup feature in this playbook (it
@@ -88,14 +88,14 @@
             body: |-
               {{
                 {
-                  "secret_threshold": (ansible_vault_unseal_key_threshold | int),
+                  "secret_threshold": (bbcrd_vault_unseal_key_threshold | int),
                   "secret_shares": (pgp_keys | length),
                   "pgp_keys": pgp_keys_base64,
-                  "require_verification": ansible_vault_verify_rekey,
+                  "require_verification": bbcrd_vault_verify_rekey,
                   "backup": True,
                 } | to_json
               }}
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
           changed_when: true
           register: vault_rekey_init
         
@@ -105,13 +105,13 @@
           vars:
             purpose: "to rekey vault"
             nonce: "{{ vault_rekey_init.json.nonce }}"
-            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
+            status_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/init"
             # vault operator rekey
-            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/update"
+            submit_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/update"
         
-        - name: Clear now out-of-date ansible_vault_unseal_keys
+        - name: Clear now out-of-date bbcrd_vault_unseal_keys
           set_fact:
-            ansible_vault_unseal_keys: null
+            bbcrd_vault_unseal_keys: null
             # NB: We set this as a fact so that we capture the value from the
             # 'submission' variable before we later override it
             verification_nonce: "{{ submission.json.verification_nonce }}"
@@ -124,19 +124,19 @@
             encrypted_unseal_keys_filename: |-
               {{
                 "encrypted_unseal_keys.json.candidate"
-                if ansible_vault_verify_rekey else
+                if bbcrd_vault_verify_rekey else
                 "encrypted_unseal_keys.json"
               }}
     
     - name: "Obtain new candidate unseal key"
-      when: ansible_vault_verify_rekey
+      when: bbcrd_vault_verify_rekey
       import_role:
         name: bbcrd.vault.decrypt_unseal_keys
       vars:
         encrypted_unseal_keys_filename: "encrypted_unseal_keys.json.candidate"
         
     - name: Verify new keys
-      when: ansible_vault_verify_rekey
+      when: bbcrd_vault_verify_rekey
       run_once: true
       block:
         - name: Supply new unseal keys for verification
@@ -145,14 +145,14 @@
           vars:
             purpose: "to verify new unseal keys"
             nonce: "{{ verification_nonce }}"
-            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+            status_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/verify"
             # vault operator rekey -verify ...
-            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+            submit_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/verify"
         
         - name: "Make candidate unseal keys live"
           run_once: false  # NB: Make sure we put the keys on every node!
           copy:
-            src: "{{ ansible_vault_config_dir }}/encrypted_unseal_keys.json.candidate"
+            src: "{{ bbcrd_vault_config_dir }}/encrypted_unseal_keys.json.candidate"
             remote_src: true
-            dest: "{{ ansible_vault_config_dir }}/encrypted_unseal_keys.json"
+            dest: "{{ bbcrd_vault_config_dir }}/encrypted_unseal_keys.json"
             backup: true

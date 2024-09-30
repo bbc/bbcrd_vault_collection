@@ -14,13 +14,13 @@ def aggregate_approle_parameters(
 ) -> dict[str, dict[str, Any]]:
     """
     Assemble a mapping {host: {approle_param: approle_value, ...}, ...} based
-    on the defaults given and the `ansible_vault_approle[mount]` values defined
+    on the defaults given and the `bbcrd_vault_approle[mount]` values defined
     in the hostvars of the given hosts.
     """
     roles = {}
     for host in hosts:
         params = defaults.get(mount, {}).copy()
-        params.update(hostvars[host].get("ansible_vault_approle", {}).get(mount, {}))
+        params.update(hostvars[host].get("bbcrd_vault_approle", {}).get(mount, {}))
         roles[host] = params
     return roles
 

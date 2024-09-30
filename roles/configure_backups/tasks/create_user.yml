@@ -2,14 +2,14 @@
 
 - name: Create backup group
   group:
-    name: "{{ ansible_vault_backup_group }}"
+    name: "{{ bbcrd_vault_backup_group }}"
     state: present
 
 - name: Create backup user
   user:
-    name: "{{ ansible_vault_backup_user }}"
+    name: "{{ bbcrd_vault_backup_user }}"
     groups:
-      - "{{ ansible_vault_backup_group }}"
+      - "{{ bbcrd_vault_backup_group }}"
     append: true
     state: present
 

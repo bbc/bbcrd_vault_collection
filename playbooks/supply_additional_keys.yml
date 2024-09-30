@@ -24,8 +24,8 @@
 # more details of this process.
 
 - name: Supply additional unseal keys to assist another administrator
-  hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
-  become: "{{ ansible_vault_become | default(True) }}"
+  hosts: "{{ bbcrd_vault_cluster_ansible_group_name | default('vault') }}"
+  become: "{{ bbcrd_vault_become | default(True) }}"
 
   tasks:
     - block:
@@ -34,7 +34,7 @@
             name: bbcrd.vault.ephemeral_gnupg_home
           tags:
             - always
-            - ansible_vault_ephemeral_gnupg_home
+            - bbcrd_vault_ephemeral_gnupg_home
             # The molecule test suite uses its own GnuPG environment with its
             # own test keypairs.
             - molecule-notest
@@ -48,8 +48,8 @@
         - name: "Check if rekey verification in progress"
           run_once: true
           uri:
-            url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/verify"
+            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
             # NB: 400 returned by verify endpoint when no verification is in progress.
             # NB: 503 returned if vault is sealed
             status_code: [200, 400, 503]
@@ -61,7 +61,7 @@
             verify_status.json.nonce | default("") != ""
             and decrypt_candidate_unseal_keys_failed is not defined
           tags:
-            - ansible_vault_supply_verify_keys
+            - bbcrd_vault_supply_verify_keys
           block:
             - name: Skip rekey verification check if candidate keys not available
               block:
@@ -81,14 +81,14 @@
               vars:
                 purpose: "to verify new unseal keys"
                 submit_once: true
-                status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+                status_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/verify"
                 # vault operator rekey -verify ...
-                submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/verify"
+                submit_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/verify"
                 status_status_code: [200, 400, 503]  # Returns 400 when no verification in progress
             
             - name: Clear candidate unseal keys
               set_fact:
-                ansible_vault_unseal_keys: null
+                bbcrd_vault_unseal_keys: null
         
         - name: Decrypt unseal keys
           import_role:
@@ -107,10 +107,10 @@
           vars:
             purpose: "to rekey vault"
             submit_once: true
-            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/init"
+            status_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/init"
             # vault operator rekey
-            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/rekey/update"
-          tags: ansible_vault_supply_rekey_keys
+            submit_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/update"
+          tags: bbcrd_vault_supply_rekey_keys
 
         - name: Supply unseal keys for root token generation
           import_role:
@@ -118,10 +118,10 @@
           vars:
             purpose: "to generate a root token"
             submit_once: true
-            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+            status_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/generate-root/attempt"
             # vault operator generate-root ...
-            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/update"
-          tags: ansible_vault_supply_generate_root_keys
+            submit_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/generate-root/update"
+          tags: bbcrd_vault_supply_generate_root_keys
         
         - name: Provide keys for unsealing vault
           import_role:
@@ -130,10 +130,10 @@
             purpose: "to unseal vault"
             submit_once: false
             # vault status
-            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+            status_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
             # vault operator unseal
-            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
-          tags: ansible_vault_supply_unseal_keys
+            submit_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/unseal"
+          tags: bbcrd_vault_supply_unseal_keys
 
       always:
         - name: Clear any decrypted unseal keys
@@ -142,7 +142,7 @@
             tasks_from: clear.yml
           tags:
             - always
-            - ansible_vault_clear_unesal_keys
+            - bbcrd_vault_clear_unesal_keys
         
         - name: Clean up ephemeral GnuPG environment
           import_role:
@@ -150,4 +150,4 @@
             tasks_from: cleanup.yml
           tags:
             - always
-            - ansible_vault_ephemeral_gnupg_home
+            - bbcrd_vault_ephemeral_gnupg_home

@@ -1,15 +1,15 @@
 ---
-# Ensure a vault root token is present in ansible_vault_root_token. If a root
+# Ensure a vault root token is present in bbcrd_vault_root_token. If a root
 # token is already stored there, do nothing. Otherwise, produce a new root
 # token using unseal keys.
 #
 # Note: By convention we don't count generation of a root token to the
-# ansible_vault_root_token variable as a change to avoid polluting the ansible
+# bbcrd_vault_root_token variable as a change to avoid polluting the ansible
 # change count.
 
 - name: Obtain root token
   any_errors_fatal: true
-  when: ansible_vault_root_token is none
+  when: bbcrd_vault_root_token is none
   block:
     - name: Only need to perform root generation on one host
       run_once: true
@@ -17,18 +17,18 @@
         - name: Cancel any previous root token generation
           uri:
             # vault operator generate-root -cancel ...
-            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+            url: "{{ bbcrd_vault_public_url }}/v1/sys/generate-root/attempt"
             method: DELETE
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
             status_code: [200, 204]  # OK or No Content
         
         - name: Begin root token generation
-          no_log: "{{ ansible_vault_no_log_sensitive }}"  # Due to OTP being returned
+          no_log: "{{ bbcrd_vault_no_log_sensitive }}"  # Due to OTP being returned
           uri:
             # vault operator generate-root -init ...
-            url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+            url: "{{ bbcrd_vault_public_url }}/v1/sys/generate-root/attempt"
             method: POST
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
           register: vault_generate_root_init
         
         - name: Supply unseal keys
@@ -37,16 +37,16 @@
           vars:
             purpose: "to generate a root token"
             nonce: "{{ vault_generate_root_init.json.nonce }}"
-            status_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
+            status_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/generate-root/attempt"
             # vault operator generate-root ...
-            submit_api_url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/update"
+            submit_api_url: "{{ bbcrd_vault_public_url }}/v1/sys/generate-root/update"
         
         # Note: The Vault API documentation erroneously suggests that the OTP
         # returned by the initialisation step is base64 encoded. In previous
         # vault instances, this might have been the case but it certainly isn't
         # any more.
         - name: Decrypt generated root token
-          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          no_log: "{{ bbcrd_vault_no_log_sensitive }}"
           set_fact:
             generated_root_token: |-
               {{
@@ -62,37 +62,37 @@
         # Use the generated root token to create a new finite-TTL root token to
         # protect against this playbook failing to exit cleanly.
         - name: Create a root token with finite lifetime for use in playbook
-          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          no_log: "{{ bbcrd_vault_no_log_sensitive }}"
           uri:
             # vault token create ...
-            url: "{{ ansible_vault_public_url }}/v1/auth/token/create"
+            url: "{{ bbcrd_vault_public_url }}/v1/auth/token/create"
             method: POST
             body_format: json
             body:
-              display_name: "ansible_vault_ephemeral_root"
+              display_name: "bbcrd_vault_ephemeral_root"
               # Expire after a fixed and non-extendable TTL
-              ttl: "{{ ansible_vault_root_token_ttl }}"
+              ttl: "{{ bbcrd_vault_root_token_ttl }}"
               renewable: false
               # Don't delete when our generated token is revoked
               no_parent: true
             headers:
               X-Vault-Token: "{{ generated_root_token }}"
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
           register: vault_create_token
       
         - name: Revoke non-expiring root token generated using unseal keys
-          no_log: "{{ ansible_vault_no_log_sensitive }}"
+          no_log: "{{ bbcrd_vault_no_log_sensitive }}"
           uri:
             # vault token revoke
-            url: "{{ ansible_vault_public_url }}/v1/auth/token/revoke-self"
+            url: "{{ bbcrd_vault_public_url }}/v1/auth/token/revoke-self"
             method: POST
             headers:
               X-Vault-Token: "{{ generated_root_token }}"
             status_code: [200, 204]  # OK or No Content
-            ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
         
-        - name: Set ansible_vault_root_token fact
-          no_log: "{{ ansible_vault_no_log_sensitive }}"
+        - name: Set bbcrd_vault_root_token fact
+          no_log: "{{ bbcrd_vault_no_log_sensitive }}"
           set_fact:
-            ansible_vault_root_token: "{{ vault_create_token.json.auth.client_token }}"
+            bbcrd_vault_root_token: "{{ vault_create_token.json.auth.client_token }}"
             root_token_generated: true

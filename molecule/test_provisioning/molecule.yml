@@ -73,18 +73,18 @@ provisioner:
   inventory:
     group_vars:
       all:
-        ansible_vault_public_url: "http://vault:8200"
+        bbcrd_vault_public_url: "http://vault:8200"
       
       vault:
-        ansible_vault_version: "1.17.1"
+        bbcrd_vault_version: "1.17.1"
         
         # No real secrets in the test suite!
-        ansible_vault_no_log_sensitive: false
+        bbcrd_vault_no_log_sensitive: false
         
         # Use HTTP to avoid need to setup certificates in test environment
-        ansible_vault_listen_protocol: http
+        bbcrd_vault_listen_protocol: http
         
-        ansible_vault_approle:
+        bbcrd_vault_approle:
           test_machines:
             token_policies:
               - foo
@@ -96,11 +96,11 @@ provisioner:
     host_vars:
       # For approle role testing
       machine-1:
-        ansible_vault_approle:
+        bbcrd_vault_approle:
           test_machines:
             token_ttl: 60
       machine-2:
-        ansible_vault_approle:
+        bbcrd_vault_approle:
           test_machines:
             token_policies:
               - baz

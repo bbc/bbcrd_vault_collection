@@ -312,7 +312,7 @@ def main() -> None:
                                ...snip...
                                TASK [Display decrypted unseal keys]
                                ok: [localhost] => {
-                                   "ansible_vault_unseal_keys": [
+                                   "bbcrd_vault_unseal_keys": [
                                        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
                                    ]
                                }

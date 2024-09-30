@@ -2,56 +2,56 @@
   block:
     - name: Enable SSH secrets engine
       bbcrd.vault.vault_secrets_engine:
-        mount: "{{ ansible_vault_ssh_client_signer_mount }}"
+        mount: "{{ bbcrd_vault_ssh_client_signer_mount }}"
         type: ssh
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
     - name: Configure SSH client key signer
       bbcrd.vault.vault_ssh_signer:
-        mount: "{{ ansible_vault_ssh_client_signer_mount }}"
+        mount: "{{ bbcrd_vault_ssh_client_signer_mount }}"
         ca: |-
           {{
             {"generate_signing_key": True}
             if (
-              ansible_vault_ssh_client_signer_public_key is none
-              or ansible_vault_ssh_client_signer_private_key is none
+              bbcrd_vault_ssh_client_signer_public_key is none
+              or bbcrd_vault_ssh_client_signer_private_key is none
             ) else
             {
-              "public_key": ansible_vault_ssh_client_signer_public_key,
-              "private_key": ansible_vault_ssh_client_signer_private_key,
+              "public_key": bbcrd_vault_ssh_client_signer_public_key,
+              "private_key": bbcrd_vault_ssh_client_signer_private_key,
             }
           }}
-        state: "{{ 'replaced' if ansible_vault_ssh_client_signer_replace_key else 'present' }}"
+        state: "{{ 'replaced' if bbcrd_vault_ssh_client_signer_replace_key else 'present' }}"
         roles:
           default:
             key_type: ca
             allow_user_certificates: true
-            algorithm_signer: "{{ ansible_vault_ssh_client_signer_algorithm }}"
-            default_user: "{{ ansible_vault_ssh_client_signer_users | join(',') }}"
-            allowed_users:  "{{ ansible_vault_ssh_client_signer_users | join(',') }}"
+            algorithm_signer: "{{ bbcrd_vault_ssh_client_signer_algorithm }}"
+            default_user: "{{ bbcrd_vault_ssh_client_signer_users | join(',') }}"
+            allowed_users:  "{{ bbcrd_vault_ssh_client_signer_users | join(',') }}"
             default_extensions: |-
               {{
                 dict(
-                  ansible_vault_ssh_client_signer_extensions
-                    | zip(ansible_vault_ssh_client_signer_extensions
+                  bbcrd_vault_ssh_client_signer_extensions
+                    | zip(bbcrd_vault_ssh_client_signer_extensions
                           | map('regex_replace', '.*', ''))
                 )
               }}
-            ttl: "{{ ansible_vault_ssh_client_signer_ttl }}"
-            max_ttl: "{{ ansible_vault_ssh_client_signer_ttl }}"
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            ttl: "{{ bbcrd_vault_ssh_client_signer_ttl }}"
+            max_ttl: "{{ bbcrd_vault_ssh_client_signer_ttl }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
     - name: Create policy to grant access for SSH key signing
       bbcrd.vault.vault_policy:
-        name: "{{ ansible_vault_ssh_client_signer_policy }}"
+        name: "{{ bbcrd_vault_ssh_client_signer_policy }}"
         policy: |-
-          path "{{ ansible_vault_ssh_client_signer_mount }}/sign/default" {
+          path "{{ bbcrd_vault_ssh_client_signer_mount }}/sign/default" {
             capabilities = ["create", "update"]
           }
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"

@@ -2,11 +2,11 @@
 
 # One or more unseal keys.
 #
-#ansible_vault_unseal_keys: [...]
+#bbcrd_vault_unseal_keys: [...]
 
 # A sufficiently powerful vault token.
 #
-#ansible_vault_root_token: "..."
+#bbcrd_vault_root_token: "..."
 
 # Override: Set to a list of servers to be restarted (and unsealed again)
 # one-by-one, in the order specified during the execution of the role.
@@ -18,9 +18,9 @@
 #
 # If a list, exactly the listed set of servers will be restarted, regardless of
 # what Vault versions are in use.
-ansible_vault_restart_servers: null
+bbcrd_vault_restart_servers: null
 
 
 # If set to False, this role will refuse to restart cluster nodes when doing so
 # would cause the cluster to fall out of quorum during the restart.
-ansible_vault_allow_loss_of_quorum_on_restart: false
+bbcrd_vault_allow_loss_of_quorum_on_restart: false

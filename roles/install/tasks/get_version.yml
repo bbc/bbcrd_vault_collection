@@ -6,7 +6,7 @@
 - name: Get Vault binary version
   command:
     argv:
-      - "{{ ansible_vault_binary }}"
+      - "{{ bbcrd_vault_binary }}"
       - version
   changed_when: false
   failed_when: false

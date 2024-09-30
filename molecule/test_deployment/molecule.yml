@@ -158,35 +158,35 @@ provisioner:
   inventory:
     group_vars:
       vault_all:
-        ansible_vault_become: false
+        bbcrd_vault_become: false
         
-        ansible_vault_version: "1.17.1"
+        bbcrd_vault_version: "1.17.1"
         
         # Older version used in version upgrade/downgrade tests
-        ansible_vault_rollback_version: "1.17.0"
+        bbcrd_vault_rollback_version: "1.17.0"
         
         # No real secrets in the test suite!
-        ansible_vault_no_log_sensitive: false
+        bbcrd_vault_no_log_sensitive: false
         
         # Use HTTP to avoid need to setup certificates in test environment
-        ansible_vault_listen_protocol: http
+        bbcrd_vault_listen_protocol: http
         
-        ansible_vault_public_url: "http://{{ ansible_host | default(inventory_hostname) }}:8200"
+        bbcrd_vault_public_url: "http://{{ ansible_host | default(inventory_hostname) }}:8200"
         
-        ansible_vault_unseal_key_threshold: 2
+        bbcrd_vault_unseal_key_threshold: 2
         
-        ansible_vault_administrators:
+        bbcrd_vault_administrators:
           # The default administrator for most tests. Deliberately has one more
           # key than needed to make sure the role can handle that scenario.
           test-user-1:
-            ansible_vault_unseal_key_shares: 3
+            bbcrd_vault_unseal_key_shares: 3
           
           # Additional users for tests involving administrators holding
           # incomplete sets of keys.
           test-user-2:
-            ansible_vault_unseal_key_shares: 1
+            bbcrd_vault_unseal_key_shares: 1
           test-user-3:
-            ansible_vault_unseal_key_shares: 1
+            bbcrd_vault_unseal_key_shares: 1
         
         # Make the token TTL short so that waiting for this to expire won't
         # take too long. This is necessary as a work-around in this test suite
@@ -197,14 +197,14 @@ provisioner:
         #
         # These bugs cause token used to create the backup to live long enough
         # to cause our "no left behind tokens" verify step to fail.
-        ansible_vault_backup_token_ttl: 20
+        bbcrd_vault_backup_token_ttl: 20
         
         # Deliberately make the backup timer never fire. This avoids an
         # unluckily timed backup causing a short-lived vault token to exist
         # during the "no tokens left behind" verification step.
-        ansible_vault_backup_schedule: "2000-1-1 01:00:00"
+        bbcrd_vault_backup_schedule: "2000-1-1 01:00:00"
         
         # Use the test suite's GnuPG environment rather than letting the
         # playbook create its own.
-        ansible_vault_gnupg_home: "{{ lookup('env', 'GNUPGHOME') }}"
+        bbcrd_vault_gnupg_home: "{{ lookup('env', 'GNUPGHOME') }}"
 

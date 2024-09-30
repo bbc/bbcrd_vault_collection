@@ -3,4 +3,4 @@
 - name: Expand cluster
   import_playbook: converge.yml
   vars:
-    ansible_vault_cluster_ansible_group_name: "vault_all"
+    bbcrd_vault_cluster_ansible_group_name: "vault_all"

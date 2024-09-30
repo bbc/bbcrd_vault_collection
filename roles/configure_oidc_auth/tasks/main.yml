@@ -4,43 +4,43 @@
     - name: Setup OIDC auth method
       bbcrd.vault.vault_auth_method:
         type: oidc
-        mount: "{{ ansible_vault_oidc_mount }}"
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        mount: "{{ bbcrd_vault_oidc_mount }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
     - name: Configure OIDC auth
       bbcrd.vault.vault_oidc_configure:
         config:
-          oidc_discovery_url: "{{ ansible_vault_oidc_discovery_url }}"
-          oidc_discovery_ca_pem: "{{ ansible_vault_oidc_ca_pem | default(omit) }}"
-          oidc_client_id: "{{ ansible_vault_oidc_client_id }}"
-          oidc_client_secret: "{{ ansible_vault_oidc_client_secret }}"
+          oidc_discovery_url: "{{ bbcrd_vault_oidc_discovery_url }}"
+          oidc_discovery_ca_pem: "{{ bbcrd_vault_oidc_ca_pem | default(omit) }}"
+          oidc_client_id: "{{ bbcrd_vault_oidc_client_id }}"
+          oidc_client_secret: "{{ bbcrd_vault_oidc_client_secret }}"
           default_role: "default"
-        state: "{{ 'updated' if ansible_vault_oidc_force_update else 'present' }}"
-        mount: "{{ ansible_vault_oidc_mount }}"
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        state: "{{ 'updated' if bbcrd_vault_oidc_force_update else 'present' }}"
+        mount: "{{ bbcrd_vault_oidc_mount }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
     - name: Configure default OIDC role
       bbcrd.vault.vault_oidc_roles:
         roles:
           default:
-            user_claim: "{{ ansible_vault_oidc_user_claim }}"
-            token_ttl: "{{ ansible_vault_oidc_token_ttl }}"
-            token_max_ttl: "{{ ansible_vault_oidc_token_ttl }}"
-            allowed_redirect_uris: "{{ ansible_vault_oidc_redirect_urls }}"
-            oidc_scopes: "{{ ansible_vault_oidc_extra_scopes }}"
-        mount: "{{ ansible_vault_oidc_mount }}"
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+            user_claim: "{{ bbcrd_vault_oidc_user_claim }}"
+            token_ttl: "{{ bbcrd_vault_oidc_token_ttl }}"
+            token_max_ttl: "{{ bbcrd_vault_oidc_token_ttl }}"
+            allowed_redirect_uris: "{{ bbcrd_vault_oidc_redirect_urls }}"
+            oidc_scopes: "{{ bbcrd_vault_oidc_extra_scopes }}"
+        mount: "{{ bbcrd_vault_oidc_mount }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
     - name: Map OIDC end-users to Vault entities
       bbcrd.vault.vault_auth_method_entity_aliases:
-        mount: "{{ ansible_vault_oidc_mount }}"
-        entity_aliases: "{{ ansible_vault_oidc_user_claim_to_entity_name_mapping }}"
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
-        vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        mount: "{{ bbcrd_vault_oidc_mount }}"
+        entity_aliases: "{{ bbcrd_vault_oidc_user_claim_to_entity_name_mapping }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"

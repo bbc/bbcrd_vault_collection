@@ -7,11 +7,11 @@
 # situations (e.g. any non-automated setup steps).
 #
 # The generated root token will be revoked when the playbook exits and will in
-# any case have a lifetime limited by ansible_vault_root_token_ttl.
+# any case have a lifetime limited by bbcrd_vault_root_token_ttl.
 
 - name: Generate an ephemeral root token
-  hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
-  become: "{{ ansible_vault_become | default(True) }}"
+  hosts: "{{ bbcrd_vault_cluster_ansible_group_name | default('vault') }}"
+  become: "{{ bbcrd_vault_become | default(True) }}"
 
   tasks:
     - block:
@@ -19,7 +19,7 @@
           import_role:
             name: bbcrd.vault.ephemeral_gnupg_home
           tags:
-            - ansible_vault_ephemeral_gnupg_home
+            - bbcrd_vault_ephemeral_gnupg_home
             # The molecule test suite uses its own GnuPG environment with its
             # own test keypairs.
             - molecule-notest
@@ -36,28 +36,28 @@
           delegate_to: localhost
           become: false
           run_once: true
-          tags: ansible_vault_login
+          tags: bbcrd_vault_login
           command:
             argv:
-              - "{{ ansible_vault_binary | default('vault') }}"
+              - "{{ bbcrd_vault_binary | default('vault') }}"
               - login
               - "-"
-            stdin: "{{ ansible_vault_root_token }}"
+            stdin: "{{ bbcrd_vault_root_token }}"
           environment:
-            VAULT_ADDR: "{{ ansible_vault_public_url }}"
-            VAULT_CACERT: "{{ ansible_vault_ca_path | default(omit) }}"
+            VAULT_ADDR: "{{ bbcrd_vault_public_url }}"
+            VAULT_CACERT: "{{ bbcrd_vault_ca_path | default(omit) }}"
           register: vault_login
         
         - name: Display vault login response
           run_once: true
-          tags: ansible_vault_login
+          tags: bbcrd_vault_login
           debug:
             msg: "{{ vault_login.stdout_lines }}"
 
         - name: Wait for user to confirm finished with root token
           run_once: true
           pause:
-            prompt: "Press enter to revoke root token {{ ansible_vault_root_token }}"
+            prompt: "Press enter to revoke root token {{ bbcrd_vault_root_token }}"
 
       always:
         - name: Revoke root token
@@ -66,7 +66,7 @@
             tasks_from: revoke.yml
           tags:
             - always
-            - ansible_vault_revoke_root_token
+            - bbcrd_vault_revoke_root_token
         
         - name: Clear any decrypted unseal keys
           import_role:
@@ -74,7 +74,7 @@
             tasks_from: clear.yml
           tags:
             - always
-            - ansible_vault_clear_unesal_keys
+            - bbcrd_vault_clear_unesal_keys
 
         - name: Clean up ephemeral GnuPG environment
           import_role:
@@ -82,4 +82,4 @@
             tasks_from: cleanup.yml
           tags:
             - always
-            - ansible_vault_ephemeral_gnupg_home
+            - bbcrd_vault_ephemeral_gnupg_home

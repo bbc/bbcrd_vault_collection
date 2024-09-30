@@ -6,8 +6,8 @@
 
 - name: Wait for all cluster nodes to respond to API requests
   uri:
-    url: "{{ ansible_vault_public_url }}/v1/sys/generate-root/attempt"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    url: "{{ bbcrd_vault_public_url }}/v1/sys/generate-root/attempt"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   register: vault_api_call
   retries: 20
   delay: 2

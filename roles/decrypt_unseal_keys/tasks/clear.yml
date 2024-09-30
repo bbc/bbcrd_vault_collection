@@ -4,4 +4,4 @@
   when: unseal_keys_decrypted
   run_once: true
   set_fact:
-    ansible_vault_unseal_keys: null
+    bbcrd_vault_unseal_keys: null

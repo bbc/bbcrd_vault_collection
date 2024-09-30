@@ -5,7 +5,7 @@
   vars:
     administrator_names: |-
       {{
-        hostvars[groups["vault_all"][0]].ansible_vault_administrators.keys() | list
+        hostvars[groups["vault_all"][0]].bbcrd_vault_administrators.keys() | list
       }}
   tasks:
     - name: Make ephemeral GnuPG home directory
@@ -45,16 +45,16 @@
       loop: "{{ administrator_names }}"
       register: gpg_export
     
-    - name: Store public keys in ansible_vault_administrators_*.yml variable file
+    - name: Store public keys in bbcrd_vault_administrators_*.yml variable file
       copy:
-        dest: "{{ lookup('env', 'GNUPGHOME') }}/ansible_vault_administrators_{{ item.item }}.yml"
+        dest: "{{ lookup('env', 'GNUPGHOME') }}/bbcrd_vault_administrators_{{ item.item }}.yml"
         content: |-
-          ansible_vault_administrators:
+          bbcrd_vault_administrators:
             {{ item.item }}:
-              ansible_vault_pgp_public_key: {{ item.stdout | to_json }}
+              bbcrd_vault_pgp_public_key: {{ item.stdout | to_json }}
       loop: "{{ gpg_export.results }}"
       loop_control:
-        label: "ansible_vault_administrators_{{ item.item }}.yml"
+        label: "bbcrd_vault_administrators_{{ item.item }}.yml"
 
 - name: Setup cluster nodes
   hosts: all

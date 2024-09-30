@@ -42,7 +42,7 @@
     - name: Check if vault is initialised
       uri:
         # vault status
-        url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
       retries: 5
       delay: 5
       until: vault_status.status == 200  # i.e. connection successful
@@ -53,7 +53,7 @@
         - name: Initialise vault
           uri:
             # vault operator init
-            url: "{{ ansible_vault_public_url }}/v1/sys/init"
+            url: "{{ bbcrd_vault_public_url }}/v1/sys/init"
             method: POST
             body_format: json
             body:
@@ -66,7 +66,7 @@
           when: vault_status.json.sealed
           uri:
             # vault operator unseal
-            url: "{{ ansible_vault_public_url }}/v1/sys/unseal"
+            url: "{{ bbcrd_vault_public_url }}/v1/sys/unseal"
             method: POST
             body_format: json
             body:
@@ -86,12 +86,12 @@
           import_role:
             name: bbcrd.vault.configure_auditing
           vars:
-            ansible_vault_root_token: "{{ vault_init.json.root_token }}"
+            bbcrd_vault_root_token: "{{ vault_init.json.root_token }}"
         
         - name: Create a snapshot of the pristine vault database
           get_url:
             # vault operator raft snapshot save /vault_snapshot
-            url: "{{ ansible_vault_public_url }}/v1/sys/storage/raft/snapshot"
+            url: "{{ bbcrd_vault_public_url }}/v1/sys/storage/raft/snapshot"
             dest: "/vault_snapshot"
             headers:
               X-Vault-Token: "{{ vault_init.json.root_token }}"

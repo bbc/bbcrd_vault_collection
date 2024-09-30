@@ -5,7 +5,7 @@ This role configures simple local backups on every Vault server in the cluster.
 
 At a regular interval, a snapshot of the Vault database, along with the
 encrypted unseal key file, is zipped up into `/var/lib/vault_backup` (see
-`ansible_vault_backup_location`).
+`bbcrd_vault_backup_location`).
 
 
 Backup script authentication
@@ -13,11 +13,11 @@ Backup script authentication
 
 The backup script authenticates with vault using an AppRole authentication
 endpoint configured at `vault_backup_approle` (see
-`ansible_vault_backup_approle_mount`). The resulting token is then permitted to
+`bbcrd_vault_backup_approle_mount`). The resulting token is then permitted to
 make a single request to the [raft snapshot
 endpoint](https://developer.hashicorp.com/vault/api-docs/system/storage/raft#take-a-snapshot-of-the-raft-cluster).
 The role ID and secret ID credentials needed to do this are written to
-`/etc/vault_backup_credentials.env` (see `ansible_vault_backup_auth_file`).
+`/etc/vault_backup_credentials.env` (see `bbcrd_vault_backup_auth_file`).
 
 
 Restoring a backup

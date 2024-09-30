@@ -1,21 +1,21 @@
 ---
 # The following may be set to override the behaviour of this playbook:
 #
-# * ansible_vault_cluster_ansible_group_name -- Change the group of hosts to
+# * bbcrd_vault_cluster_ansible_group_name -- Change the group of hosts to
 #   run against
 #
 # * playbook_administrator_name -- The name of the administrator whose public
-#   keys will used in the playbook (via ansible_vault_pgp_key_fingerprints)
+#   keys will used in the playbook (via bbcrd_vault_pgp_key_fingerprints)
 #
 # * enabled_administrators -- The set of administrators whose public keys are
-#   included in the Ansible data in ansible_vault_administrators. Defaults to
+#   included in the Ansible data in bbcrd_vault_administrators. Defaults to
 #   ['test-user-1'].
 
 - name: Set PGP variables
-  hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+  hosts: "{{ bbcrd_vault_cluster_ansible_group_name | default('vault') }}"
   
   tasks:
-    - name: "Set ansible_vault_administrators and ansible_vault_pgp_key_fingerprints"
+    - name: "Set bbcrd_vault_administrators and bbcrd_vault_pgp_key_fingerprints"
       import_tasks: set_pgp_variables.yml
       tags: always
   
@@ -24,7 +24,7 @@
 
 
 - name: Clean up any non-cluster memebers
-  hosts: "all,!{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+  hosts: "all,!{{ bbcrd_vault_cluster_ansible_group_name | default('vault') }}"
   
   tasks:
     - name: Shutdown vault server

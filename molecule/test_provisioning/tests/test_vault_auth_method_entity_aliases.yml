@@ -11,15 +11,15 @@
     - name: Create auth method
       bbcrd.vault.vault_auth_method:
         type: oidc
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
     
     - name: Check nothing is done when no entitity aliases are specified
       bbcrd.vault.vault_auth_method_entity_aliases:
         mount: oidc
         entity_aliases: {}
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: result.changed
     
@@ -36,17 +36,17 @@
             entity_name: "Baz"
             custom_metadata:
               oh: yeah
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
     - name: Check expected entities exist
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/identity/entity/name"
+        url: "{{ bbcrd_vault_public_url }}/v1/identity/entity/name"
         method: LIST
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: vault_list_entities
       failed_when: |-
         (vault_list_entities.json.data["keys"] | sort)
@@ -55,10 +55,10 @@
     
     - name: Check entity-aliases exist
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/identity/entity-alias/id"
+        url: "{{ bbcrd_vault_public_url }}/v1/identity/entity-alias/id"
         method: LIST
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: vault_list_entities
       failed_when: |-
         (vault_list_entities.json.data.key_info.values() | map(attribute="name") | sort)
@@ -76,8 +76,8 @@
             entity_name: "Baz"
             custom_metadata:
               oh: yeah
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: result.changed
     
@@ -93,8 +93,8 @@
             custom_metadata:
               oh: yeah
               this: is new
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
@@ -107,8 +107,8 @@
             entity_name: "Bar"
           baz@example.com:
             entity_name: "Baz"
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
@@ -119,17 +119,17 @@
           foo@example.com: Foo
           bar@example.com:
             entity_name: "Bar"
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
     - name: Check entity-alias deleted
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/identity/entity-alias/id"
+        url: "{{ bbcrd_vault_public_url }}/v1/identity/entity-alias/id"
         method: LIST
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: vault_list_entities
       failed_when: |-
         (vault_list_entities.json.data.key_info.values() | map(attribute="name") | sort)
@@ -143,7 +143,7 @@
           foo@example.com: Foo
           bar@example.com:
             entity_name: "Bar2"
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed

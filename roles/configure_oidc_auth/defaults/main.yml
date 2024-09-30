@@ -5,12 +5,12 @@
 ################################################################################
 
 # The mountpoint for the OIDC auth method (without the trailing slash)
-ansible_vault_oidc_mount: "oidc"
+bbcrd_vault_oidc_mount: "oidc"
 
 # The Vault token to use. Must have sufficient privileges to configure secrets
 # engines, identities and policies.
 #
-#ansible_vault_root_token: "..."
+#bbcrd_vault_root_token: "..."
 
 
 ################################################################################
@@ -18,28 +18,28 @@ ansible_vault_oidc_mount: "oidc"
 ################################################################################
 
 # The discovery URL for the OIDC
-ansible_vault_oidc_discovery_url: "https://sso-nbe.bbcis.uk/realms/jdh"
+bbcrd_vault_oidc_discovery_url: "https://sso-nbe.bbcis.uk/realms/jdh"
 
 # The CA certificate for the OIDC service (optional if using a publicly trusted
 # certificate but still recommended)
-#ansible_vault_oidc_ca_pem: |-
+#bbcrd_vault_oidc_ca_pem: |-
 #  -----BEGIN CERTIFICATE-----
 #  ...
 #  -----END CERTIFICATE-----
 
 # The OIDC client ID for Vault to use
-#ansible_vault_oidc_client_id: "my-vault-instance"
+#bbcrd_vault_oidc_client_id: "my-vault-instance"
 
 # The associated OIDC client secret for Vault to use
-#ansible_vault_oidc_client_secret: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+#bbcrd_vault_oidc_client_secret: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # A list of OIDC scopes to request beyond the mandatory `openid` scope.
-ansible_vault_oidc_extra_scopes: []
+bbcrd_vault_oidc_extra_scopes: []
 
 # The OIDC claim to use as the entity-alias name for the entity-aliases
 # auto-created when a user authenticates with Vault. These claims are mapped
 # onto Vault entity names (i.e. users) by the
-# ansible_vault_oidc_user_claim_to_entity_name_mapping.
+# bbcrd_vault_oidc_user_claim_to_entity_name_mapping.
 #
 # For standard claims provided by all OIDC providers, see
 # https://openid.net/specs/openid-connect-core-1_0.html#rfc.section.5.1
@@ -54,21 +54,21 @@ ansible_vault_oidc_extra_scopes: []
 # point in time. The most serious issue is that email addresses could in
 # principle be reused. As such, care must be taken to remove email addresses
 # from Vault in a timely manner during the JML process.
-ansible_vault_oidc_user_claim: sub
+bbcrd_vault_oidc_user_claim: sub
 
 # The OIDC redirect URLs to permit. Defaults to the URLs used by the vault CLI
 # client and the Vault UI web interfaces.
-ansible_vault_oidc_redirect_urls:
+bbcrd_vault_oidc_redirect_urls:
   # For CLI login
   - "http://localhost:8250/oidc/callback"
   # For Vault UI login
-  - "{{ ansible_vault_public_url }}/ui/vault/auth/oidc/oidc/callback"
+  - "{{ bbcrd_vault_public_url }}/ui/vault/auth/oidc/oidc/callback"
 
 # If set to true, will force the replacement of the OIDC credentials and
 # settings. This is necessary because the role will otherwise only write these
 # credentials when the OIDC auth endpoint is first created. This is because it
 # is not possible to read them back to detect changes.
-ansible_vault_oidc_force_update: false
+bbcrd_vault_oidc_force_update: false
 
 
 ################################################################################
@@ -76,7 +76,7 @@ ansible_vault_oidc_force_update: false
 ################################################################################
 
 # A dictionary mapping from OIDC claims (as selected by
-# ansible_vault_oidc_user_claim_to_entity_name_mapping) to Vault entity names
+# bbcrd_vault_oidc_user_claim_to_entity_name_mapping) to Vault entity names
 # (i.e. users).
 #
 # You should, in some other step add policies or groups to the named entities
@@ -95,14 +95,14 @@ ansible_vault_oidc_force_update: false
 # their previous policies.
 #
 # The default value generates a mapping based on data in
-# ansible_vault_administrators. Specifically, the entity name will be the key
+# bbcrd_vault_administrators. Specifically, the entity name will be the key
 # in this dictionary and the OIDC claim value will come from the field named by
-# ansible_vault_oidc_user_claim.
+# bbcrd_vault_oidc_user_claim.
 #
-# For example, if ansible_vault_oidc_user_claim
-# is 'email' and ansible_vault_administrators looks like:
+# For example, if bbcrd_vault_oidc_user_claim
+# is 'email' and bbcrd_vault_administrators looks like:
 #
-#     ansible_vault_administrators:
+#     bbcrd_vault_administrators:
 #       jonathan:
 #         email: jonathan.heathcote@bbc.co.uk
 #         # ...
@@ -114,17 +114,17 @@ ansible_vault_oidc_force_update: false
 #
 # The resulting mapping would be:
 #
-#     ansible_vault_oidc_user_claim_to_entity_name_mapping:
+#     bbcrd_vault_oidc_user_claim_to_entity_name_mapping:
 #       jonathan.heathcote@bbc.co.uk: jonathan
 #       andrew.bonney@bbc.co.uk: andrew
 #
-ansible_vault_oidc_user_claim_to_entity_name_mapping: |-
+bbcrd_vault_oidc_user_claim_to_entity_name_mapping: |-
   {{
     dict(
-      ansible_vault_administrators.values() | map(attribute=ansible_vault_oidc_user_claim, default=False)
-      | zip(ansible_vault_administrators.keys())
+      bbcrd_vault_administrators.values() | map(attribute=bbcrd_vault_oidc_user_claim, default=False)
+      | zip(bbcrd_vault_administrators.keys())
     ) | combine({False: omit})
   }}
 
 # The TTL of the tokens produced by this authentication method (in seconds).
-ansible_vault_oidc_token_ttl: 43200  # 12 hours
+bbcrd_vault_oidc_token_ttl: 43200  # 12 hours

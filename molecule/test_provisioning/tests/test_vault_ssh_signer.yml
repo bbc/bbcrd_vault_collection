@@ -8,14 +8,14 @@
       bbcrd.vault.vault_secrets_engine:
         type: ssh
         mount: ssh
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
     
     - name: Check nothing is done if absent and already unconfigured
       bbcrd.vault.vault_ssh_signer:
         state: absent
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: result.changed
     
@@ -23,14 +23,14 @@
       bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
     - name: Get public key
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/ssh/public_key"
+        url: "{{ bbcrd_vault_public_url }}/v1/ssh/public_key"
         return_content: true
       register: first_public_key
     
@@ -38,14 +38,14 @@
       bbcrd.vault.vault_ssh_signer:
         ca:
           generate_signing_key: true
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: result.changed
     
     - name: Check public key not changed
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/ssh/public_key"
+        url: "{{ bbcrd_vault_public_url }}/v1/ssh/public_key"
         return_content: true
       register: second_public_key
       failed_when: first_public_key.content != second_public_key.content
@@ -69,8 +69,8 @@
               permit-user-rc: ""
             ttl: 12h
             max_ttl: 12h
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
@@ -93,8 +93,8 @@
               permit-user-rc: ""
             ttl: 43200
             max_ttl: 43200
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: result.changed
     
@@ -117,16 +117,16 @@
               permit-user-rc: ""
             ttl: 3600  # Changed!
             max_ttl: 3600  # Changed!
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
     - name: Check role configuration
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/ssh/roles/foo"
+        url: "{{ bbcrd_vault_public_url }}/v1/ssh/roles/foo"
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: role
       failed_when: role.json.data.ttl != 3600  # Sanity check
     
@@ -135,16 +135,16 @@
         ca:
           generate_signing_key: true
         roles: {}
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
     - name: Check role is gone
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/ssh/roles/foo"
+        url: "{{ bbcrd_vault_public_url }}/v1/ssh/roles/foo"
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
         status_code: 404
       register: role
     
@@ -156,8 +156,8 @@
           foo:
             key_type: ca
             allow_user_certificates: true
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
@@ -170,22 +170,22 @@
             key_type: ca
             allow_user_certificates: true
         state: absent
-        vault_url: "{{ ansible_vault_public_url }}"
-        vault_token: "{{ ansible_vault_root_token }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
       failed_when: not result.changed
     
     - name: Check CA is gone
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/ssh/config/ca"
+        url: "{{ bbcrd_vault_public_url }}/v1/ssh/config/ca"
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
         status_code: 400
     
     - name: Check role is gone
       uri:
-        url: "{{ ansible_vault_public_url }}/v1/ssh/roles/foo"
+        url: "{{ bbcrd_vault_public_url }}/v1/ssh/roles/foo"
         headers:
-          X-Vault-Token: "{{ ansible_vault_root_token }}"
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
         status_code: 404
       register: role

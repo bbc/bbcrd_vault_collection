@@ -14,7 +14,7 @@
 - name: Force rekeying of vault
   import_playbook: converge.yml
   vars:
-    ansible_vault_force_rekey: true
+    bbcrd_vault_force_rekey: true
 
 - name: Verify unseal keys changed
   hosts: vault

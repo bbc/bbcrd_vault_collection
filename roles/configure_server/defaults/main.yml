@@ -8,19 +8,19 @@
 #
 # This may be overridden if the public Vault API endpoint is exposed via a load
 # balancer on a different port/protocol.
-ansible_vault_listen_protocol: "{{ ansible_vault_public_url | urlsplit('scheme') }}"
-ansible_vault_listen_address: "0.0.0.0"
-ansible_vault_listen_port: >-
+bbcrd_vault_listen_protocol: "{{ bbcrd_vault_public_url | urlsplit('scheme') }}"
+bbcrd_vault_listen_address: "0.0.0.0"
+bbcrd_vault_listen_port: >-
   {{
-    ansible_vault_public_url
+    bbcrd_vault_public_url
       | urlsplit('port')
-      | default(443 if ansible_vault_listen_protocol == "https" else 80)
+      | default(443 if bbcrd_vault_listen_protocol == "https" else 80)
       | int
   }}
 
 
 # The Vault clustering API URL
-ansible_vault_clustering_url: >-
+bbcrd_vault_clustering_url: >-
   https://{{
     ansible_host | default(inventory_hostname)
   }}:8201
@@ -30,10 +30,10 @@ ansible_vault_clustering_url: >-
 #
 # This may be overridden if the public Vault clustering API endpoint is exposed
 # via a load balancer on a different port/protocol.
-ansible_vault_clustering_address: "0.0.0.0"
-ansible_vault_clustering_port: >-
+bbcrd_vault_clustering_address: "0.0.0.0"
+bbcrd_vault_clustering_port: >-
   {{
-    ansible_vault_clustering_url
+    bbcrd_vault_clustering_url
       | urlsplit('port')
       | default(8201)
       | int
@@ -44,10 +44,10 @@ ansible_vault_clustering_port: >-
 # Certificates
 ################################################################################
 
-# If ansible_vault_listen_protocol is 'https', a certificate and key file must
+# If bbcrd_vault_listen_protocol is 'https', a certificate and key file must
 # be specified
-ansible_vault_tls_cert_file: "{{ ansible_vault_data_dir }}/tls.crt"
-ansible_vault_tls_key_file: "{{ ansible_vault_data_dir }}/tls.key"
+bbcrd_vault_tls_cert_file: "{{ bbcrd_vault_data_dir }}/tls.crt"
+bbcrd_vault_tls_key_file: "{{ bbcrd_vault_data_dir }}/tls.key"
 
 
 ################################################################################
@@ -59,12 +59,12 @@ ansible_vault_tls_key_file: "{{ ansible_vault_data_dir }}/tls.key"
 #
 # For example, if running a reverse proxy on the same host this might be set to
 #
-#     ansible_vault_x_forwarded_for_authorized_addrs:
+#     bbcrd_vault_x_forwarded_for_authorized_addrs:
 #       - "127.0.0.0/24"
-ansible_vault_x_forwarded_for_authorized_addrs: null
+bbcrd_vault_x_forwarded_for_authorized_addrs: null
 
 ################################################################################
 # Web UI
 ################################################################################
 
-ansible_vault_enable_ui: true
+bbcrd_vault_enable_ui: true

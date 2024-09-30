@@ -6,7 +6,7 @@
 
 # The name of the Ansible group in which all members of the vault cluster are
 # enumerated.
-ansible_vault_cluster_ansible_group_name: vault
+bbcrd_vault_cluster_ansible_group_name: vault
 
 
 ################################################################################
@@ -14,14 +14,14 @@ ansible_vault_cluster_ansible_group_name: vault
 ################################################################################
 
 # The version of vault to be installed
-ansible_vault_version: "1.17.1"
+bbcrd_vault_version: "1.17.1"
 
 # The name (not path) of the vault server systemd service
-ansible_vault_systemd_unit: vault
+bbcrd_vault_systemd_unit: vault
 
 # User and group to run the vault service as
-ansible_vault_user: "vault"
-ansible_vault_group: "vault"
+bbcrd_vault_user: "vault"
+bbcrd_vault_group: "vault"
 
 
 ################################################################################
@@ -35,13 +35,13 @@ ansible_vault_group: "vault"
 # * encrypted_unseal_keys.json -- PGP encrypted unseal keys
 # * encrypted_unseal_keys.json.candidate -- Candidate PGP encrypted unseal
 #   keys, subject to verification during rekeying.
-ansible_vault_config_dir: "/etc/vault"
+bbcrd_vault_config_dir: "/etc/vault"
 
 # Location of the Vault server data directory
 #
 # Within this directory, the following are used
 # * data/ -- The on-disk Raft storage location
-ansible_vault_data_dir: "/var/lib/vault"
+bbcrd_vault_data_dir: "/var/lib/vault"
 
 # The base URL the server's API is reachable from publicly.
 #
@@ -50,10 +50,10 @@ ansible_vault_data_dir: "/var/lib/vault"
 # differ. For example, you may listen on HTTP on 127.0.0.1 but have a public
 # interface using HTTPS on some public IP address.
 #
-# XXX: Whilst 'ansible_vault_public_url' is defined as a default here, it
+# XXX: Whilst 'bbcrd_vault_public_url' is defined as a default here, it
 # *must* be defined for hosts using this role due to a limitation of Ansible.
 # You're welcome to copy this default, of course!
-ansible_vault_public_url: >-
+bbcrd_vault_public_url: >-
   https://{{
     ansible_host | default(inventory_hostname)
   }}:8200
@@ -65,7 +65,7 @@ ansible_vault_public_url: >-
 
 # Filename on the remote host of the CA PEM file to use to verify the vault
 # server's HTTPS certificate. Omit to use default trust stores.
-#ansible_vault_ca_path: "/path/to/ca.pem"
+#bbcrd_vault_ca_path: "/path/to/ca.pem"
 
 
 ################################################################################
@@ -74,38 +74,38 @@ ansible_vault_public_url: >-
 
 # The GnuPG home directory (on the Ansible control node) to use for all PGP
 # operations. If null, the system's GnuPG home will be used.
-ansible_vault_gnupg_home: null
+bbcrd_vault_gnupg_home: null
 
 # A dictionary enumerating the vault administrators, i.e. the persons who will
 # have access to unseal keys.
 #
 # Each user may have the following entries:
 #
-# * ansible_vault_pgp_public_key: (Required) The ASCII armored PGP public key
+# * bbcrd_vault_pgp_public_key: (Required) The ASCII armored PGP public key
 #   of the user. This will be used to encrypt unseal all needed keys.
-# * ansible_vault_unseal_key_shares: (Optional) The number of key shares to
+# * bbcrd_vault_unseal_key_shares: (Optional) The number of key shares to
 #   generate for this user. Defaults to 1.
 #
 # Example:
 #
-#     ansible_vault_administrators:
+#     bbcrd_vault_administrators:
 #       foo:
-#         ansible_vault_pgp_public_key: "<ASCII Armor encoded PGP public key>"
-#         ansible_vault_unseal_key_shares: 1
-ansible_vault_administrators: {}
+#         bbcrd_vault_pgp_public_key: "<ASCII Armor encoded PGP public key>"
+#         bbcrd_vault_unseal_key_shares: 1
+bbcrd_vault_administrators: {}
 
 # The number of unseal keys which must be provided to unseal vault.
-ansible_vault_unseal_key_threshold: 1
+bbcrd_vault_unseal_key_threshold: 1
 
 # Override: The a set of one or more (unencrypted) unseal key to use for
 # unsealing vault nodes. If not given, the unseal key will be decrypted
 # automatically using GnuPG.
-ansible_vault_unseal_keys: null
+bbcrd_vault_unseal_keys: null
 
 # Override: A list of fingerprints of the PGP keys to use to decrypt unseal
 # keys. If null, any and all available private keys will be used which are
 # available in the current GnuPG store.
-ansible_vault_pgp_key_fingerprints: null
+bbcrd_vault_pgp_key_fingerprints: null
 
 
 ################################################################################
@@ -113,4 +113,4 @@ ansible_vault_pgp_key_fingerprints: null
 ################################################################################
 
 # Don't log results of sensitive actions
-ansible_vault_no_log_sensitive: true
+bbcrd_vault_no_log_sensitive: true

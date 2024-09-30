@@ -5,17 +5,17 @@
 # Used by converge_supply_additional_keys.yml -- not intended for independent
 # use.
 #
-# Playbook executed via the ansible_vault_provide_additional_unseal_keys_tasks
+# Playbook executed via the bbcrd_vault_provide_additional_unseal_keys_tasks
 # hook (which calls tests/run_command.yml which runs this playbook).
 
 - name: Load PGP keys
-  hosts: "{{ ansible_vault_cluster_ansible_group_name | default('vault') }}"
+  hosts: "{{ bbcrd_vault_cluster_ansible_group_name | default('vault') }}"
   tasks:
-    - name: "Set ansible_vault_administrators and ansible_vault_pgp_key_fingerprints"
+    - name: "Set bbcrd_vault_administrators and bbcrd_vault_pgp_key_fingerprints"
       import_tasks: set_pgp_variables.yml
       tags: always
 
 - name: Supply additional unseal keys
   vars:
-    ansible_vault_skip_additional_unseal_confirmation: true
+    bbcrd_vault_skip_additional_unseal_confirmation: true
   import_playbook: bbcrd.vault.supply_additional_keys

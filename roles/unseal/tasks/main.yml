@@ -3,8 +3,8 @@
 - name: Get Vault server statuses
   uri:
     # vault status
-    url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
-    ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+    url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
   register: vault_status
 
 - name: Check if Vault servers are sealed
@@ -14,7 +14,7 @@
 - name: Unseal hosts
   # when any host requires unsealing
   when: |-
-    groups[ansible_vault_cluster_ansible_group_name]
+    groups[bbcrd_vault_cluster_ansible_group_name]
       | map('extract', hostvars)
       | selectattr("vault_sealed", "defined")
       | selectattr("vault_sealed", "true")
@@ -36,7 +36,7 @@
     - name: Restart hosts to be unsealed
       when: vault_sealed
       systemd:
-        name: "{{ ansible_vault_systemd_unit }}"
+        name: "{{ bbcrd_vault_systemd_unit }}"
         state: restarted
 
     # Note: We retry with a generous delay here in case we're accessing Vault
@@ -45,8 +45,8 @@
     - name: Wait for restarted hosts to come back up
       uri:
         # vault status
-        url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
-        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
+        ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
       retries: 5
       delay: 5
       until: vault_status.status == 200  # i.e. connection successful
@@ -78,8 +78,8 @@
     - name: Wait for all hosts to initialise (and discover the cluster)
       uri:
         # vault status
-        url: "{{ ansible_vault_public_url }}/v1/sys/seal-status"
-        ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
+        ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
       retries: 30
       delay: 2
       until: |-

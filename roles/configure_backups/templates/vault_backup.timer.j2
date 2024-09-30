@@ -2,7 +2,7 @@
 Description=Regularly backup the vault database
 
 [Timer]
-OnCalendar={{ ansible_vault_backup_schedule }}
+OnCalendar={{ bbcrd_vault_backup_schedule }}
 
 [Install]
 WantedBy=timers.target
