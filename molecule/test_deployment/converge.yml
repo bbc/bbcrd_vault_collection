@@ -20,7 +20,7 @@
       tags: always
   
 - name: Run main vault installation/management playbook
-  import_playbook: bbcrd.ansible_vault.manage_vault_cluster
+  import_playbook: bbcrd.vault.manage_vault_cluster
 
 
 - name: Clean up any non-cluster memebers

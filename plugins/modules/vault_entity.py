@@ -1,13 +1,13 @@
 from typing import Dict, Iterable
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_entity
+module: bbcrd.vault.vault_entity
 
 short_description: Create, modify and delete Vault entities
 
@@ -59,7 +59,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create an entity
-  bbcrd.ansible_vault.vault_entity:
+  bbcrd.vault.vault_entity:
     name: jonathan
     metadata:
       team: cans
@@ -68,7 +68,7 @@ EXAMPLES = r"""
       - admin
 
 - name: Delete an entity
-  bbcrd.ansible_vault.vault_entity:
+  bbcrd.vault.vault_entity:
     name: fred
     state: absent
 """

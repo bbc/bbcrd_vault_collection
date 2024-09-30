@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.remove_old_cluster_nodes` role
-===================================================
+`bbcrd.vault.remove_old_cluster_nodes` role
+===========================================
 
 This role removes any  nodes from the Vault cluster which do not have a
 corresponding host in the Ansible data.

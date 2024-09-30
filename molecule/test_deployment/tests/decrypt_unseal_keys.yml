@@ -25,7 +25,7 @@
 
 - name: Decrypt the unseal keys
   run_once: true
-  bbcrd.ansible_vault.pgp_decrypt:
+  bbcrd.vault.pgp_decrypt:
     ciphertext: "{{ item.encrypted_unseal_key }}"
   loop: "{{ encrypted_unseal_keys.shares }}"
   loop_control:

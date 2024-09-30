@@ -5,7 +5,7 @@
   block:
     - name: Discover installed Vault binary version
       import_role:
-        name: bbcrd.ansible_vault.install
+        name: bbcrd.vault.install
         tasks_from: get_version.yml
 
     - name: Get running vault version
@@ -45,4 +45,4 @@
     - name: Wait for restarted hosts to become responsive
       when: inventory_hostname in to_restart
       import_role:
-        name: bbcrd.ansible_vault.wait_for_api_responsiveness
+        name: bbcrd.vault.wait_for_api_responsiveness

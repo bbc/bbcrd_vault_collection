@@ -1,14 +1,14 @@
 import os
 from itertools import chain
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_auth_method
+module: bbcrd.vault.vault_auth_method
 
 short_description: Enable (or disable) a Vault authentication method.
 
@@ -70,7 +70,7 @@ accessor:
 
 EXAMPLES = r"""
 - name: Create setup auth methods
-  bbcrd.ansible_vault.vault_auth_method:
+  bbcrd.vault.vault_auth_method:
     type: oidc
 """
 

@@ -1,13 +1,13 @@
 from typing import Dict, Iterable
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_group
+module: bbcrd.vault.vault_group
 
 short_description: Create, manage or delete a (local) identity group in Vault.
 
@@ -75,7 +75,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create a group
-  bbcrd.ansible_vault.vault_group:
+  bbcrd.vault.vault_group:
     name: administrators
     policies:
       - kv_admin

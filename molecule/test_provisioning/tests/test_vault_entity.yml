@@ -9,7 +9,7 @@
     ################################################################################
     
     - name: Check nothing is done when deleting non-existant entity
-      bbcrd.ansible_vault.vault_entity:
+      bbcrd.vault.vault_entity:
         name: missing
         state: absent
         vault_url: "{{ ansible_vault_public_url }}"
@@ -18,7 +18,7 @@
       failed_when: result.changed
     
     - name: Check creation with defaults
-      bbcrd.ansible_vault.vault_entity:
+      bbcrd.vault.vault_entity:
         name: foo
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
@@ -37,7 +37,7 @@
         or entity.json.data.disabled != False
     
     - name: Check no change
-      bbcrd.ansible_vault.vault_entity:
+      bbcrd.vault.vault_entity:
         name: foo
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
@@ -45,7 +45,7 @@
       failed_when: result.changed
     
     - name: Check add metadata
-      bbcrd.ansible_vault.vault_entity:
+      bbcrd.vault.vault_entity:
         name: foo
         metadata:
           bar: baz
@@ -69,7 +69,7 @@
         or entity.json.data.disabled != True
     
     - name: Delete entity
-      bbcrd.ansible_vault.vault_entity:
+      bbcrd.vault.vault_entity:
         name: foo
         state: absent
         vault_url: "{{ ansible_vault_public_url }}"

@@ -98,4 +98,4 @@
 
 - name: Wait for all hosts to become responsive
   import_role:
-    name: bbcrd.ansible_vault.wait_for_api_responsiveness
+    name: bbcrd.vault.wait_for_api_responsiveness

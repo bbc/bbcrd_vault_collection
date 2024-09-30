@@ -1,13 +1,13 @@
 from typing import Dict, Iterable
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_auth_method_entity_aliases
+module: bbcrd.vault.vault_auth_method_entity_aliases
 
 short_description: Manage all entity aliases for a particular auth method in a declarative way.
 
@@ -64,7 +64,7 @@ options:
 
 EXAMPLES = r"""
 - name: Create some entities
-  bbcrd.ansible_vault.vault_auth_method_entity_aliases:
+  bbcrd.vault.vault_auth_method_entity_aliases:
     mount: github
     entity_aliases:
         # Simple form (mapping entity-alias name, e.g. github user, to entity name)

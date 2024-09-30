@@ -1,14 +1,14 @@
 import os
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_ssh_signer
+module: bbcrd.vault.vault_ssh_signer
 
 short_description: Configure the Vault SSH signing secrets engine.
 
@@ -71,12 +71,12 @@ options:
 
 EXAMPLES = r"""
 - name: Enable SSH signing engine
-  bbcrd.ansible_vault.vault_secrets_engine
+  bbcrd.vault.vault_secrets_engine
     type: ssh
     mount: ssh-client-signer
 
 - name: Configure SSH signing engine
-  bbcrd.ansible_vault.vault_ssh_signer
+  bbcrd.vault.vault_ssh_signer
     ca:
       generate_signing_key: true
     roles:

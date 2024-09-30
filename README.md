@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault` Collection
-================================
+`bbcrd.vault` Collection
+========================
 
 A collection for deploying and managing Hashicorp Vault/OpenBao clusters.
 
@@ -14,52 +14,52 @@ Vault deployments.
 
 The relevant playbooks are:
 
-* `bbcrd.ansible_vault.manage_vault_cluster`: Setup and manage a Vault cluster.
+* `bbcrd.vault.manage_vault_cluster`: Setup and manage a Vault cluster.
   Handles installation, unsealing nodes, managing cluster membership, rolling
   upgrades, backups and unseal key management. Is *not* responsible for the
   configuration of secrets engines, authentication methods and so on.
 
-* `bbcrd.ansible_vault.supply_additional_keys`: Submit additional unseal keys
+* `bbcrd.vault.supply_additional_keys`: Submit additional unseal keys
   to assist another vault administrator running one of the "main"
   roles/playbooks. Needed only when the unseal key threshold is more than than
   the number of unseal keys held by an individual administrator.
 
-* `bbcrd.ansible_vault.generate_root_token`: Generate an ephemeral root token
+* `bbcrd.vault.generate_root_token`: Generate an ephemeral root token
   for the vault cluster using unseal keys.
 
-* `bbcrd.ansible_vault.decrypt_unseal_keys_file`: Decrypts an encrypted unseal
+* `bbcrd.vault.decrypt_unseal_keys_file`: Decrypts an encrypted unseal
   keys file (e.g. extracted from a backup archive) for disaster recovery
   purposes. (See also: `utils/run_disaster_recovery_vault_server.py`).
 
 The following roles implement the tasks within the playbooks above and may, if
 desired, be used independently:
 
-* `bbcrd.ansible_vault.install`: Installs Vault from a public binary release.
-* `bbcrd.ansible_vault.configure_server`: Generate vault cluster configuration files.
-* `bbcrd.ansible_vault.init_first_node`: Initialise the very first node in a
+* `bbcrd.vault.install`: Installs Vault from a public binary release.
+* `bbcrd.vault.configure_server`: Generate vault cluster configuration files.
+* `bbcrd.vault.init_first_node`: Initialise the very first node in a
   brand new vault cluster. (Does nothing if the cluster is already
   initialised).
-* `bbcrd.ansible_vault.unseal`: Unseal all vault nodes, also causing any
+* `bbcrd.vault.unseal`: Unseal all vault nodes, also causing any
   brand-new nodes to join the cluster.
-* `bbcrd.ansible_vault.propagate_unseal_keys`: Propagates the encrypted unseal
+* `bbcrd.vault.propagate_unseal_keys`: Propagates the encrypted unseal
   keys file to all hosts which don't currently have a copy of it -- i.e. newly
   created nodes.
-* `bbcrd.ansible_vault.remove_old_cluster_nodes`: Removes any  nodes from the
+* `bbcrd.vault.remove_old_cluster_nodes`: Removes any  nodes from the
   Vault cluster which do not have a corresponding host in the Ansible data.
-* `bbcrd.ansible_vault.restart`: Restart and unseal vault cluster members in a
+* `bbcrd.vault.restart`: Restart and unseal vault cluster members in a
   rolling fashion.
-* `bbcrd.ansible_vault.rekey`: Rekey vault with a new set of unseal keys.
-* `bbcrd.ansible_vault.configure_backups`: Configures automated backups of the
+* `bbcrd.vault.rekey`: Rekey vault with a new set of unseal keys.
+* `bbcrd.vault.configure_backups`: Configures automated backups of the
   vault database and encrypted unseal keys.
-* `bbcrd.ansible_vault.enabled_audit_log`: Enables audit logging.
+* `bbcrd.vault.enabled_audit_log`: Enables audit logging.
 
 There are also a some lower level roles which are in some cases used by the
 above roles but which might also be useful in isolation.
 
-* `bbcrd.ansible_vault.generate_root`: Generate an (ephemeral) root token using
+* `bbcrd.vault.generate_root`: Generate an (ephemeral) root token using
   unseal keys.
-* `bbcrd.ansible_vault.decrypt_unseal_keys`: Decrypts unseal keys.
-* `bbcrd.ansible_vault.ephemeral_gnupg_home`: Creates a temporary GnuPG home
+* `bbcrd.vault.decrypt_unseal_keys`: Decrypts unseal keys.
+* `bbcrd.vault.ephemeral_gnupg_home`: Creates a temporary GnuPG home
   directory on the Ansible control node, isolated from the user's own GnuPG
   environment.
 
@@ -75,45 +75,45 @@ complete.
 
 In brief, the available roles are:
 
-* `bbcrd.ansible_vault.configure_kv_secrets_engine` -- Deploys an empty KV
+* `bbcrd.vault.configure_kv_secrets_engine` -- Deploys an empty KV
   secrets engine.
-* `bbcrd.ansible_vault.configure_oidc_auth` -- Setup basic OpenID Connect based
+* `bbcrd.vault.configure_oidc_auth` -- Setup basic OpenID Connect based
   single-sign-on (SSO) authentication for vault.
-* `bbcrd.ansible_vault.configure_ssh_client_signer` -- Setup a simple SSH
+* `bbcrd.vault.configure_ssh_client_signer` -- Setup a simple SSH
   client certificate signing secrets engine.
-* `bbcrd.ansible_vault.configure_approle_auth` -- Configure an AppRole auth
+* `bbcrd.vault.configure_approle_auth` -- Configure an AppRole auth
   endpoint with roles for each host in an Ansible group for machine auth
   purposes.
-* `bbcrd.ansible_vault.issue_approle_credentials` -- Issues AppRole credentials
+* `bbcrd.vault.issue_approle_credentials` -- Issues AppRole credentials
   (role IDs and secret IDs) to Ansible hosts. For use with
-  `bbcrd.ansible_vault.configure_approle_auth`.
+  `bbcrd.vault.configure_approle_auth`.
 
 The available modules are:
 
 * Policy management
-  * `bbcrd.ansible_vault.vault_policy` -- Create vault policies.
+  * `bbcrd.vault.vault_policy` -- Create vault policies.
 * Secret/auth/audit engine management
-  * `bbcrd.ansible_vault.vault_audit` -- Configure auditing engines.
-  * `bbcrd.ansible_vault.vault_auth_method` -- Enable and configure auth methods.
-  * `bbcrd.ansible_vault.vault_secrets_engine` -- Enable or configure secrets
+  * `bbcrd.vault.vault_audit` -- Configure auditing engines.
+  * `bbcrd.vault.vault_auth_method` -- Enable and configure auth methods.
+  * `bbcrd.vault.vault_secrets_engine` -- Enable or configure secrets
     engines.
 * Entity/Group management
-  * `bbcrd.ansible_vault.vault_auth_method_entity_aliases` -- Configure entity
+  * `bbcrd.vault.vault_auth_method_entity_aliases` -- Configure entity
     alias mappings for a particular auth method. (That is, map auth method users
     to Vault entities).
-  * `bbcrd.ansible_vault.vault_group` -- Create and configure vault (entity) groups.
-  * `bbcrd.ansible_vault.vault_entity` -- Create and configure entities.
+  * `bbcrd.vault.vault_group` -- Create and configure vault (entity) groups.
+  * `bbcrd.vault.vault_entity` -- Create and configure entities.
 * AppRole auth configuration
-  * `bbcrd.ansible_vault.vault_approles` -- Manage the set of roles for an
+  * `bbcrd.vault.vault_approles` -- Manage the set of roles for an
     AppRoles auth endpoint.
-  * `bbcrd.ansible_vault.vault_approle_secret` -- Generate (or set) AppRole
+  * `bbcrd.vault.vault_approle_secret` -- Generate (or set) AppRole
     secret IDs.
 * OIDC Auth configuration
-  * `bbcrd.ansible_vault.vault_oidc_configure` -- Configure the OIDC auth method.
-  * `bbcrd.ansible_vault.vault_oidc_roles` -- Configure roles for the OIDC auth
+  * `bbcrd.vault.vault_oidc_configure` -- Configure the OIDC auth method.
+  * `bbcrd.vault.vault_oidc_roles` -- Configure roles for the OIDC auth
     method.
 * SSH Secrets engine configuration
-  * `bbcrd.ansible_vault.vault_ssh_signer` -- Configure the SSH signer secrets
+  * `bbcrd.vault.vault_ssh_signer` -- Configure the SSH signer secrets
     engine.
 
 
@@ -121,7 +121,7 @@ Common default variables
 ------------------------
 
 The majority of roles automatically pull in the common default variable values
-defined in the otherwise empty `bbcrd.ansible_vault.common_defaults` role.
+defined in the otherwise empty `bbcrd.vault.common_defaults` role.
 
 
 Unseal key management
@@ -249,7 +249,7 @@ kept in sync with backups of the encrypted unseal keys.
 
 Whenever an unseal key is required by any of the roles in this playbook, the
 encrypted unseal keys are automatically fetched and decrypted using the
-`bbcrd.ansible_vault.decrypt_unseal_keys` role. This internally uses [GnuPG
+`bbcrd.vault.decrypt_unseal_keys` role. This internally uses [GnuPG
 (GPG)](https://www.gnupg.org/) on the Ansible deployment host to decrypt any
 unseal keys for which a matching private key exists in the local GnuPG
 database.

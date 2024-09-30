@@ -1,14 +1,14 @@
 import os
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_audit
+module: bbcrd.vault.vault_audit
 
 short_description: Enable, configure or disable an audit device.
 
@@ -64,7 +64,7 @@ options:
 
 EXAMPLES = r"""
 - name: Enable audit logging to stdout
-  bbcrd.ansible_vault.vault_audit
+  bbcrd.vault.vault_audit
     mount: stdout
     type: file
     options:

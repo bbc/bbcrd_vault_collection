@@ -2,7 +2,7 @@
 
 - name: Enable audit engine
   run_once: true
-  bbcrd.ansible_vault.vault_audit:
+  bbcrd.vault.vault_audit:
     type: file
     mount: stdout
     options:

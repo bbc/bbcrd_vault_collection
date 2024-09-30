@@ -60,5 +60,5 @@
     
     - name: "Unseal Vault on {{ target }}"
       import_role:
-        name: bbcrd.ansible_vault.unseal
+        name: bbcrd.vault.unseal
         tasks_from: unseal.yml

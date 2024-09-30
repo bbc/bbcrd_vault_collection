@@ -1,17 +1,17 @@
 import os
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.dict_compare import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.dict_compare import (
     dict_issubset,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_approle_secret
+module: bbcrd.vault.vault_approle_secret
 
 short_description: Manage an AppRole's secret_ids.
 
@@ -93,7 +93,7 @@ secret_id_accessor:
 
 EXAMPLES = r"""
 - name: Create (or replace) the secret for foobar.example.com
-  bbcrd.ansible_vault.vault_approle_secret:
+  bbcrd.vault.vault_approle_secret:
     approle_name: "my-role"
     parameters:
       metadata:

@@ -11,7 +11,7 @@
   when: ansible_vault_gnupg_home_nesting_level|int == 1
   block:
     - name: Create ephemeral GnuPG home
-      bbcrd.ansible_vault.create_ephemeral_gnupg_home:
+      bbcrd.vault.create_ephemeral_gnupg_home:
         set_fact: ansible_vault_gnupg_home
       changed_when: false  # Don't pollute change logs
     
@@ -29,7 +29,7 @@
       failed_when: false
     
     - name: Import public keys
-      bbcrd.ansible_vault.pgp_import:
+      bbcrd.vault.pgp_import:
         public_key: "{{ item.value.ansible_vault_pgp_public_key }}"
         gnupg_home: "{{ ansible_vault_gnupg_home }}"
       when: item.value.ansible_vault_pgp_public_key is defined
@@ -40,7 +40,7 @@
       changed_when: false  # Don't pollute change logs
     
     - name: Detect PGP card
-      bbcrd.ansible_vault.pgp_detect_card:
+      bbcrd.vault.pgp_detect_card:
         gnupg_home: "{{ ansible_vault_gnupg_home }}"
       changed_when: false  # Don't pollute change logs
     
@@ -54,13 +54,13 @@
       tags: ansible_vault_precheck_pin
       block:
         - name: Enumerate available private keys
-          bbcrd.ansible_vault.pgp_list:
+          bbcrd.vault.pgp_list:
             type: private
             gnupg_home: "{{ ansible_vault_gnupg_home }}"
           register: private_keys
         
         - name: Encrypt dummy data
-          bbcrd.ansible_vault.pgp_encrypt:
+          bbcrd.vault.pgp_encrypt:
             plaintext: "{{ 'dummy data' | b64encode() }}"
             public_key: "{{ item }}"
             gnupg_home: "{{ ansible_vault_gnupg_home }}"
@@ -68,7 +68,7 @@
           register: dummy_data
         
         - name: Decrypt dummy data (to trigger PIN entry)
-          bbcrd.ansible_vault.pgp_decrypt:
+          bbcrd.vault.pgp_decrypt:
             ciphertext: "{{ item }}"
             gnupg_home: "{{ ansible_vault_gnupg_home }}"
           loop_control:

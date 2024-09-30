@@ -16,7 +16,7 @@
       block:
         - name: Create ephemeral GnuPG environment for handling unseal keys
           import_role:
-            name: bbcrd.ansible_vault.ephemeral_gnupg_home
+            name: bbcrd.vault.ephemeral_gnupg_home
           tags:
             - always
             - ansible_vault_ephemeral_gnupg_home
@@ -26,13 +26,13 @@
     
         - name: Install Vault software and systemd service
           import_role:
-            name: bbcrd.ansible_vault.install
+            name: bbcrd.vault.install
           tags:
             - ansible_vault_install
 
         - name: Write Vault server configuration files
           import_role:
-            name: bbcrd.ansible_vault.configure_server
+            name: bbcrd.vault.configure_server
           tags:
             - ansible_vault_configure_server
 
@@ -44,39 +44,39 @@
           block:
             - name: Initialise first vault node
               import_role:
-                name: bbcrd.ansible_vault.init_first_node
+                name: bbcrd.vault.init_first_node
               tags:
                 - ansible_vault_init_first_node
             
             - name: Decrypt unseal keys
               import_role:
-                name: bbcrd.ansible_vault.decrypt_unseal_keys
+                name: bbcrd.vault.decrypt_unseal_keys
               tags:
                 - always
                 - ansible_vault_decrypt_unseal_keys
             
             - name: Unseal the cluster (and join new nodes)
               import_role:
-                name: bbcrd.ansible_vault.unseal
+                name: bbcrd.vault.unseal
               tags:
                 - ansible_vault_unseal
             
             - name: Propagate encrypted unseal keys to new nodes
               import_role:
-                name: bbcrd.ansible_vault.propagate_unseal_keys
+                name: bbcrd.vault.propagate_unseal_keys
               tags:
                 - ansible_vault_propagate_unseal_keys
             
             - name: Generate root token
               import_role:
-                name: bbcrd.ansible_vault.generate_root
+                name: bbcrd.vault.generate_root
               tags:
                 - always
                 - ansible_vault_generate_root
             
             - name: Remove old nodes from the cluster
               import_role:
-                name: bbcrd.ansible_vault.remove_old_cluster_nodes
+                name: bbcrd.vault.remove_old_cluster_nodes
               tags:
                 - ansible_vault_remove_old_cluster_nodes
             
@@ -86,32 +86,32 @@
             # an outage.
             - name: Restart vault servers if required
               import_role:
-                name: bbcrd.ansible_vault.restart
+                name: bbcrd.vault.restart
               tags:
                 - ansible_vault_restart
             
             - name: Rekey unseal keys (e.g. to add/remove admins)
               import_role:
-                name: bbcrd.ansible_vault.rekey
+                name: bbcrd.vault.rekey
               tags:
                 - ansible_vault_rekey
             
             - name: Configure regular vault database backups
               import_role:
-                name: bbcrd.ansible_vault.configure_backups
+                name: bbcrd.vault.configure_backups
               tags:
                 - ansible_vault_configure_backups
             
             - name: Enable audit log
               import_role:
-                name: bbcrd.ansible_vault.configure_auditing
+                name: bbcrd.vault.configure_auditing
               tags:
                 - ansible_vault_configure_auditing
             
           always:
             - name: Revoke any generated root tokens
               import_role:
-                name: bbcrd.ansible_vault.generate_root
+                name: bbcrd.vault.generate_root
                 tasks_from: revoke.yml
               tags:
                 - always
@@ -119,7 +119,7 @@
             
             - name: Clear any decrypted unseal keys
               import_role:
-                name: bbcrd.ansible_vault.decrypt_unseal_keys
+                name: bbcrd.vault.decrypt_unseal_keys
                 tasks_from: clear.yml
               tags:
                 - always
@@ -128,7 +128,7 @@
       always:
         - name: Clean up ephemeral GnuPG environment
           import_role:
-            name: bbcrd.ansible_vault.ephemeral_gnupg_home
+            name: bbcrd.vault.ephemeral_gnupg_home
             tasks_from: cleanup.yml
           tags:
             - always

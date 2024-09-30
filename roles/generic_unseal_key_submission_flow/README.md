@@ -1,8 +1,8 @@
-`bbcrd.ansible_vault.generic_unseal_key_submission_flow` role
-=============================================================
+`bbcrd.vault.generic_unseal_key_submission_flow` role
+=====================================================
 
 > **Hint:** If you're looking for a high-level role for unsealing Vault nodes,
-> see the [`bbcrd.ansible_vault.unseal`](../unesal) role instead.
+> see the [`bbcrd.vault.unseal`](../unesal) role instead.
 
 Low-level role which implements the generic workflow whereby unseal keys are
 supplied one-by-one to Vault to achieve some goal. This might be for basic
@@ -20,7 +20,7 @@ The following variables must be set:
 * `submit_api_url`: The API endpoint to POST the final unseal key to.
 
 * `ansible_vault_unseal_keys`: A valid set of unseal keys. See the
-  [`bbcrd.ansible_vault.decrypt_unseal_keys`](../decrypt_unseal_keys) role.
+  [`bbcrd.vault.decrypt_unseal_keys`](../decrypt_unseal_keys) role.
 
 * `nonce`: The nonce for the submission process. If null, no nonce is used
   (or checked for).
@@ -50,7 +50,7 @@ Key submission consists of three phases:
    save at least one of our unseal keys to use later.
 
 2. Next we wait for others to submit all but the last unseal key.
-   This can be done using the `bbcrd.ansible_vault.supply_additional_keys`
+   This can be done using the `bbcrd.vault.supply_additional_keys`
    playbook.
 
 3. Finally we submit our own last unseal key and capture whatever output is

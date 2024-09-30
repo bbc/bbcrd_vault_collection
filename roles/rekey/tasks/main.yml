@@ -3,7 +3,7 @@
 
 - name: Fetch encrypted unseal keys
   import_role:
-    name: bbcrd.ansible_vault.decrypt_unseal_keys
+    name: bbcrd.vault.decrypt_unseal_keys
     tasks_from: fetch.yml
 
 - name: Enumerate PGP keys used
@@ -36,7 +36,7 @@
       debug:
         msg: |-
           {{
-            (existing_fingerprints_and_names | bbcrd.ansible_vault.ndiff(new_fingerprints_and_names))
+            (existing_fingerprints_and_names | bbcrd.vault.ndiff(new_fingerprints_and_names))
             if existing_fingerprints_and_names != new_fingerprints_and_names else
             "(unseal key holders not changed)"
           }}
@@ -101,7 +101,7 @@
         
         - name: Supply unseal keys
           import_role:
-            name: bbcrd.ansible_vault.generic_unseal_key_submission_flow
+            name: bbcrd.vault.generic_unseal_key_submission_flow
           vars:
             purpose: "to rekey vault"
             nonce: "{{ vault_rekey_init.json.nonce }}"
@@ -118,7 +118,7 @@
         
         - name: Create encrypted unseal key bundle
           import_role:
-            name: bbcrd.ansible_vault.save_encrypted_unseal_keys
+            name: bbcrd.vault.save_encrypted_unseal_keys
           vars:
             encrypted_unseal_keys_base64: "{{ submission.json.keys_base64 }}"
             encrypted_unseal_keys_filename: |-
@@ -131,7 +131,7 @@
     - name: "Obtain new candidate unseal key"
       when: ansible_vault_verify_rekey
       import_role:
-        name: bbcrd.ansible_vault.decrypt_unseal_keys
+        name: bbcrd.vault.decrypt_unseal_keys
       vars:
         encrypted_unseal_keys_filename: "encrypted_unseal_keys.json.candidate"
         
@@ -141,7 +141,7 @@
       block:
         - name: Supply new unseal keys for verification
           import_role:
-            name: bbcrd.ansible_vault.generic_unseal_key_submission_flow
+            name: bbcrd.vault.generic_unseal_key_submission_flow
           vars:
             purpose: "to verify new unseal keys"
             nonce: "{{ verification_nonce }}"

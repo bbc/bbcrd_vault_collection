@@ -15,7 +15,7 @@
 
 - name: Supply unseal keys
   import_role:
-    name: bbcrd.ansible_vault.generic_unseal_key_submission_flow
+    name: bbcrd.vault.generic_unseal_key_submission_flow
   vars:
     purpose: "to unseal vault"
     nonce: null

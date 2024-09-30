@@ -2,7 +2,7 @@
 
 - name: Enumerate available PGP private keys
   run_once: true
-  bbcrd.ansible_vault.pgp_list:
+  bbcrd.vault.pgp_list:
     type: private
     gnupg_home: "{{ ansible_vault_gnupg_home }}"
   register: private_keys
@@ -32,7 +32,7 @@
 - name: Decrypt the unseal keys
   run_once: true
   no_log: "{{ ansible_vault_no_log_sensitive }}"
-  bbcrd.ansible_vault.pgp_decrypt:
+  bbcrd.vault.pgp_decrypt:
     ciphertext: "{{ item.encrypted_unseal_key }}"
     gnupg_home: "{{ ansible_vault_gnupg_home }}"
   loop: "{{ decryptable_unseal_keys }}"

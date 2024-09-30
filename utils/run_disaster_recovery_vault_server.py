@@ -308,7 +308,7 @@ def main() -> None:
                         1. Obtain the unseal keys. Hint:
 
                                $ cat encrypted_unseal_keys.json   # Put the encrypted unseal keys here!
-                               $ ansible-playbook bbcrd.ansible_vault.decrypt_unseal_keys_file
+                               $ ansible-playbook bbcrd.vault.decrypt_unseal_keys_file
                                ...snip...
                                TASK [Display decrypted unseal keys]
                                ok: [localhost] => {

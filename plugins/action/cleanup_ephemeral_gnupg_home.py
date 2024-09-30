@@ -4,19 +4,19 @@ from pathlib import Path
 from ansible.plugins.action import ActionBase
 from ansible.errors import AnsibleError
 
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.pgp import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.pgp import (
     in_specified_gnupg_home,
     kill_gpg_agent,
 )
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.cleanup_ephemeral_gnupg_home
+module: bbcrd.vault.cleanup_ephemeral_gnupg_home
 
 short_description: Destroy an ephemeral GnuPG home.
 
 description: |-
     Destroy an ephemeral GnuPG home, e.g. as created by
-    bbcrd.ansible_vault.create_ephemeral_gnupg_home.
+    bbcrd.vault.create_ephemeral_gnupg_home.
     
     Kills any GnuPG agent running in the ephemeral environment before deleting
     it.
@@ -31,7 +31,7 @@ options:
 
 EXAMPLES = r"""
 - name: Cleanup an ephemeral GnuPG environment
-  bbcrd.ansible_vault.cleanup_ephemeral_gnupg_home:
+  bbcrd.vault.cleanup_ephemeral_gnupg_home:
     gnupg_home: "{{ gnupg_home }}"
 """
 

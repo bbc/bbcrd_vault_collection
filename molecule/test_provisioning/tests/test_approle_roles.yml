@@ -6,7 +6,7 @@
     
     - name: Deploy test_machines AppRole
       import_role:
-        name: bbcrd.ansible_vault.configure_approle_auth
+        name: bbcrd.vault.configure_approle_auth
       vars:
         ansible_vault_approle_mount: "test_machines"
         ansible_vault_approle_ansible_group_name: "machines"
@@ -34,7 +34,7 @@
     
     - name: Deploy approle credentials
       import_role:
-        name: bbcrd.ansible_vault.issue_approle_credentials
+        name: bbcrd.vault.issue_approle_credentials
       vars:
         ansible_vault_approle_mount: "test_machines"
         ansible_vault_api_delegate_host: vault  # Can't use localhost for molecule
@@ -77,7 +77,7 @@
     
     - name: Re-deploy credentials to make sure nothing changes
       import_role:
-        name: bbcrd.ansible_vault.issue_approle_credentials
+        name: bbcrd.vault.issue_approle_credentials
       vars:
         ansible_vault_approle_mount: "test_machines"
         ansible_vault_api_delegate_host: vault  # Can't use localhost for molecule
@@ -90,7 +90,7 @@
     
     - name: Check forced credential rotation works
       import_role:
-        name: bbcrd.ansible_vault.issue_approle_credentials
+        name: bbcrd.vault.issue_approle_credentials
       vars:
         ansible_vault_approle_mount: "test_machines"
         ansible_vault_api_delegate_host: vault  # Can't use localhost for molecule

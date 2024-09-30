@@ -19,8 +19,8 @@
 # being submitted in service of the person/task you think they are!
 #
 # See documentation for the
-# `bbcrd.ansible_vault.generic_unseal_key_submission_flow` and
-# `bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow` roles for
+# `bbcrd.vault.generic_unseal_key_submission_flow` and
+# `bbcrd.vault.generic_additional_unseal_key_submission_flow` roles for
 # more details of this process.
 
 - name: Supply additional unseal keys to assist another administrator
@@ -31,7 +31,7 @@
     - block:
         - name: Create ephemeral GnuPG environment for handling unseal keys
           import_role:
-            name: bbcrd.ansible_vault.ephemeral_gnupg_home
+            name: bbcrd.vault.ephemeral_gnupg_home
           tags:
             - always
             - ansible_vault_ephemeral_gnupg_home
@@ -67,7 +67,7 @@
               block:
                 - name: Decrypt candidate unseal keys
                   import_role:
-                    name: bbcrd.ansible_vault.decrypt_unseal_keys
+                    name: bbcrd.vault.decrypt_unseal_keys
                   vars:
                     encrypted_unseal_keys_filename: "encrypted_unseal_keys.json.candidate"
               rescue:
@@ -77,7 +77,7 @@
 
             - name: Supply candidate unseal keys to verify rekey
               import_role:
-                name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+                name: bbcrd.vault.generic_additional_unseal_key_submission_flow
               vars:
                 purpose: "to verify new unseal keys"
                 submit_once: true
@@ -92,7 +92,7 @@
         
         - name: Decrypt unseal keys
           import_role:
-            name: bbcrd.ansible_vault.decrypt_unseal_keys
+            name: bbcrd.vault.decrypt_unseal_keys
           tags:
             - always
 
@@ -103,7 +103,7 @@
           # verification is not taking place.
           when: verify_status.json.nonce | default("") == ""
           import_role:
-            name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+            name: bbcrd.vault.generic_additional_unseal_key_submission_flow
           vars:
             purpose: "to rekey vault"
             submit_once: true
@@ -114,7 +114,7 @@
 
         - name: Supply unseal keys for root token generation
           import_role:
-            name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+            name: bbcrd.vault.generic_additional_unseal_key_submission_flow
           vars:
             purpose: "to generate a root token"
             submit_once: true
@@ -125,7 +125,7 @@
         
         - name: Provide keys for unsealing vault
           import_role:
-            name: bbcrd.ansible_vault.generic_additional_unseal_key_submission_flow
+            name: bbcrd.vault.generic_additional_unseal_key_submission_flow
           vars:
             purpose: "to unseal vault"
             submit_once: false
@@ -138,7 +138,7 @@
       always:
         - name: Clear any decrypted unseal keys
           import_role:
-            name: bbcrd.ansible_vault.decrypt_unseal_keys
+            name: bbcrd.vault.decrypt_unseal_keys
             tasks_from: clear.yml
           tags:
             - always
@@ -146,7 +146,7 @@
         
         - name: Clean up ephemeral GnuPG environment
           import_role:
-            name: bbcrd.ansible_vault.ephemeral_gnupg_home
+            name: bbcrd.vault.ephemeral_gnupg_home
             tasks_from: cleanup.yml
           tags:
             - always

@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.save_encrypted_unseal_keys` role
-=====================================================
+`bbcrd.vault.save_encrypted_unseal_keys` role
+=============================================
 
 Write the encrypted unseal keys in the `encrypted_unseal_keys_base64` variable
 into a the file named by the `encrypted_unseal_keys_filename` variable,

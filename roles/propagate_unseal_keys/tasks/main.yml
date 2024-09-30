@@ -5,7 +5,7 @@
 # already inconsistent
 - name: Fetch encrypted unseal keys
   import_role:
-    name: bbcrd.ansible_vault.decrypt_unseal_keys
+    name: bbcrd.vault.decrypt_unseal_keys
     tasks_from: fetch.yml
 
 - name: Propagate encrypted unseal keys to new nodes

@@ -52,7 +52,7 @@
           ansible_vault_administrators
             [playbook_administrator_name | default('test-user-1')]
             .ansible_vault_pgp_public_key
-            | bbcrd.ansible_vault.ascii_armor_to_base64
-            | bbcrd.ansible_vault.pgp_public_key_to_fingerprint
+            | bbcrd.vault.ascii_armor_to_base64
+            | bbcrd.vault.pgp_public_key_to_fingerprint
         ]
       }}

@@ -1,6 +1,6 @@
 """
 Filters specifically for use within the
-bbcrd.ansible_vault.configure_approle_auth role and not intended for external
+bbcrd.vault.configure_approle_auth role and not intended for external
 use.
 """
 

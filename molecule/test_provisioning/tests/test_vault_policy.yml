@@ -5,7 +5,7 @@
     - import_tasks: ../load_credentials_and_reset_vault.yml
     
     - name: Check nothing done when absent policy doesn't exist
-      bbcrd.ansible_vault.vault_policy:
+      bbcrd.vault.vault_policy:
         name: "does-not-exist"
         state: absent
         vault_url: "{{ ansible_vault_public_url }}"
@@ -14,7 +14,7 @@
       failed_when: result.changed
     
     - name: Create a simple policy
-      bbcrd.ansible_vault.vault_policy:
+      bbcrd.vault.vault_policy:
         name: "cluster-status-reader"
         policy: |-
           path "sys/storage/raft/autopilot/state" {
@@ -35,7 +35,7 @@
         "sys/storage/raft/autopilot/state" not in read_policy.json.data.rules
     
     - name: No change if policy is unchanged
-      bbcrd.ansible_vault.vault_policy:
+      bbcrd.vault.vault_policy:
         name: "cluster-status-reader"
         policy: |-
           path "sys/storage/raft/autopilot/state" {
@@ -47,7 +47,7 @@
       failed_when: result.changed
     
     - name: Change when policy is different
-      bbcrd.ansible_vault.vault_policy:
+      bbcrd.vault.vault_policy:
         name: "cluster-status-reader"
         policy: |-
           path "sys/storage/raft/autopilot/state" {
@@ -71,7 +71,7 @@
         "sys/seal-status" not in read_policy.json.data.rules
     
     - name: Change when policy is deleted
-      bbcrd.ansible_vault.vault_policy:
+      bbcrd.vault.vault_policy:
         name: "cluster-status-reader"
         state: absent
         vault_url: "{{ ansible_vault_public_url }}"

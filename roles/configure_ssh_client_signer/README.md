@@ -1,5 +1,5 @@
-`bbcrd.ansible_vault.configure_ssh_client_signer` role
-======================================================
+`bbcrd.vault.configure_ssh_client_signer` role
+==============================================
 
 This role configures a simple SSH client key signing service.
 
@@ -20,4 +20,4 @@ key used for signing:
     $ curl {{ ansible_vault_public_url }}/v1/ssh-client-signer/public_key
 
 For now, anything beyond a single class of users is out of scope. You should
-instead use `bbcrd.ansible_vault.vault_ssh_signer` directly.
+instead use `bbcrd.vault.vault_ssh_signer` directly.

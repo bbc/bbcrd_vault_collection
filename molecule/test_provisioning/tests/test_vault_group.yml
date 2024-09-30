@@ -5,7 +5,7 @@
     - import_tasks: ../load_credentials_and_reset_vault.yml
     
     - name: Check nothing is done when deleting non-existant group
-      bbcrd.ansible_vault.vault_group:
+      bbcrd.vault.vault_group:
         name: missing
         state: absent
         vault_url: "{{ ansible_vault_public_url }}"
@@ -14,7 +14,7 @@
       failed_when: result.changed
     
     - name: Check creating empty group
-      bbcrd.ansible_vault.vault_group:
+      bbcrd.vault.vault_group:
         name: my_group
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
@@ -22,7 +22,7 @@
       failed_when: not result.changed
     
     - name: Make sure no change reported if still empty
-      bbcrd.ansible_vault.vault_group:
+      bbcrd.vault.vault_group:
         name: my_group
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
@@ -30,7 +30,7 @@
       failed_when: result.changed
     
     - name: Add some non-existing entities
-      bbcrd.ansible_vault.vault_group:
+      bbcrd.vault.vault_group:
         name: my_group
         members:
           - jonathan
@@ -72,7 +72,7 @@
         quiet: true
     
     - name: Shouldn't change if entities not changed
-      bbcrd.ansible_vault.vault_group:
+      bbcrd.vault.vault_group:
         name: my_group
         members:
           - jonathan
@@ -83,7 +83,7 @@
       failed_when: result.changed
     
     - name: Add some policies
-      bbcrd.ansible_vault.vault_group:
+      bbcrd.vault.vault_group:
         name: my_group
         members:
           - jonathan
@@ -105,7 +105,7 @@
       failed_when: (group.json.data.policies | sort) != (["foo", "bar"] | sort)
     
     - name: Remove some members and policies
-      bbcrd.ansible_vault.vault_group:
+      bbcrd.vault.vault_group:
         name: my_group
         members:
           - jonathan
@@ -127,7 +127,7 @@
         or group.json.data.member_entity_ids != [entities.results[0].json.data.id]
     
     - name: Add group to another group
-      bbcrd.ansible_vault.vault_group:
+      bbcrd.vault.vault_group:
         name: another_group
         member_groups:
           - my_group
@@ -146,7 +146,7 @@
         another_group.json.data.member_group_ids != [group.json.data.id]
     
     - name: Check deletion
-      bbcrd.ansible_vault.vault_group:
+      bbcrd.vault.vault_group:
         name: my_group
         state: absent
         vault_url: "{{ ansible_vault_public_url }}"

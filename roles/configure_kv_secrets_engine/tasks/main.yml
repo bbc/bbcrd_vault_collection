@@ -1,7 +1,7 @@
 - run_once: true
   block:
     - name: Enable KV secrets engine
-      bbcrd.ansible_vault.vault_secrets_engine:
+      bbcrd.vault.vault_secrets_engine:
         mount: "{{ ansible_vault_kv_mount }}"
         type: kv
         options:
@@ -11,7 +11,7 @@
         vault_ca_path: "{{ ansible_vault_ca_path | default(omit) }}"
 
     - name: Create secrets engine policy
-      bbcrd.ansible_vault.vault_policy:
+      bbcrd.vault.vault_policy:
         name: "{{ ansible_vault_kv_admin_policy_name }}"
         policy: |-
           path "{{ ansible_vault_kv_mount }}/*" {

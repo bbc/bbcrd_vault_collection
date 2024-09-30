@@ -11,7 +11,7 @@
     
     - block:
         - name: Make sure no test_kv secrets engine exists (we'll create this after taking a backup)
-          bbcrd.ansible_vault.vault_secrets_engine:
+          bbcrd.vault.vault_secrets_engine:
             mount: test_kv
             type: kv
             state: absent
@@ -52,7 +52,7 @@
             remote_src: true
         
         - name: Make an arbitrary change to vault (enable a secrets engine)
-          bbcrd.ansible_vault.vault_secrets_engine:
+          bbcrd.vault.vault_secrets_engine:
             mount: test_kv
             type: kv
             vault_url: "http://{{ ansible_hostname }}:8200"

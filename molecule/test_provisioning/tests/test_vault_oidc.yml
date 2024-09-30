@@ -5,13 +5,13 @@
     - import_tasks: ../load_credentials_and_reset_vault.yml
     
     - name: Enable OIDC auth
-      bbcrd.ansible_vault.vault_auth_method:
+      bbcrd.vault.vault_auth_method:
         type: oidc
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
     
     - name: Configure OIDC
-      bbcrd.ansible_vault.vault_oidc_configure:
+      bbcrd.vault.vault_oidc_configure:
         config:
           # For test purposes, point at Vault's own built in OIDC provider (see
           # https://developer.hashicorp.com/vault/docs/secrets/identity/oidc-provider)
@@ -26,7 +26,7 @@
       failed_when: not oidc_configure.changed
     
     - name: Ensure reconfigure OIDC doesn't result in change
-      bbcrd.ansible_vault.vault_oidc_configure:
+      bbcrd.vault.vault_oidc_configure:
         config: {}
         vault_url: "{{ ansible_vault_public_url }}"
         vault_token: "{{ ansible_vault_root_token }}"
@@ -34,7 +34,7 @@
       failed_when: oidc_configure.changed
     
     - name: Make sure state=updated leads to change
-      bbcrd.ansible_vault.vault_oidc_configure:
+      bbcrd.vault.vault_oidc_configure:
         config:
           # See note above
           oidc_discovery_url: "{{ ansible_vault_public_url }}/v1/identity/oidc/provider/default"
@@ -48,7 +48,7 @@
       failed_when: not oidc_configure.changed
 
     - name: Configure roles
-      bbcrd.ansible_vault.vault_oidc_roles:
+      bbcrd.vault.vault_oidc_roles:
         roles:
           default:
             user_claim: email
@@ -73,7 +73,7 @@
       failed_when: (list.json.data["keys"] | sort) != (["default", "other" ] | sort)
 
     - name: Configure roles no change if same
-      bbcrd.ansible_vault.vault_oidc_roles:
+      bbcrd.vault.vault_oidc_roles:
         roles:
           default:
             user_claim: email
@@ -89,7 +89,7 @@
       failed_when: oidc_configure.changed
 
     - name: Delete role on removal
-      bbcrd.ansible_vault.vault_oidc_roles:
+      bbcrd.vault.vault_oidc_roles:
         roles:
           default:
             user_claim: email
@@ -110,7 +110,7 @@
       failed_when: (list.json.data["keys"] | sort) != (["default"] | sort)
 
     - name: Change role on modification
-      bbcrd.ansible_vault.vault_oidc_roles:
+      bbcrd.vault.vault_oidc_roles:
         roles:
           default:
             user_claim: sub

@@ -1,14 +1,14 @@
 import os
 import json
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.bbcrd.ansible_vault.plugins.module_utils.vault import (
+from ansible_collections.bbcrd.vault.plugins.module_utils.vault import (
     get_vault_api_request_argument_spec,
     vault_api_request,
 )
 
 
 DOCUMENTATION = r"""
-module: bbcrd.ansible_vault.vault_secrets_engine
+module: bbcrd.vault.vault_secrets_engine
 
 short_description: Enable, configure (or disable) a secrets engine.
 
@@ -68,7 +68,7 @@ options:
 
 EXAMPLES = r"""
 - name: Configure KV v1 secrets engine
-  bbcrd.ansible_vault.vault_secrets_engine
+  bbcrd.vault.vault_secrets_engine
     mount: secret
     type: kv
     options:
