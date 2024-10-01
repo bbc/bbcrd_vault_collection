@@ -10,12 +10,23 @@
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
-    - name: Create secrets engine policy
+    - name: Create admin policy
       bbcrd.vault.vault_policy:
         name: "{{ bbcrd_vault_kv_admin_policy_name }}"
         policy: |-
           path "{{ bbcrd_vault_kv_mount }}/*" {
             capabilities = ["create", "read", "update", "delete", "list"]
+          }
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+
+    - name: Create read-only policy
+      bbcrd.vault.vault_policy:
+        name: "{{ bbcrd_vault_kv_read_only_policy_name }}"
+        policy: |-
+          path "{{ bbcrd_vault_kv_mount }}/*" {
+            capabilities = ["read", "list"]
           }
         vault_url: "{{ bbcrd_vault_public_url }}"
         vault_token: "{{ bbcrd_vault_root_token }}"

@@ -26,3 +26,7 @@ bbcrd_vault_kv_version: 1
 # The name of the policy to create which grants full read/write access to all
 # secrets.
 bbcrd_vault_kv_admin_policy_name: "kv_admin"
+
+# The name of the policy to create which grants read-only access to all
+# secrets.
+bbcrd_vault_kv_read_only_policy_name: "kv_read_only"
