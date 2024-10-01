@@ -10,3 +10,15 @@
     vault_url: "{{ bbcrd_vault_public_url }}"
     vault_token: "{{ bbcrd_vault_root_token }}"
     vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+
+- name: Create audit hash access policy
+  bbcrd.vault.vault_policy:
+    name: "{{ bbcrd_vault_audit_hash_policy_name }}"
+    policy: |-
+      # Hash arbitrary values using the audit engine's HMAC
+      path "sys/audit-hash/{{ bbcrd_vault_audit_mount }}" {
+        capabilities = ["create", "update"]
+      }
+    vault_url: "{{ bbcrd_vault_public_url }}"
+    vault_token: "{{ bbcrd_vault_root_token }}"
+    vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
