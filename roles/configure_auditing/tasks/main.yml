@@ -3,10 +3,10 @@
 - name: Enable audit engine
   run_once: true
   bbcrd.vault.vault_audit:
-    type: file
-    mount: stdout
-    options:
-      file_path: stdout
+    type: "{{ bbcrd_vault_audit_type }}"
+    mount: "{{ bbcrd_vault_audit_mount }}"
+    options: "{{ bbcrd_vault_audit_options }}"
+    description: "{{ bbcrd_vault_audit_description }}"
     vault_url: "{{ bbcrd_vault_public_url }}"
     vault_token: "{{ bbcrd_vault_root_token }}"
     vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
