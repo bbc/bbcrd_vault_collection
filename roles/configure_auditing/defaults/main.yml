@@ -21,3 +21,7 @@ bbcrd_vault_audit_description: Send audit logs to stdout
 # stdout.
 bbcrd_vault_audit_options:
   file_path: stdout
+
+# A policy which allows holders the ability to compute the hash of an arbitrary
+# value using the auditing engine's HMAC.
+bbcrd_vault_audit_hash_policy_name: "audit_hash"
