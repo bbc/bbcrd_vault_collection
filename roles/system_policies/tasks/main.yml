@@ -1,0 +1,175 @@
+- run_once: true
+  block:
+    - name: Create cluster status reading policy
+      bbcrd.vault.vault_policy:
+        name: "{{ bbcrd_vault_read_cluster_status_policy_name }}"
+        policy: |-
+          # vault operator raft autopilot state
+          path "sys/storage/raft/autopilot/state" {
+            capabilities = ["read"]
+          }
+          
+          # vault operator raft list-peers
+          path "sys/storage/raft/configuration" {
+            capabilities = ["read"]
+          }
+          
+          # Read leader status
+          path "sys/leader" {
+            capabilities = ["read"]
+          }
+          
+          # Read HA status
+          path "sys/ha-status" {
+            capabilities = ["read"]
+          }
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+    
+    - name: Create identity metadata reading policy
+      bbcrd.vault.vault_policy:
+        name: "{{ bbcrd_vault_read_identity_metadata_policy_name }}"
+        policy: |-
+          # List entities
+          path "identity/entity/id" {
+            capabilities = ["read", "list"]
+          }
+          path "identity/entity/name" {
+            capabilities = ["read", "list"]
+          }
+          
+          # Lookup entities
+          path "identity/lookup/entity" {
+            capabilities = ["create", "update"]
+          }
+          
+          # Read entity metadata
+          path "identity/entity/id/+" {
+            capabilities = ["read"]
+          }
+          path "identity/entity/name/+" {
+            capabilities = ["read"]
+          }
+          
+          # List entity aliases
+          path "identity/entity-alias/id" {
+            capabilities = ["read", "list"]
+          }
+          
+          # Read entity aliases
+          path "identity/entity-alias/id/+" {
+            capabilities = ["read"]
+          }
+          
+          # List groups
+          path "identity/group/id" {
+            capabilities = ["read", "list"]
+          }
+          path "identity/group/name" {
+            capabilities = ["read", "list"]
+          }
+          
+          # Lookup groups
+          path "identity/lookup/group" {
+            capabilities = ["create", "update"]
+          }
+          
+          # Read group metadata
+          path "identity/group/id/+" {
+            capabilities = ["read"]
+          }
+          path "identity/group/name/+" {
+            capabilities = ["read"]
+          }
+          
+          # List group aliases
+          path "identity/group-alias/id" {
+            capabilities = ["read", "list"]
+          }
+          
+          # Read group aliases
+          path "identity/group-alias/id/+" {
+            capabilities = ["read"]
+          }
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+    
+    - name: Create token metadata reading policy
+      bbcrd.vault.vault_policy:
+        name: "{{ bbcrd_vault_read_token_metadata_policy_name }}"
+        policy: |-
+          # Lookup tokens
+          path "auth/token/lookup" {
+            capabilities = ["create", "update"]
+          }
+          path "auth/token/lookup-accessor" {
+            capabilities = ["create", "update"]
+          }
+          path "auth/token/lookup-self" {
+            capabilities = ["read"]
+          }
+          
+          # Read token capabilities
+          path "sys/capabilities" {
+            capabilities = ["create", "update"]
+          }
+          path "sys/capabilities-accessor" {
+            capabilities = ["create", "update"]
+          }
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+    
+    - name: Create token revoking policy
+      bbcrd.vault.vault_policy:
+        name: "{{ bbcrd_vault_revoke_tokens_policy_name }}"
+        policy: |-
+          # Revoke tokens
+          path "auth/token/revoke" {
+            capabilities = ["create", "update"]
+          }
+          path "auth/token/revoke-accessor" {
+            capabilities = ["create", "update"]
+          }
+          path "auth/token/revoke-self" {
+            capabilities = ["create", "update"]
+          }
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+    
+    - name: Create policy reading policy
+      bbcrd.vault.vault_policy:
+        name: "{{ bbcrd_vault_read_policies_policy_name }}"
+        policy: |-
+          # List policies
+          path "sys/policy" {
+            capabilities = ["read", "list"]
+          }
+          path "sys/policies/acl" {
+            capabilities = ["read", "list"]
+          }
+          # Read policies
+          path "sys/policy/+" {
+            capabilities = ["read"]
+          }
+          path "sys/policies/acl/+" {
+            capabilities = ["read"]
+          }
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+    
+    - name: Create metric reading policy
+      bbcrd.vault.vault_policy:
+        name: "{{ bbcrd_vault_read_metrics_policy_name }}"
+        policy: |-
+          # Read vault metrics
+          path "sys/metrics" {
+            capabilities = ["read"]
+          }
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"

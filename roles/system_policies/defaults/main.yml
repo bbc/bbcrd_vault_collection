@@ -1,0 +1,34 @@
+---
+
+################################################################################
+# Vault-related options
+################################################################################
+
+# The Vault token to use. Must have sufficient privileges to configure secrets
+# engines, identities and policies.
+#
+#bbcrd_vault_root_token: "..."
+
+
+################################################################################
+# Policy names
+################################################################################
+
+# A policy which allows read-only access to the Vault cluster status API
+# endpoints
+bbcrd_vault_read_cluster_status_policy_name: "read_cluster_status"
+
+# A policy which allows read-only access to enumerate identity metadata
+bbcrd_vault_read_identity_metadata_policy_name: "read_identity_metadata"
+
+# A policy which allows read-only access to issued token metadata
+bbcrd_vault_read_token_metadata_policy_name: "read_token_metadata"
+
+# A policy which allows revoking of others' tokens
+bbcrd_vault_revoke_tokens_policy_name: "revoke_tokens"
+
+# A policy which allows enumeration and reading of Vault policies
+bbcrd_vault_read_policies_policy_name: "read_policies"
+
+# A policy which allows reading of the Vault sys/metrics endpoint
+bbcrd_vault_read_metrics_policy_name: "read_metrics"

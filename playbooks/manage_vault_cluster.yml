@@ -108,6 +108,12 @@
               tags:
                 - bbcrd_vault_configure_auditing
             
+            - name: Create system administration policies
+              import_role:
+                name: bbcrd.vault.system_policies
+              tags:
+                - bbcrd_vault_system_policies
+            
           always:
             - name: Revoke any generated root tokens
               import_role:

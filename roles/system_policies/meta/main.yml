@@ -1,0 +1,2 @@
+dependencies:
+  - role: bbcrd.vault.common_defaults
