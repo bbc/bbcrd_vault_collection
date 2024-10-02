@@ -3,6 +3,52 @@
 # The tasks in this file are responsible for configuring Vault AppRole-based
 # authentication for the backup process.
 
+
+- run_once: true
+  block:
+    - name: Create AppRole auth endpoint for backup authentication
+      bbcrd.vault.vault_auth_method:
+        type: approle
+        mount: "{{ bbcrd_vault_backup_approle_mount }}"
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+    
+    - name: Create policy allowing access to the snapshot endpoint
+      bbcrd.vault.vault_policy:
+        name: "{{ bbcrd_vault_backup_policy_name }}"
+        policy: |-
+          path "sys/storage/raft/snapshot" {
+            capabilities = ["read"]
+          }
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+
+    - name: Setup backup AppRole roles for each server in the cluster
+      bbcrd.vault.vault_approles:
+        mount: "{{ bbcrd_vault_backup_approle_mount }}"
+        approles: |-
+          {{
+            groups[bbcrd_vault_cluster_ansible_group_name]
+            | map('community.general.dict_kv', 'key')
+            | map('combine', parameters | community.general.dict_kv('value'))
+            | items2dict
+          }}
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+        vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+      vars:
+        parameters:
+          token_type: service
+          token_policies:
+            - "{{ bbcrd_vault_backup_policy_name }}"
+          token_num_uses: 1
+          token_ttl: "{{ bbcrd_vault_backup_token_ttl }}"
+          token_max_ttl: "{{ bbcrd_vault_backup_token_ttl }}"
+          token_bound_cidrs: "{{ bbcrd_vault_backup_cidrs }}"
+      register: approles
+
 - name: Check whether the AppRole credentials files already exist
   stat:
     path: "{{ bbcrd_vault_backup_auth_file }}"
@@ -20,51 +66,6 @@
       | map(attribute="exists")
     ) is not all
   block:
-    - run_once: true
-      block:
-        - name: Create AppRole auth endpoint for backup authentication
-          bbcrd.vault.vault_auth_method:
-            type: approle
-            mount: "{{ bbcrd_vault_backup_approle_mount }}"
-            vault_url: "{{ bbcrd_vault_public_url }}"
-            vault_token: "{{ bbcrd_vault_root_token }}"
-            vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-        
-        - name: Create policy allowing access to the snapshot endpoint
-          bbcrd.vault.vault_policy:
-            name: "{{ bbcrd_vault_backup_policy_name }}"
-            policy: |-
-              path "sys/storage/raft/snapshot" {
-                capabilities = ["read"]
-              }
-            vault_url: "{{ bbcrd_vault_public_url }}"
-            vault_token: "{{ bbcrd_vault_root_token }}"
-            vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-    
-        - name: Setup backup AppRole roles for each server in the cluster
-          bbcrd.vault.vault_approles:
-            mount: "{{ bbcrd_vault_backup_approle_mount }}"
-            approles: |-
-              {{
-                groups[bbcrd_vault_cluster_ansible_group_name]
-                | map('community.general.dict_kv', 'key')
-                | map('combine', parameters | community.general.dict_kv('value'))
-                | items2dict
-              }}
-            vault_url: "{{ bbcrd_vault_public_url }}"
-            vault_token: "{{ bbcrd_vault_root_token }}"
-            vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-          vars:
-            parameters:
-              token_type: service
-              token_policies:
-                - "{{ bbcrd_vault_backup_policy_name }}"
-              token_num_uses: 1
-              token_ttl: "{{ bbcrd_vault_backup_token_ttl }}"
-              token_max_ttl: "{{ bbcrd_vault_backup_token_ttl }}"
-              token_bound_cidrs: "{{ bbcrd_vault_backup_cidrs }}"
-          register: approles
-    
     - name: Generate backup approle secret
       bbcrd.vault.vault_approle_secret:
         mount: "{{ bbcrd_vault_backup_approle_mount }}"
