@@ -46,6 +46,6 @@ bbcrd_vault_approle_credentials_file: "/etc/vault_approle_{{ bbcrd_vault_approle
 
 # The user, group and mode for the credentials file. This file contains secret
 # material which should not be readable except where necessary.
-bbcrd_vault_approle_credentials_file_owner: null
+bbcrd_vault_approle_credentials_file_owner: root
 bbcrd_vault_approle_credentials_file_group: null
 bbcrd_vault_approle_credentials_file_mode: "0600"
