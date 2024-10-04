@@ -43,4 +43,4 @@ bbcrd_vault_approle_ansible_group_name: "{{ bbcrd_vault_approle_mount }}"
 # can be overridden for each host by setting this variable in the hostvars of
 # the relevant host.
 #
-#bbcrd_vault_approle[bbcrd_vault_approle_mount].*
+#bbcrd_vault_approle[bbcrd_vault_approle_mount]: {}

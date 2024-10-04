@@ -18,7 +18,7 @@ bbcrd_vault_oidc_mount: "oidc"
 ################################################################################
 
 # The discovery URL for the OIDC
-bbcrd_vault_oidc_discovery_url: "https://sso-nbe.bbcis.uk/realms/jdh"
+bbcrd_vault_oidc_discovery_url: "https://example.com/oidc"
 
 # The CA certificate for the OIDC service (optional if using a publicly trusted
 # certificate but still recommended)
@@ -79,8 +79,8 @@ bbcrd_vault_oidc_force_update: false
 # bbcrd_vault_oidc_user_claim_to_entity_name_mapping) to Vault entity names
 # (i.e. users).
 #
-# You should, in some other step add policies or groups to the named entities
-# to give them useful abilities.
+# You should add policies or groups to these named entities in some later step
+# to grant them useful abilities.
 #
 # Users not enumerated here will still be able to successfully log in and be
 # issued with a valid token. These tokens, however, will only be associated

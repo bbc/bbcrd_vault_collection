@@ -15,7 +15,7 @@ This documentation (and indeed the collection itself) is broadly divided into
 dealing with these two categories.
 
 
-Vault Cluster Deployment and Management
+Vault cluster deployment and management
 ---------------------------------------
 
 Vault is an enormously flexible tool and can be deployed in a huge number of
@@ -44,4 +44,34 @@ implemented by this collection for cluster management.
 Vault service provisioning and configuration
 --------------------------------------------
 
-TODO
+Whilst the management of a vault cluster is likely to be common to many Vault
+deployments, the provisioning of secrets engines, auth methods, identities and
+policies within is likely to be unique. As a result, this collection provides a
+selection of potentially useful Ansible roles and modules which can be
+picked-and-chosen as required.
+
+Given the enormously flexibility and breadth of features in Vault, only a
+subset of the functions and design patterns are implemented in this collection.
+Likewise, these implementations may be relatively limited to a specific type of
+application to avoid enormous complexity. In short, you may not find everything
+you need here -- so please feel free to contribute!
+
+Before diving in, it may be helpful to begin with a discussion of the
+conventions followed by these non-cluster-management related roles and modules:
+
+* [Ansible conventions for Vault provisioning roles and
+  modules](./ansible_provisioning_conventions.md)
+
+The service provisioning and configuration functionality exposed by this
+collection is defined in the documentation pages below:
+
+* Vault authentication and authorization
+  * [OpenID Connect (OIDC) authentication](./oidc_auth.md)
+  * [Machine based auth using AppRoles](./machine_approle_auth.md)
+  * [Identity (entity and group) management](./identity_modules.md)
+  * [Creating Vault policies](./creating_policies.md)
+
+* Secrets engine deployment
+  * [SSH client key signing with Vault](./ssh_client_key_signing.md)
+  * [Key-Value (KV) secrets engine](./kv.md)
+
