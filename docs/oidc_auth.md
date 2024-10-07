@@ -11,10 +11,10 @@ Low-level modules
 
 This collection provides the low-level
 [`bbcrd.vault.oidc_configure`](../plugins/modules/oidc_configure.py) and
-[`bbcrd.vault.oidc_roles`](../plugins/modules/oidc_roles.py) roles for
+[`bbcrd.vault.oidc_roles`](../plugins/modules/oidc_roles.py) modules for
 declaratively deploying Vault's [JWT/OIDC auth
 method](https://developer.hashicorp.com/vault/api-docs/auth/jwt). Refer to the
-Vault and module documentation for more details.
+Vault, and modules' documentation for more details.
 
 
 `bbcrd.vault.configure_oidc_auth` Simple OIDC Auth Role
@@ -22,7 +22,7 @@ Vault and module documentation for more details.
 
 The [`bbcrd.vault.configure_oidc_auth`](../roles/configure_oidc_auth)
 administrative role is provided which sets up basic OIDC auth based on an
-explicit mapping between named OIDC users and Vault entities (e.g. Vault
+explicit mapping between specific OIDC users and Vault entities (e.g. Vault
 users).
 
 This role is an administrative role (see [documentation on role
@@ -58,8 +58,8 @@ important variables are called out below:
   whose keys are the OIDC claim selected by `bbcrd_vault_oidc_user_claim` and
   whose values are the corresponding Vault entity name. More discussion below.
 
-* `bbcrd_vault_oidc_token_ttl`: The lifetime of tokens issued by the OIDC auth
-  endpoint.
+* `bbcrd_vault_oidc_token_ttl`: The lifetime of Vault tokens issued by the OIDC
+  auth endpoint.
 
 
 ### Selecting an OIDC user claim
@@ -67,11 +67,11 @@ important variables are called out below:
 The OIDC claim named in `bbcrd_vault_oidc_user_claim` is the value which will
 be used to map OIDC users to Vault entities.
 
-The safest choice is to use the 'sub' (subject) claim -- as strongly advocated
-by the OIDC specification. The sub claim is an opaque ID assigned by the OIDC
-provider for each user. This ID is guaranteed to remain stable even in the
-event of things like the user changing their name or email address. It is also
-guaranteed not to be reused should the original owner leave.
+The safest choice is to use the 'sub' (subject) claim. The sub claim is an
+opaque ID assigned by the OIDC provider for each user. This ID is guaranteed to
+remain stable even in the event of things like the user changing their name or
+email address. It is also guaranteed not to be reused should the original owner
+leave.
 
 Unfortunately sub IDs are often entirely internal to the OIDC provider and its
 common for there to be no way of looking these up. As such, the only way to
@@ -94,12 +94,17 @@ map between OIDC users and Vault entities (loosely, "users"). It is by later
 granting policies to these Vault entities, or adding them to groups that OIDC
 users can gain access to secrets in Vault.
 
+> **Tip:** The [Identity (entity and group) management
+> documentation](./identity_modules.md) provides a little background on
+> entities, entity aliases and groups in Vault.
+
 OIDC users are mapped to Vault entities via ['identity
 aliases'](https://developer.hashicorp.com/vault/docs/concepts/identity#entities-and-aliases)
 associated with the OIDC auth method. The `bbcrd.vault.configure_oidc_auth`
-declaratively sets up the entity aliases for the OIDC auth method according to
-the mapping in `bbcrd_vault_oidc_user_claim_to_entity_name_mapping`. Entities
-which don't yet exist are created automatically.
+role declaratively sets up the entity aliases for the OIDC auth method
+according to the mapping in
+`bbcrd_vault_oidc_user_claim_to_entity_name_mapping`. Entities which don't yet
+exist are created automatically.
 
 Any entity aliases not included in
 `bbcrd_vault_oidc_user_claim_to_entity_name_mapping` are removed. As a result,
@@ -108,26 +113,28 @@ longer be matched to their old Vault entity and they will therefore not be
 granted any privileges.
 
 Slightly confusingly, users attempting to authenticate with Vault who do not
-have an entity alias configured mapping them to a Vault entity are still issued
-tokens by Vault. In this scenario, Vault generates a randomly-named entity and
-corresponding entity alias automatically. Because these auto-generated entities
-do not belong to any groups or hold any policies, the resulting token will only
-have access to the `default` policy. This policy allows the user to do little
-more than lookup and revoke their own token and so access to Vault secrets is
-effectively denied. If a user is later added to
+have a configured mapping to a Vault entity are still issued tokens by Vault.
+In this scenario, Vault generates a randomly-named entity and corresponding
+entity alias automatically. Because these auto-generated entities do not belong
+to any groups or hold any policies, the resulting token will only have access
+to the `default` policy. This policy allows the user to do little more than
+lookup and revoke their own token and so access to Vault secrets is effectively
+denied. If a user is later added to
 `bbcrd_vault_oidc_user_claim_to_entity_name_mapping`, the auto-generated entity
-alias will be replaced with a new one pointing to a real (non-auto generated)
-Vault entity.
-
+alias will be replaced with a new one pointing to the chosen Vault entity.
 
 ### Granting policies to OIDC authenticated users
 
-See the [Identity (entity and group) management
-documentation](./identity_modules.md) for details of how to create and manage a
-group which grants access to Vault secrets to a specified set of entities.
+The best way to grant policies to users authenticated via OIDC is to add their
+corresponding entities to a group. This group can then be granted the required
+policies. By using groups in this way it becomes much easier to declaratively
+manage who as access to what. You can find an [introduction to managing groups
+in the Identity (entity and groups) management
+documentation](./identity_modules.md#managing-groups)
 
 
-#### Authenticating with Vault
+Authenticating with Vault
+-------------------------
 
 You can authenticate with Vault using OIDC by running:
 

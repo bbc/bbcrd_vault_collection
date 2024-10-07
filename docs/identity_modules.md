@@ -26,33 +26,34 @@ Managing entity aliases (auth-to-entity mappings)
 
 An Vault entity is only useful if you can authenticate as that entity. For this
 there needs to be some mapping between user accounts as defined by a given auth
-method (e.g. OIDC, LDAP or Active Directory users) and Vault entities. Entity
-aliases are those mappings.
+method (e.g. OIDC, LDAP or Active Directory) and Vault entities. Entity aliases
+are those mappings.
 
 Each Vault auth method effectively has its own independent set of entity
-aliases, i.e. its own mapping from users to entities. The
+aliases, i.e. its own mapping from auth system accounts to Vault entities. The
 [`bbcrd.vault.vault_auth_method_entity_aliases`
 module](../plugins/modules/vault_auth_method_entity_aliases.py) can be used to
 declaratively manage this mapping for a particular auth method.
 
-> **Hint:** An entity can, in theory, have multiple entity aliases
-> pointing at it. For example, if you allow authentication via multiple auth
-> methods you might ensure that whether Jon Doe logs in via LDAP auth or GitHub
-> auth he is mapped to the same entity.
+> **Hint:** An entity can, in theory, have multiple entity aliases pointing at
+> it. For example, you could allow authentication via both LDAP and GitHub
+> credeitnaisl. In this caes, an entity alias for both auth methods would point
+> to the same entity.
 >
 > An entity with no entity aliases pointing at it, however, is effectively
 > disabled since you cannot authenticate as that entity.
 
 Because the `bbcrd.vault.vault_auth_method_entity_aliases` module deletes any
 entity aliases not given in its input, it also revokes access to Vault to users
-removed from its input. Whilst the underlying entity may remain, the user will
-no longer be mapped to their old entity once the entity alias has been removed.
-As a result, the account effectively becomes disabled.
+removed from its input. Whilst the old entities continue to exist in Vaul,
+because the user will no longer be mapped to that entity once the entity alias
+has been removed their access will be effectively withdrawn.
 
-> **Hint:** When a user without an existing entity alias logs in with a
+> **Note:** When a user without an existing entity alias logs in with a
 > particular auth method, a new entity and corresponding entity alias is
-> auto-generated. Auto-generated entities are assigned no policies and
-> more-or-less serve only to ease tracking accounts in audit logs.
+> auto-generated. Auto-generated entities are assigned no policies and can't do
+> anything. Their only useful purpose is in helping track account usage in
+> audit logs.
 
 For an example of the `bbcrd.vault.vault_auth_method_entity_aliases` module in
 use, refer to the [`bbcrd.vault.configure_oidc_auth`
@@ -63,20 +64,20 @@ Managing Groups
 ---------------
 
 The [`bbcrd.vault.vault_group` module](../plugins/modules/vault_group.py)
-module can be used to declaratively create a group, set its membership and the
-policies granted to its members.
+module can be used to declaratively create a group, set its membership and
+choose the policies granted to its members.
 
-By contrast with using the `bbcrd.vault.vault_entity` module to grant policies
-to entities, using `bbcrd.vault.vault_group` automatically takes care of
-revoking access to policies as well as granting it, on account of its
-declarative API.
+By contrast with using the `bbcrd.vault.vault_entity` module, the
+`bbcrd.vault.vault_group` module is declarative. This ensures that entities
+removed from its input have their relevant access revoked.
 
-By contrast with assigning policies at the auth method level (e.g. assigning
-all users authenticated with that group a common set of policies), you get
-finer control by using groups. Whilst it might [make sense for all machine
-users authenticated by a given AppRole](./machine_approle_auth.md), the same is
-unlikely true of all (e.g.) OIDC users. In the latter case, you'll probbaly
-want to assign specific collections of privileges to specific groups of users.
+Unlike assigning policies at the auth method level (e.g. assigning all users
+authenticated with that auth method a common set of policies), you can achieve
+finer grained control by using groups. For example, while it might [make sense
+for all machine users authenticated by a given
+AppRole](./machine_approle_auth.md), the same is unlikely true of all OIDC
+users. In the latter case, you'll probbaly want to grant specific collections
+of policies to specific groups of users.
 
 For example, you might use the following invocation to grant a set of
 policies to particular administrators:
@@ -103,6 +104,6 @@ policies to particular administrators:
 > Vault server details and credentials as per the [conventions for
 > administrative roles and modules](./ansible_provisioning_conventions.md).
 
-Re-running this module with a different set of users or policies (but the same
-group name!) will result in access rights being added or removed as
-appropriate.
+Re-running the module with a different set of users or policies (but the same
+group name!) will result in access rights being added or removed as appropriate
+in a declarative way.

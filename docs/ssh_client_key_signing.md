@@ -32,10 +32,10 @@ details).
 The following default variables control the validity and access granted by the
 generated signed certificates:
 
-* `bbcrd_vault_ssh_client_signer_ttl`: The duration of validity of signed
-  certificates.
+* `bbcrd_vault_ssh_client_signer_ttl`: How long signed certificates remain
+  valid.
 
-* `bbcrd_vault_ssh_client_signer_users`: The set of principals (usually user
+* `bbcrd_vault_ssh_client_signer_users`: The set of principals (i.e. user
   accounts) the certificate grants access to.
 
 * `bbcrd_vault_ssh_client_signer_extensions`: The set of SSH extensions

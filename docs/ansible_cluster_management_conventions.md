@@ -54,8 +54,8 @@ file](../roles/common_defaults/defaults/main.yml) for additional relevant
 variables.
 
 
-Most cluster management commands are (mostly) performed using the `uri` module
-------------------------------------------------------------------------------
+Cluster management commands are (mostly) performed using the `uri` module
+-------------------------------------------------------------------------
 
 For the most part, the cluster management roles use the `uri` module to
 interact with the Vault API directly because there is little benefit to
@@ -64,3 +64,7 @@ involves a large proportion of one-off commands (e.g. cluster initialisation)
 or commands which are unlikely to be reused outside of these roles (e.g.
 unsealing). As such, moving this functionality into a module offers little
 benefit but obscures the actual steps taken by the roles.
+
+Likewise, due to the convention of running Vault commands on the Vault hosts
+rather than the control host, existing Ansible Vault modules and integrations
+cannot be used.
