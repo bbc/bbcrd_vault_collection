@@ -20,4 +20,8 @@ key used for signing:
     $ curl {{ bbcrd_vault_public_url }}/v1/ssh-client-signer/public_key
 
 For now, anything beyond a single class of users is out of scope. You should
-instead use `bbcrd.vault.vault_ssh_signer` directly.
+instead use the [`bbcrd.vault.vault_ssh_signer`
+module](../../plugins/modules/vault_ssh_signer.py) directly.
+
+See the [SSH client key signing with Vault
+documentation](../../docs/ssh_client_key_signing.md) for more details.

@@ -11,6 +11,10 @@ is always left to be submitted by the person running whatever role is
 performing the desired higher-level action. (See the
 `generic_unseal_key_submission_flow` README).
 
+See [the `bbcrd.vault.manage_vault_cluster` playbook (and friends)
+documentation](../../docs/manage_vault_cluster_playbook.md) for the bigger
+picture of workflows used by this collection.
+
 Inputs/Outputs
 --------------
 

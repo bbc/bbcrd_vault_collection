@@ -8,6 +8,10 @@ Low-level role which implements the generic workflow whereby unseal keys are
 supplied one-by-one to Vault to achieve some goal. This might be for basic
 unsealing of a server or for some other action like root token generation.
 
+See [the `bbcrd.vault.manage_vault_cluster` playbook (and friends)
+documentation](../../docs/manage_vault_cluster_playbook.md) for the bigger
+picture of workflows used by this collection.
+
 
 Inputs/Outputs
 --------------

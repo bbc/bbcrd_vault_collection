@@ -26,3 +26,7 @@ However, if verify mode is used (i.e. `bbcrd_vault_verify_rekey` is True, the
 default), the role will use the `bbcrd.vault.decrypt_unseal_keys` role
 to decrypt the newly generated unseal keys for verification. If this is not
 acceptable, you must disable verify mode.
+
+See the [unseal key management
+documentation](../../docs/unseal_key_management.md) for more details on unseal
+key handling by this collection.

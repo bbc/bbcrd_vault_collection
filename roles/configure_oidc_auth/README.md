@@ -9,3 +9,6 @@ policies. (The rest will be issued tokens with only default privileges).
 For now, anything beyond very simple authentication is out-of-scope for this
 role. You should instead use the `bbcrd.vault.vault_oidc_configure` and
 `bbcrd.vault.vault_oidc_roles` directly.
+
+See the [OpenID Connect (OIDC) authentication
+documentation](../../docs/oidc_auth.md) for a more thorough introduction.

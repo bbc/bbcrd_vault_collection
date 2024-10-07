@@ -18,6 +18,10 @@ allows us to fail early if a bad PIN is entered and also caches the PIN for the
 remainder of the playbook run. This can be skipped by skipping the
 `bbcrd_vault_precheck_pin` tag.
 
+See the [unseal key management
+documentation](../../docs/unseal_key_management.md) for more context on how
+GnuPG is used to manage unseal keys in this collection.
+
 
 Cleaning up the ephemeral GnuPG home
 ------------------------------------
