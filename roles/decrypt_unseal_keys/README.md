@@ -20,6 +20,9 @@ You can limit the set of unseal keys which will be decrypted by setting
 `bbcrd_vault_pgp_key_fingerprints` to a list of PGP key fingerprints to
 attempt to use.
 
+See the [unseal key management documentation](./unseal_key_management.md) for
+details on the conventions used by this collection for unseal key management.
+
 
 Skipping decryption
 -------------------

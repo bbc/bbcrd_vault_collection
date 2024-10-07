@@ -14,3 +14,6 @@ cluster until the existing cluster is operational. If the non-working nodes
 cannot be recovered, a manual [`peers.json`
 recovery](https://developer.hashicorp.com/vault/docs/concepts/integrated-storage#manual-recovery-using-peers-json)
 must be carried out to remove them from a non-operating cluster.
+
+See the [cluster management documentation](../../docs/cluster_management.md)
+for more details on cluster management.
