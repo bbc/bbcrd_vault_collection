@@ -3,20 +3,21 @@ Machine based auth using AppRoles
 
 Vault's [AppRole auth
 method](https://developer.hashicorp.com/vault/docs/auth/approle) provides a
-mechanism for automated systems (e.g. machine users) to authenticate with
-Vault.
+mechanism for automated systems (e.g. CI systems or automated processes) to
+authenticate with Vault.
 
 
 AppRole auth primer
 -------------------
 
-AppRole auth is effectively implements a slightly more sophisticated username
-and password style authentication flow. During AppRole based authentication a
-role ID (nee username) and secret ID (nee password) are presented in exchange
-for a Vault token.
+AppRole auth is, essentially, a more sophisticated username and password
+authentication flow. During AppRole based authentication a role ID (nee
+username) and secret ID (nee password) are presented in exchange for a Vault
+token.
 
 The principal difference between AppRole and simple username/password
-authentication is how the secret IDs (~passwords) are created and distributed.
+authentication is how the secret IDs (i.e. passwords) are created and
+distributed.
 
 Secret IDs are generally issued by Vault, rather than being chosen by the user.
 Through the careful use of [response
@@ -24,18 +25,19 @@ wrapping](https://developer.hashicorp.com/vault/docs/concepts/response-wrapping)
 it is possible to verifiably distribute secret IDs to a host without any other
 host -- including the issuer -- having access to them.
 
-Furthermore, each AppRole role ID (~username) may have multiple valid secret
-IDs at once. Since secret IDs can optionally have a finite lifetime this allows
-secrets to be rotated with a grace period where both old and new secret IDs can
-be used.
+Furthermore, each AppRole role ID (i.e. username) may have multiple valid
+secret IDs at once. Since secret IDs can optionally have a finite lifetime this
+allows secrets to be rotated with a grace period where both old and new secret
+IDs can be used.
 
-The higher-level modules and roles in this collection, however, make relatively
-simple use of AppRole auth which don't exploit all of these features.
+> **Note:** The higher-level modules and roles in this collection, however,
+> make relatively simple use of AppRole auth which don't exploit all of these
+> features.
 
 As a final note, it is a common pattern to have multiple AppRole auth methods
-mounted at once in Vault -- e.g. one per class of machine user. In this way, it
-becomes straightforward to declaratively manage the set of permitted role IDs
-for each class of user.
+mounted at once in Vault, for example one per class of machine user. By doing
+this it becomes straightforward to declaratively manage the set of permitted
+role IDs for each class of user.
 
 
 Low-level modules
@@ -85,13 +87,15 @@ setup.
 
 In our example setup we'll define two AppRole auth endpoints for two different
 groups of hosts. One group will be Jenkins CI agents which require access to
-secrets and SSH signing, the other group is for hosts which fetch and backup
-data on remote machines. The Jenkins hosts will identified by being in the
-`jenkins_group` Ansible group. The backup hosts will be in the `backup_group`.
+secrets and SSH signing. The other group will be for hosts running backup
+processes which only requires SSH signing permissions. The Jenkins hosts are
+identified by being in the `jenkins_group` Ansible group. The backup hosts will
+be in the `backup_group`.
 
 In this example setup, we'll use the `bbcrd.vault.configure_approle_auth` role
-twice to create two different AppRole auth mount points, one for the Jenkins
-agents (`jenkins_agent_auth`) and the other for the backup hosts (`backup_auth`).
+twice to create the two different AppRole auth mount points, one for the
+Jenkins agents (`jenkins_agent_auth`) and the other for the backup hosts
+(`backup_auth`).
 
 #### Configuring AppRole role parameters
 
@@ -238,10 +242,10 @@ The `bbcrd.vault.issue_approle_credentials` role requires
 but all other options can be left at their
 [defaults](../roles/issue_approle_credentials/defaults/main.yml) in most cases.
 
-You can then add the `bbcrd.vault.issue_approle_credentials` to your host
+You can then add the `bbcrd.vault.issue_approle_credentials` role to your host
 playbooks. This will create a file named `/etc/vault_approle_<AppRole mount
-name>_credentials.json`. This will contain a JSON object which looks as
-follows:
+name>_credentials.json` on each host. This will contain a JSON object which
+looks as follows:
 
     {
         "approle_mount": "jenkins_agent_auth",
@@ -271,10 +275,8 @@ This can be done manually using the `vault` command line tool like so:
 
     $ CREDENTIALS=/etc/vault_approle_jenkins_agent_auth_credentials.json
     $ ROLE_ID="$(jq -r .role_id "$CREDENTIALS")"
-    $ SECRET_ID="$(jq -r .secret_id "$CREDENTIALS")"
     $ APPROLE_MOUNT="$(jq -r .approle_mount "$CREDENTIALS")"
-    
-    $ echo "$SECRET_ID" \
+    $ jq -r .secret_id "$CREDENTIALS" \
         | vault write \
             -field token \
             "auth/$APPROLE_MOUNT/login" \
@@ -283,12 +285,13 @@ This can be done manually using the `vault` command line tool like so:
         | vault login -
 
 Alternatively, this collection includes the [`utils/vault_auth.py`
-script](../utils/vault_auth.py) which, when used with the `--app-role` argument
-performs the above steps, along with commands to [sign the users' SSH key using
-Vault](./ssh_client_key_signing.md). For example:
+script](../utils/vault_auth.py) which, when used with the `--app-role`
+argument, performs the above steps, along with commands to [sign the users' SSH
+key using Vault](./ssh_client_key_signing.md). For example:
 
     $ ./utils/vault_auth.py --app-role=/etc/vault_approle_jenkins_agent_auth_credentials.json
 
 > **Tip:** The [`rd-ansible-vault-client`
-> role](https://github.com/bbc/rd-ansible-vault-client) can be used to install
-> the `vault` client and set the `VAULT_ADDR` environment variable.
+> role](https://github.com/bbc/rd-ansible-vault-client) (not part of this
+> collection) can be used to install the `vault` client and set the
+> `VAULT_ADDR` environment variable.

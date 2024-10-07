@@ -1,28 +1,27 @@
 Unseal key management
 =====================
 
-This collection is regrettably, but necessarily, somewhat opinionated with
-respect to the [management of unseal
-keys](https://developer.hashicorp.com/vault/docs/concepts/seal). Unseal key
-management for Vault is a complex topic with a wide range of possible solutions
-each with its own substantial implications for any kind of automation. This
-collection specifically chooses [a PGP-based workflow for unseal key
+[Unseal key management for
+Vault](https://developer.hashicorp.com/vault/docs/concepts/seal) is a complex
+topic with a wide range of possible solutions each with its own substantial
+implications for any kind of automation. This collection specifically chooses
+[a PGP-based workflow for unseal key
 management](https://developer.hashicorp.com/vault/docs/concepts/pgp-gpg-keybase).
+This solution enables secure multi-administrator operation in any environment.
 
 
 Vault PGP unseal key support primer
 -----------------------------------
 
 When Vault generates (or rekeys) its unseal keys, you can [optionally provide a
-set of PGP public
-keys](https://developer.hashicorp.com/vault/api-docs/system/rekey#pgp_keys),
-one per unseal key. The generated unseal keys are then encrypted using these
-unseal keys before being returned to the user. These can only be decrypted
-again using the corresponding PGP private keys. The operator is thus freed from
-the burden of securely handling a complete set of plaintext unseal keys. The
-encrypted keys can be safely stored in a shared location. Operators also never
-have the opportunity to see anyone elses keys making robust multi-operator
-operation possible.
+set of PGP public keys to the
+API](https://developer.hashicorp.com/vault/api-docs/system/rekey#pgp_keys), one
+per unseal key. The generated unseal keys are then encrypted using these unseal
+keys before being returned to the user. These can only be decrypted again using
+the corresponding PGP private keys. The operator is thus freed from the burden
+of handling a complete set of plaintext unseal keys and encrypted keys can be
+safely stored in a shared location. Operators also never have the opportunity
+to see anyone elses keys making robust multi-operator operation possible.
 
 Because PGP implementations such as [GnuPG](https://www.gnupg.org/) support
 generating and irretrivably storing private keys on hardware devices (e.g.
@@ -68,8 +67,7 @@ on the device at all times and cannot be extracted later. This makes the
 Yubikey a robust second factor in addition to the PIN set on the device.
 
 Please read the [Cryptie documentation](https://github.com/bbc/cryptie) for a
-detailed introduction, including how to set your PIN and how to manually
-encrypt and decrypt data.
+detailed introduction, including (importantly!) how to set your PIN.
 
 
 Disaster recovery preparations
@@ -126,19 +124,22 @@ like:
           =abcd
           -----END PGP PUBLIC KEY BLOCK-----
 
-Each administrator is issued the number of unseal key shares indicated by the
-`bbcrd_vault_unseal_key_shares` value (which defaults to 1 if not specified).
-It is often useful to issue each administrator more than one key share since
-Vault requires that the unseal threshold is two or more keys. The unseal key
-threshold is itself set by the `bbcrd_vault_unseal_key_threshold` variable like
-so:
+The unseal key threshold is itself set by the
+`bbcrd_vault_unseal_key_threshold` variable like so:
 
     bbcrd_vault_unseal_key_threshold: 2
 
 Any user with at least `bbcrd_vault_unseal_key_shares` shares will be able to
 unseal the vault alone. If a user is configured with fewer than this number of
-shares, they will need to enlist another administrator to supply additional
-unseal keys when required.
+shares, they will need to [enlist another administrator to supply additional
+unseal
+keys](./manage_vault_cluster_playbook.md#multi-administrator-key-submission)
+when required.
+
+It is often useful to issue each administrator more than one key share since
+Vault requires that the unseal threshold is at least two. Each administrator is
+issued the number of unseal key shares indicated by the
+`bbcrd_vault_unseal_key_shares` value (which defaults to 1 if not specified).
 
 > **Tip:** Vault does not support setting the unseal key threshold to 1 when
 > multiple unseal keys are used. If you have multiple administrators and any of
@@ -157,18 +158,18 @@ JSON file on each of the Vault cluster hosts. By default this is
       # The time at which the unseal keys were (re)generated
       "timestamp": "2024-08-01T07:56:07Z",
       
-      # The enecrypted unseal key shares
+      # The enecrypted unseal key shares. Administrators with more than one
+      # unseal key share will have a corresponding number of entries in this
+      # list.
       "shares": [
         {
           # The name of the correspnding entry in bbcrd_vault_administrators.
-          # (NB: Users with more than one unseal key share will have several
-          # entries in this list!)
           "user": "...",
           
           # The 'full name' field extracted from the PGP public key
           "name": "...",
           
-          # The keypair's fingerprint of the PGP public key
+          # The keypair's PGP fingerprint
           "fingerprint": "...",
           
           # The ASCII Armor encoded PGP public key, as in
@@ -191,25 +192,31 @@ The encrypted unseal keys file must be be backed up and treated with the same
 level of care as the main Vault database. Since previous unseal keys are
 invalidated when the database is rekeyed, it is essential that backups of the
 Vault database must be kept in sync with backups of the encrypted unseal keys.
-The `bbcrd.vault.configure_backups` role will automatically include the
-encrypted unseal key file with every backup.
+The [`bbcrd.vault.configure_backups` role](../roles/configure_backups)
+automatically includes the encrypted unseal key file with every backup.
 
 
 ### On keeping encrypted keys in sync between cluster nodes.
 
 Unlike the Vault database (which is kept consistent using a sophisticated
 distributed consensus algorithm), this collection's roles are responsible for
-ensuring the encrypted unseal key file is kept in sync on all cluster members.
-This is necessary to ensure that the encrypted unseal keys are always
-available, even in the event of an outage of some nodes.
+ensuring the copy of the encrypted unseal key file is consistent across all
+cluster members. This is necessary to ensure that the encrypted unseal keys are
+always accessible to administrators, even in the event of an outage of some
+nodes.
 
-To ensure consistency, rekeying operations will be refused by default if any
-cluster members are down. This ensures that new encrypted unseal keys can
-always be written to every host.  This check can be disabled (using
+To ensure consistency, rekeying operations default to failing if any cluster
+members are down. This ensures that new encrypted unseal keys can always be
+written to every host.  This check can be disabled (using
 `bbcrd_vault_skip_rekey_sanity_check`) but it becomes your responsibility to
-manually propagate the new encrypted unseal keys. The encrypted unseal key file
-contains as much information as possible to aid in manually resolving any
-accidental inconsistencies.
+manually propagate the new encrypted unseal keys to any missing nodes.
+
+Likewise, whenever the unseal keys are needed by this collection, the
+[`bbcrd.vault.decrypt_unseal_keys` role](../roles/decrypt_unseal_keys) verifies
+that all hosts have a consistent set of encrypted unseal keys. If they are not,
+the playbook will fail and you will need to manually rectify any
+inconsistencies. The encrypted unseal key file contains as much information as
+possible to aid in manually resolving such inconsistencies.
 
 
 Multiple-administrator unseal key operation
@@ -224,7 +231,17 @@ The
 [`bbcrd.vault.supply_additional_keys`](../playbooks/supply_additional_keys.yml)
 playbook is provided to perform exactly this task. You can read more about this
 workflow in the [`bbcrd.vault.manage_vault_cluster` playbook (and friends)
-documentation](./manage_vault_cluster_playbook.md).
+documentation](./manage_vault_cluster_playbook.md#multi-administrator-key-submission).
+
+> **Note:** The Vault API follows a convention that whenever unseal keys are
+> used to *produce* a value (e.g. a root token or a new set of unseal keys),
+> the final unseal key submitter will receive the result -- albeit in a
+> one-time-password encrypted form.
+>
+> To simplify the use of this collection, the playbooks and roles within it are
+> constructed such that the final unseal key is always supplied by the person
+> running the main playbook, and not their colleague. This avoids the need for
+> administrators to manually forward the generated values to each other.
 
 
 Verification during rekeying
@@ -233,19 +250,19 @@ Verification during rekeying
 The playbooks and roles in this collection which perform rekeying of Vault's
 unseal keys default to running in [verify
 mode](https://developer.hashicorp.com/vault/docs/commands/operator/rekey#verify).
-In this mode, new candidate unseal keys must be submitted back to Vault before
-they can be used. As a result this substantially reduces the possibility of
-locking yourself out of Vault.
+In this mode, new candidate unseal keys are submitted back to Vault to confirm
+that they have been successfully decrypted before they take effect. This
+reduces the possibility of locking yourself out of Vault.
 
 
 Decryption of unseal keys
 -------------------------
 
 This collection uses [GnuPG](https://www.gnupg.org/), running on the Ansible
-control node, is used by this collection to decrypt encrypted unseal keys. (See
-the `bbcrd.vault.decrypt_unseal_keys` role).
+control node, to decrypt encrypted unseal keys. (See the
+[`bbcrd.vault.decrypt_unseal_keys` role](../roles/decrypt_unseal_keys)).
 
-By default, playbooks in this collection will use the
+By default, playbooks in this collection use the
 `bbcrd.vault.ephemeral_gnupg_home` role to create an ephemeral GnuPG
 environment using the private key on a hardware device (e.g. Yubikey) to
 perform decryption. If you used [Cryptie](https://github.com/bbc/cryptie) to
@@ -253,9 +270,11 @@ generate your key pair, this approach will be ideal.
 
 Alternatively, you can use your own manually set up GnuPG environment by
 skipping this role (e.g. using `--skip-tags bbcrd_vault_ephemeral_gnupg_home`).
+The `bbcrd.vault.decrypt_unseal_keys` role will then use keys whatever keys are
+available in your GnuPG environment to decrypt unseal keys.
 
 
-### Manual decription of unseal keys
+### Manual decryption of unseal keys
 
 Under normal circumstances the playbooks in this collection will automatically
 handle the process of decrypting unseal keys whenever they're needed. In the

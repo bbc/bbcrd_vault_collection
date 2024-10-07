@@ -15,11 +15,21 @@ backup, follow the steps below.
 **You will need:**
 
 * A working Vault cluster
-* A valid set of unseal keys.
+* A valid set of (current) unseal keys.
 * A vault raft snapshot (i.e. vault database backup) and matching unseal keys
   (if they differ from the current Vault state)
 
 **Steps:**
+
+> **Warning:** You must address the restore operations above to the
+> current Vault leader node using the `VAULT_ADDR` environment variable due to
+> [Vault issue 15258](https://github.com/hashicorp/vault/issues/15258). If you
+> don't you'll get an opaque error message.
+>
+> You can discover the current leader
+> node using:
+>
+>     $ vault operator raft autopilot state
 
 0. If using an automatic backup as set up by this collection, first extract the
    vault database snapshot (`vault.db`) and encrypted unseal keys
@@ -35,36 +45,26 @@ backup, follow the steps below.
        $ vault operator raft snapshot save pre_restore_snapshot.db
    
    Also make a backup of the current encrypted unseal keys (by default in
-   `/etc/vault/encrypted_unseal_keys.json` on every host).
+   `/etc/vault/encrypted_unseal_keys.json`).
 
 3. Perform a database restore.
 
-   If the unseal keys have not changed since the snapshot was taken, you can
+   **If the unseal keys have not changed since the snapshot was taken**, you can
    use the following to perform an on-line restore:
    
        $ vault operator raft snapshot restore path/to/vault.db
    
    Vault will stop responding to requests for a few moments whilst the data is
-   restored. On completion Vault will be unsealed and wound back to the
-   specified state. At this point, you're done and can skip the remaining
+   restored. On completion Vault will remain unsealed but wound back to the
+   specified snapshot. At this point, you're done and can skip the remaining
    steps.
    
-   If the unseal keys for the backup are different from the cluster, you need
+   **If the unseal keys for the backup are different from the cluster**, you need
    to perform a *forced* restore instead:
    
        $ vault operator raft snapshot restore -force path/to/vault.db
    
    After the restore completes the cluster will become sealed.
-   
-   > **Warning:** You *must* address the restore operations above to the
-   > current Vault leader node due to [Vault issue
-   > 15258](https://github.com/hashicorp/vault/issues/15258). If you don't
-   > you'll get an opaque error message. You can discover the current leader
-   > node using:
-   > 
-   >     $ vault operator raft autopilot state
-   >
-   > You should then set `VAULT_ADDR` accordingly and try again.
 
 4. Once the database is restored you must manually propagate the encrypted
    unseal keys to the cluster (e.g. by `scp`-ing them to
@@ -159,7 +159,7 @@ your vault database. These situations might include:
    * Having them set up an SSH port forward to your server and issuing vault API
      commands via that (e.g. using):
 
-       $ ssh -L 8200:localhost:8200 <your machine>
+         $ ssh -L 8200:localhost:8200 <your machine>
 
    * Having them physically decrypt and enter them using your computer
 
@@ -186,20 +186,25 @@ failed simultaneously, it is not possible to recover by simply adding new
 nodes. If the existing nodes cannot be recovered, you have two options, both of
 which could result in data loss:
 
-1. Creating a new (empty) Vault cluster and restoring data from a backup
+1. Create a new (empty) Vault cluster and restore the data from a backup
    snapshot (e.g. see 'Restoring a Vault database backup into a new Vault
    cluster' above).
 
-2. Performing a `peers.json` recovery to manually recover the cluster.
+2. Perform a `peers.json` recovery to manually recover the cluster.
 
 The first option is the preferred option if you have a sufficiently recent
 backup. If this is not possible, Vault provides the [`peers.json`
 mechanism](https://developer.hashicorp.com/vault/docs/concepts/integrated-storage#manual-recovery-using-peers-json)
 to manually recover your cluster.
 
-> **Warning:** Whilst Vault makes an effort to only update its database in
-> sensible atomic units, recovering a cluster in this way has the potential to
-> stumble into bugs.
+> **Warning:** As noted in the [cluster management
+> documentation](./cluster_management.md), this kind of recovery risks the loss
+> of any data being written, or still being propagated when the cluster lost
+> quorum and so unpredictable loss of very recent changes is possible.
+>
+> Further, whilst Vault makes an effort to only update its database in sensible
+> atomic units, recovering a cluster using `peers.json` recovery has the
+> potential to run into Vault bugs.
 
 **You will need:**
 
@@ -260,13 +265,6 @@ to manually recover your cluster.
 4. You should now be able to unseal the cluster using the
    `bbcrd.vault.manage_vault_cluster` playbook as usual.
 
-
-> **Warning:** As noted in the [cluster management
-> documentation](./cluster_management.md), this kind of recovery risks the loss
-> of any data being written, or still being propagated when the cluster lost
-> quorum and so unpredictable loss of very recent changes is possible. Further,
-> it is possible that the remaining cluster members cannot reach a consensus on
-> the state of the database.
 
 If the manually recovered cluster fails to reach a consensus, you can, in a
 last-ditch effort, force a consensus by destroying all but one of the cluster

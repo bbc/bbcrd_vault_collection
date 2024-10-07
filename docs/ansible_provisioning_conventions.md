@@ -57,7 +57,7 @@ Integration of administrative roles and modules with cluster management playbook
 
 Since cluster management and administrative roles and modules follow the same
 conventions, and require the same authorisation, the following example
-illustrates how single playbook could be created which carries out both roles:
+illustrates how single playbook could be created which carries out both:
 
     ---
     - name: Create ephemeral GnuPG environment for handling unseal keys

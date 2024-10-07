@@ -8,10 +8,12 @@ You may also wish to place Vault behind a reverse proxy to provide more
 sophisticated rate limiting or abuse protection.
 
 You will also need to handle provisioning (and renewal) of HTTPS certificates
-used by Vault's public HTTPS endpoint.
+used by Vault's public HTTPS endpoint. (This is not handled by this
+collection.)
 
-This collection deliberately ignores all of these problems given the broad
-problem space and diverse range of solutions available.
+Since appropriate solutions to the above requirements can vary greatly between
+deployments this collection does not attempt to tackle them. However, a
+possible architecture is suggested below.
 
 
 Example architecture based on `ansible-keepalived` and `openstack-ansible-haproxy_server`
@@ -223,7 +225,7 @@ A sample set of variables for configuring this setup is shown below:
     # Access via haproxy TLS termination (only listen on loopback)
     bbcrd_vault_listen_protocol: http
     bbcrd_vault_listen_address: "127.0.0.1"
-    bbcrd_vault_listen_port: 8201
+    bbcrd_vault_listen_port: 8299
     bbcrd_vault_ca_path: "/usr/local/share/ca-certificates/bbcrd-lt.crt"
     
     # Trust requests from haproxy
