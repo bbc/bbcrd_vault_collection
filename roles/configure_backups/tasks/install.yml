@@ -35,3 +35,13 @@
     state: started
     enabled: true
     daemon_reload: true
+
+- name: Ensure needrestart config directory exists
+  file:
+    path: "/etc/needrestart/conf.d/"
+    state: directory
+
+- name: Prevent needrestart from restarting the backup script
+  template:
+    src: "needrestart.conf.j2"
+    dest: "/etc/needrestart/conf.d/{{ bbcrd_vault_backup_systemd_unit }}.conf"

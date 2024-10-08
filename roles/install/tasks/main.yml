@@ -58,7 +58,7 @@
       - "{{ bbcrd_vault_group }}"
     append: true
     state: present
-    
+
 - name: Install Vault systemd service
   template:
     src: "vault.service.j2"
@@ -69,3 +69,13 @@
     name: vault
     daemon_reload: true
     enabled: yes
+
+- name: Ensure needrestart config directory exists
+  file:
+    path: "/etc/needrestart/conf.d/"
+    state: directory
+
+- name: Prevent needrestart from restarting Vault
+  template:
+    src: "needrestart.conf.j2"
+    dest: "/etc/needrestart/conf.d/{{ bbcrd_vault_systemd_unit }}.conf"
