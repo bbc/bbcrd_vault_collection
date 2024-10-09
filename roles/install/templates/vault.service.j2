@@ -37,6 +37,7 @@ TimeoutStopSec=30
 LimitNOFILE=65536
 LimitMEMLOCK=infinity
 LimitCORE=0
+MemorySwapMax=0G
 
 {% if bbcrd_vault_https_proxy is defined %}
 Environment=HTTPS_PROXY={{ bbcrd_vault_https_proxy | quote }}
