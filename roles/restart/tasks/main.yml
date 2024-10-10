@@ -1,48 +1,42 @@
 ---
 
-- name: Check vault versions
-  when: bbcrd_vault_restart_servers is none
+- name: Check if Vault requires a restart
+  when: |-
+    bbcrd_vault_restart is none
+    and not bbcrd_vault_restart_required
   block:
-    - name: Discover installed Vault binary version
-      import_role:
-        name: bbcrd.vault.install
-        tasks_from: get_version.yml
-
-    - name: Get running vault version
-      uri:
-        # vault status
-        url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
-        ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-      register: vault_status
-
-    - name: Check if running and installed versions match
-      set_fact:
-        running_out_of_date_version: "{{ vault_status.json.version != vault_version }}"
+    - name: Check whether a restart is required
+      include_tasks: check_if_restart_required.yml
 
 - name: Determine which servers need restarting
   set_fact:
-    to_restart: |-
+    will_restart: |-
       {{
-        bbcrd_vault_restart_servers
-        if bbcrd_vault_restart_servers is not none else
-        (
-          groups[bbcrd_vault_cluster_ansible_group_name]
-          | map("extract", hostvars)
-          | selectattr("running_out_of_date_version", "true")
-          | map(attribute="inventory_hostname")
-        )
+        bbcrd_vault_restart
+        if bbcrd_vault_restart is not none else
+        bbcrd_vault_restart_required
+      }}
+
+- name: Enumerate the servers which will be restarted
+  set_fact:
+    all_restarted_hosts: |-
+      {{
+        groups[bbcrd_vault_cluster_ansible_group_name]
+        | map("extract", hostvars)
+        | selectattr("will_restart", "true")
+        | map(attribute="inventory_hostname")
       }}
 
 - name: Restart vault servers as required
-  when: "to_restart | length > 0"
+  when: "all_restarted_hosts | length > 0"
   block:
     - name: Restart and unseal vault server
       include_tasks: restart_one_server.yml
-      loop: "{{ to_restart }}"
+      loop: "{{ all_restarted_hosts }}"
       loop_control:
         loop_var: target
     
     - name: Wait for restarted hosts to become responsive
-      when: inventory_hostname in to_restart
+      when: inventory_hostname in all_restarted_hosts
       import_role:
         name: bbcrd.vault.wait_for_api_responsiveness

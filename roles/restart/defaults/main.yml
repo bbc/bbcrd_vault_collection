@@ -8,17 +8,30 @@
 #
 #bbcrd_vault_root_token: "..."
 
-# Override: Set to a list of servers to be restarted (and unsealed again)
-# one-by-one, in the order specified during the execution of the role.
+# A flag which may be set indicating that a given Vault server needs restarting
+# (e.g. because its configuration changed).
 #
-# If null, only servers running an out-of-date vault binary will be restarted.
+# See bbcrd_vault_restart for the variable which can be used to force/prevent
+# restarts, rather than just indicate that one is desireable.
 #
-# If an empty list, no servers will be restarted, even if some are running an
-# out-of-date version.
+# This role will automatically set this to true if the Vault binary is out of
+# date or if the systemd or Vault config files have changed since Vault was
+# started.
 #
-# If a list, exactly the listed set of servers will be restarted, regardless of
-# what Vault versions are in use.
-bbcrd_vault_restart_servers: null
+# If a restart is performed, this flag will be cleared.
+bbcrd_vault_restart_required: false
+
+# Override restart behaviour (intended to be set on a server-by-server basis).
+#
+# If null (the default if unspecified), restart the server if the running vault
+# version does not match the installed version, or if any configuration files
+# have changed since Vault started.
+#
+# If truthy, always restart the server.
+#
+# If False, do not restart the server (even if there has been a version or
+# config file change since Vault started).
+bbcrd_vault_restart: null
 
 
 # If set to False, this role will refuse to restart cluster nodes when doing so

@@ -182,11 +182,12 @@ correspond to the various roles it calls):
 * **Perform a rolling (zero downtime) server restart if needed.**
   ([`bbcrd.vault.restart` role](../roles/restart))
   
-  For example, to complete a Vault server upgrade. Otherwise, servers are not
-  restarted.  You can force a restart by setting `bbcrd_vault_restart_servers`
-  to a list of Ansible host names. Once restarted, each server will be
-  unsealed. The role defaults to failing if restarting a server would bring the
-  cluster out of quorum leading to an outage.
+  For example, to complete a Vault server upgrade or apply a new configuration.
+  Otherwise, servers are not restarted.  You can force a restart by setting
+  `bbcrd_vault_restart` to True for the servers which you wish to restart. Once
+  restarted, each server will be unsealed. The role defaults to failing if
+  restarting a server would bring the cluster out of quorum leading to an
+  outage.
   
   Skip using `--skip-tags bbcrd_vault_restart`.
 

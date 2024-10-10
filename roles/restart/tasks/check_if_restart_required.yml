@@ -1,0 +1,84 @@
+---
+# The tasks in this file will set bbcrd_vault_restart_required to true if:
+#
+# * The running Vault instance doesn't match the version of the installed binary
+# * The vault config file has changed
+# * The systemd config file has changed
+#
+#
+# FAQ: Why not use handlers?
+# --------------------------
+#
+# We could have used handlers to trigger Vault restarts. There are quite a few
+# reasons why we don't do this:
+#
+# * Vault restarts must be performed at a specific point within a playbook. In
+#   particular we need to have an unsealed cluster and a root token (to do
+#   cluster health checks to ensure restarts are not disruptive) and unseal
+#   keys on hand to unseal the nodes as we restart them. If we use handlers we
+#   could find an unrelated role flushing the handlers causing a restart at the
+#   wrong time.
+#
+# * It is quite possible that a user of a playbook might wish to postpone
+#   restarting vault to a later time. For example, if they apply a change
+#   whilst the cluster temporarily doesn't have enough active members for a
+#   rolling upgrade. By explicitly testing whether we need to restart on each
+#   run, later runs can pick up the pieces.
+#
+# * We could have used ansible_local variables to store a flag stating a
+#   restart is required, but this would be more complicated and less useful
+#   than just testing whether Vault has outlived its config files.
+
+- name: Discover installed Vault binary version
+  import_role:
+    name: bbcrd.vault.install
+    tasks_from: get_version.yml
+
+- name: Get running vault version
+  uri:
+    # vault status
+    url: "{{ bbcrd_vault_public_url }}/v1/sys/seal-status"
+    ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+  register: vault_status
+
+- name: Check if running and installed versions match
+  set_fact:
+    bbcrd_vault_restart_required: "{{ bbcrd_vault_restart_required or (vault_status.json.version != vault_version) }}"
+
+- name: Discover when Vault server started
+  shell:
+    cmd: >-
+      systemctl show --property=ActiveEnterTimestamp {{ bbcrd_vault_systemd_unit | quote }}
+      | cut -d= -f2-
+      | xargs -0 date +%s -d
+  changed_when: false
+  # NB: When the server is not running, date receives no argument and will
+  # fail. We'll ignore this failure and in the next step pretend the server has
+  # been running since 1970 in this case to force a restart.
+  #
+  # However, since the 'unseal' role will automatically start instances which
+  # aren't running, this is not a scenario we'll have to care about.
+  failed_when: false
+  register: vault_start_time
+
+- name: Discover when config files last changed
+  stat:
+    path: "{{ item }}"
+  loop:
+    - "{{ bbcrd_vault_config_dir }}/config.hcl"
+    - "/etc/systemd/system/{{ bbcrd_vault_systemd_unit }}.service"
+  register: vault_config_time
+
+- name: Check if config files changed since Vault started
+  set_fact:
+    bbcrd_vault_restart_required: |-
+      {{
+        bbcrd_vault_restart_required or (
+          (
+            vault_config_time.results
+            | map(attribute="stat")
+            | map(attribute="mtime")
+            | select('gt', vault_start_time.stdout | trim | default("0", True) | float)
+          ) is truthy(convert_bool=True)
+        )
+      }}

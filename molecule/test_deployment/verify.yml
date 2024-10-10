@@ -15,6 +15,9 @@
     - name: Check all hosts running correct version of vault
       include_tasks: tests/verify_version.yml
     
+    - name: Check all hosts have UI enabled
+      include_tasks: tests/verify_ui.yml
+    
     - name: Verify no outage
       include_tasks: tests/verify_no_outage.yml
     

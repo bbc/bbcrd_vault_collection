@@ -1,0 +1,22 @@
+---
+
+- name: Confirm vault UI is initially enabled
+  hosts: vault
+  tasks:
+    - name: Check UI is reachable
+      uri:
+        url: "http://{{ ansible_hostname }}:8200/ui/"
+
+- name: Modify configuration (disbale UI) which should lead to a restart
+  import_playbook: converge.yml
+  vars:
+    bbcrd_vault_enable_ui: false
+
+- name: Confirm UI disabled
+  hosts: vault
+  tasks:
+    - name: Check UI not reachable
+      uri:
+        url: "http://{{ ansible_hostname }}:8200/ui/"
+        status_code: [404]
+

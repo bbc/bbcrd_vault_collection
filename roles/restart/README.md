@@ -11,5 +11,6 @@ setting `bbcrd_vault_allow_loss_of_quorum_on_restart` to `True`.
 
 By default this role will only restart servers which are running a version of
 Vault which doesn't match the installed binary (e.g. need restarting after an
-update). You can force a restart of one or more specific hosts by setting the
-`bbcrd_vault_restart_servers` variable to a list of hosts.
+update) or for which the Vault or systemd configuration has changed. You can
+also force a restart of one or more specific hosts by setting the
+`bbcrd_vault_restart` variable to true on the servers you wish to restart.

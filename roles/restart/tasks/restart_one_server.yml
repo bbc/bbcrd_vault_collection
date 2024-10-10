@@ -62,3 +62,7 @@
       import_role:
         name: bbcrd.vault.unseal
         tasks_from: unseal.yml
+
+    - name: Clear restart required flag
+      set_fact:
+        bbcrd_vault_restart_required: false

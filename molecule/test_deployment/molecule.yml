@@ -112,6 +112,14 @@ scenario:
     - converge  # Upgrade back again
     - verify
     
+    # Verify rolling config changes work
+    - side_effect side_effects/reset_down_detector.yml
+    # XXX have to use 'verify' rather than 'converge' to allow specifying
+    # alternative playbook...
+    - verify converge_ui_disabled.yml  # Change setting
+    - converge  # Change back again
+    - verify
+    
     # Verify rekeying works
     - side_effect side_effects/reset_down_detector.yml
     # XXX have to use 'verify' rather than 'converge' to allow specifying
