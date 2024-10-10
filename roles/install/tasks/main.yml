@@ -63,6 +63,13 @@
   template:
     src: "vault.service.j2"
     dest: "/etc/systemd/system/{{ bbcrd_vault_systemd_unit }}.service"
+  register: write_systemd_service
+
+- name: Workaround Ansible issue 83013
+  when: write_systemd_service.changed
+  file:
+    path: "/etc/systemd/system/{{ bbcrd_vault_systemd_unit }}.service"
+    state: touch
 
 - name: Enable Vault systemd service
   systemd:

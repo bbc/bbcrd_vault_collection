@@ -45,6 +45,12 @@
     dest: "{{ bbcrd_vault_config_dir }}/config.hcl"
   register: write_vault_config
 
+- name: Workaround Ansible issue 83013
+  when: write_vault_config.changed
+  file:
+    path: "{{ bbcrd_vault_config_dir }}/config.hcl"
+    state: touch
+
 # Note: Vault barely reloads any of its config at runtime. We perform this step
 # here mostly as a placeholder for if we one-day configure something which can
 # be dynamically reloaded.

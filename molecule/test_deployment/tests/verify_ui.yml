@@ -1,0 +1,5 @@
+---
+
+- name: Check UI is enabled
+  uri:
+    url: "http://{{ ansible_hostname }}:8200/ui/"
