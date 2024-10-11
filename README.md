@@ -16,4 +16,3 @@ This collection provides two major facilities:
 
 **To get started:** Head over to [the documentation in
 `docs/`](./docs/README.md).
-

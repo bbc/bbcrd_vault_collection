@@ -75,3 +75,36 @@ collection is defined in the documentation pages below:
   * [SSH client key signing with Vault](./ssh_client_key_signing.md)
   * [Key-Value (KV) secrets engine](./kv.md)
 
+
+Collection Test Suite
+---------------------
+
+This collection includes a small test suite based on [Ansible
+Molecule](https://ansible.readthedocs.io/projects/molecule/). These tests are
+currently split into two parts, largely according to the same
+deployment-vs-provisioning split as the rest of the collection.
+
+You can install Molecule using:
+
+    $ pip install -r requirements_test.txt
+
+You can then run the two separate test scenarios as follows:
+
+    $ molecule test -s test_deployment
+    $ molecule test -s test_provisioning
+
+In both cases, Docker containers will be spawned in which Vault instances will
+be installed and tested.
+
+The test suite takes quite a while to run (on the order of half an hour or so).
+
+The `test_deployment` scenario is an integration-style test which uses the
+`bbcrd.vault.manage_vault_cluster` playbook to deploy and manipulate a Vault
+cluster. It includes tests of functions such as cluster management, unsealing,
+unseal key management, rolling upgrades and so on.
+
+The `test_provisioning` scenario uses a simple single-node Vault deployment and
+a more unit-test style regime to verify the functionality of the various
+modules used for provisioning Vault services. To reduce the test suite run
+time, each test begins by resetting the Vault cluster to a blank state from a
+snapshot rather than deploying a new Vault instance each time.
