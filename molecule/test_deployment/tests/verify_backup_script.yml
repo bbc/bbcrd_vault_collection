@@ -1,0 +1,21 @@
+---
+
+- name: Enumerate existing backup files
+  find:
+    paths: /var/lib/vault_backup
+  register: backups_before
+
+- name: Verify backup script succeeds
+  systemd:
+    name: vault_backup
+    state: restarted
+  changed_when: false  # Don't pollute change state of verification playbook
+
+- name: Verify that a new backup file was created too
+  find:
+    paths: /var/lib/vault_backup
+  register: backups_after
+  failed_when: |-
+    (backups_after.files | map(attribute="path") | sort)
+    ==
+    (backups_before.files | map(attribute="path") | sort)

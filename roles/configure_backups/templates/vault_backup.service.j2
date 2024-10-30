@@ -7,7 +7,7 @@ After={{ bbcrd_vault_systemd_unit }}.service
 WantedBy=multi-user.target
 
 [Service]
-Type=simple
+Type=oneshot
 ExecStart={{ bbcrd_vault_backup_script | quote }} {{ bbcrd_vault_backup_location | quote }}
 
 User={{ bbcrd_vault_backup_user | quote }}
