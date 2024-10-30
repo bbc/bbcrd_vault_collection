@@ -1,6 +1,6 @@
 namespace: "bbcrd"
 name: "vault"
-version: "0.0.14"
+version: "1.0.0"
 readme: "README.md"
 authors:
   - "Jonathan Heathcote <jonathan.heathcote@bbc.co.uk>"
