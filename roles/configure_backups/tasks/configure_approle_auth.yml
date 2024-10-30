@@ -49,9 +49,10 @@
           token_bound_cidrs: "{{ bbcrd_vault_backup_cidrs }}"
       register: approles
 
-- name: Check whether the AppRole credentials files already exist
-  stat:
-    path: "{{ bbcrd_vault_backup_auth_file }}"
+- name: Check whether AppRole credentials file exists and is up-to-date
+  slurp:
+    src: "{{ bbcrd_vault_backup_auth_file }}"
+  failed_when: false
   when: not bbcrd_vault_backup_rotate_auth_credentials
   register: auth_file
 
@@ -59,21 +60,18 @@
   when: |-
     bbcrd_vault_backup_rotate_auth_credentials
     or (
-      ansible_play_hosts
-      | map("extract", hostvars)
-      | map(attribute="auth_file")
-      | map(attribute="stat")
-      | map(attribute="exists")
-    ) is not all
+      (approles.role_ids[inventory_hostname] | quote)
+      not in
+      (auth_file.content | default("") | b64decode)
+    )
   block:
-    - name: Generate backup approle secret
+    - name: Generate new backup approle secret
       bbcrd.vault.vault_approle_secret:
         mount: "{{ bbcrd_vault_backup_approle_mount }}"
         approle_name: "{{ inventory_hostname }}"
         vault_url: "{{ bbcrd_vault_public_url }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-      when: bbcrd_vault_backup_rotate_auth_credentials or not auth_file.stat.exists
       register: backup_approle_secret
     
     - name: Write backup credentials file

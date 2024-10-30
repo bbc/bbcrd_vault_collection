@@ -147,6 +147,12 @@ scenario:
     - converge  # Shrink cluster back down again
     - verify
     
+    # Verify backup credential files rewritten automatically when the
+    # credentials are out-of-date
+    - side_effect side_effects/corrupt_backup_credentials.yml
+    - converge
+    - verify
+    
     # Verify backups are usable
     - verify side_effects/test_backups.yml
     - verify  # And that we didn't break anything
