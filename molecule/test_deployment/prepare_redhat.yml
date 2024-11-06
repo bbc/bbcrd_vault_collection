@@ -1,0 +1,8 @@
+- name: Configure dnf/yum proxy settings
+  lineinfile:
+    path: "/etc/yum.conf"
+    regexp: '^proxy='
+    insertafter: '^\[main\]$'
+    line: 'proxy={{ ansible_env["http_proxy"] }}'
+    create: true
+  when: 'ansible_env["http_proxy"] | default("")'

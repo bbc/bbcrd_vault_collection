@@ -5,8 +5,8 @@
 # a complex process where unsealing is necessary.
 
 - name: Install system package dependencies for Vault
-  apt:
-    pkg: "{{ bbcrd_vault_required_packages }}"
+  package:
+    name: "{{ bbcrd_vault_required_packages }}"
     state: present
 
 - name: Discover installed Vault version (if any)
