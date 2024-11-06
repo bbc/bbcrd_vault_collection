@@ -6,6 +6,9 @@ platforms:
   # Two groups are defined: vault and vault_all. The vault_all group contains
   # all of the nodes in vault along with an extra pair of nodes.
   
+  # Note that All nodes run Ubuntu except for vault-2 which runs Rocky Linux to
+  # allow us to verify that the collection runs on RPM distributions too.
+  
   - &instance_config
     name: vault-1
     groups:
@@ -33,6 +36,7 @@ platforms:
   
   - <<: *instance_config
     name: vault-2
+    image: docker.io/geerlingguy/docker-rockylinux9-ansible
   
   - <<: *instance_config
     name: vault-3

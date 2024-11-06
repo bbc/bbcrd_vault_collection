@@ -1,7 +1,7 @@
 - name: Install backup script dependencies
-  apt:
+  package:
     name:
-      - curl
+      - '{{ "curl-minimal" if ansible_os_family == "RedHat" else "curl" }}'
       - jq
       - zip
 

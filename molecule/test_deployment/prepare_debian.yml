@@ -1,0 +1,18 @@
+- name: Configure apt proxy settings
+  lineinfile:
+    path: "/etc/apt/apt.conf.d/50_proxy"
+    regexp: '^Acquire::{{ item | regex_escape }}::Proxy .*'
+    line: 'Acquire::{{ item | regex_escape }}::Proxy "{{ ansible_env[item ~ "_proxy"] }}";'
+    create: true
+  when: 'ansible_env[item ~ "_proxy"] | default("")'
+  loop:
+    - http
+    - https
+
+- name: Populate apt cache
+  apt:
+    update_cache: true
+
+- name: Install down_detector dependencies
+  apt:
+    name: curl
