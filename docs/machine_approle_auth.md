@@ -76,6 +76,13 @@ writing them, along with the corresponding role ID, into a JSON file on the
 target host. This can then be used by services running on that host to
 authenticate with Vault.
 
+The [`bbcrd.vault.install_vault_auth` role](../roles/install_vault_auth)
+deploys the [`vault_auth.py`](../../utils/vault_auth.py) script on a host and
+optionally sets up a systemd timer which runs it on a regular basis using a set
+of app role credentials installed by (e.g.)
+[`bbcrd.vault.issue_approle_credentials`
+role](../roles/issue_approle_credentials).
+
 
 ### Configuring machine auth
 
@@ -284,14 +291,13 @@ This can be done manually using the `vault` command line tool like so:
             secret_id=- \
         | vault login -
 
-Alternatively, this collection includes the [`utils/vault_auth.py`
+More conveniently, perhaps, this collection includes the [`utils/vault_auth.py`
 script](../utils/vault_auth.py) which, when used with the `--app-role`
 argument, performs the above steps, along with commands to [sign the users' SSH
 key using Vault](./ssh_client_key_signing.md). For example:
 
     $ ./utils/vault_auth.py --app-role=/etc/vault_approle_jenkins_agent_auth_credentials.json
 
-> **Tip:** The [`rd-ansible-vault-client`
-> role](https://github.com/bbc/rd-ansible-vault-client) (not part of this
-> collection) can be used to install the `vault` client and set the
-> `VAULT_ADDR` environment variable.
+The [`bbcrd.vault.install_vault_auth` role](../roles/install_vault_auth) can be
+used to install the [`vault_auth.py`](../../utils/vault_auth.py) script on a
+host and set up a systemd timer which runs it on a regular basis.

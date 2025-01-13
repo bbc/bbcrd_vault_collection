@@ -1,0 +1,51 @@
+---
+
+- name: Install vault_auth.py script
+  copy:
+    src: ../../../utils/vault_auth.py
+    dest: "{{ bbcrd_vault_auth_script }}"
+    mode: "0755"
+
+- name: Install systemd unit and timer
+  when: bbcrd_vault_auth_schedule
+  block:
+    - name: Ensure unix group exists
+      group:
+        name: "{{ bbcrd_vault_auth_group }}"
+        state: present
+
+    - name: Ensure unix user exists
+      user:
+        name: "{{ bbcrd_vault_auth_user }}"
+        groups:
+          - "{{ bbcrd_vault_auth_group }}"
+        append: true
+        state: present
+    
+    - name: Install systemd service
+      template:
+        src: vault_auth.service.j2
+        dest: "/etc/systemd/system/{{ bbcrd_vault_auth_systemd_unit }}.service"
+      register: service
+    
+    - name: Install systemd timer
+      template:
+        src: vault_auth.timer.j2
+        dest: "/etc/systemd/system/{{ bbcrd_vault_auth_systemd_unit }}.timer"
+      register: timer
+    
+    - name: Enable timer
+      when: service.changed or timer.changed
+      systemd:
+        name: "{{ bbcrd_vault_auth_systemd_unit }}.timer"
+        enabled: true
+        state: started
+        daemon_reload: true
+    
+    - name: Run now, and on startup
+      when: service.changed
+      systemd:
+        name: "{{ bbcrd_vault_auth_systemd_unit }}.service"
+        state: restarted
+        enabled: true
+        daemon_reload: true
