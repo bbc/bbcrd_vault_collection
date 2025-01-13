@@ -1,0 +1,53 @@
+---
+
+################################################################################
+# Script installation
+################################################################################
+
+# The location to install the vault_auth script.
+bbcrd_vault_auth_script: /usr/bin/vault_auth.py
+
+
+################################################################################
+# Systemd timer for running vault_auth
+################################################################################
+
+# The schedule on which to run backups, expressed as a systemd calendar event
+# (see `man systemd.time`). For example "*-*-* *:00:00" will run every hour.
+#
+# If null, no vault_auth systemd unit will be deployed; only the script will
+# installed.
+bbcrd_vault_auth_schedule: null
+
+# Time to wait after an authentication failure before trying again (for
+# example, if the network/Vault is temporarily unavailable).
+bbcrd_vault_auth_restart_delay: "5m"
+
+# The name of the systemd units to be created (without the '.service' or
+# '.timer' suffix)
+bbcrd_vault_auth_systemd_unit: vault_auth
+
+# The user and group to run the vault_auth.py script as
+bbcrd_vault_auth_user: vault
+bbcrd_vault_auth_group: vault
+
+# The Vault server URL.
+bbcrd_vault_public_url: "{{ lookup('env', 'VAULT_ADDR', default='https://localhost:8200') }}"
+
+# The location of a PEM file from which to read the CA to trust when
+# connecting to the Vault server.
+bbcrd_vault_ca_path: "{{ lookup('env', 'VAULT_CAPATH') | default(None, True) }}"
+
+# The filename containing AppRole credentials to use.
+#
+# This file contain a JSON object with the following keys:
+#
+# * "role_id" -- The role ID
+# * "secret_id" -- The secret ID
+# * "secret_id_accessor" -- The secret ID accessor. This is used by this role
+#   to detect secret revocations. This value is not used during authentication.
+# * "approle_mount" -- The AppRole mountpoint (without the trailing slash)
+bbcrd_vault_approle_credentials_file: "/etc/vault_approle_machine_credentials.json"
+
+# Any extra arguments to pass to the vault_auth.py script.
+bbcrd_vault_auth_extra_args: []

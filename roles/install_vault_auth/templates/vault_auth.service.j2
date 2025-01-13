@@ -1,0 +1,34 @@
+[Unit]
+Description=Run vault_auth.py
+
+Requires=network-online.target
+After=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=exec
+
+ExecStart={{ bbcrd_vault_auth_script | quote }} \
+  {{
+    (
+      [
+        "--app-role=" ~ bbcrd_vault_approle_credentials_file,
+      ] +
+      bbcrd_vault_auth_extra_args
+    )
+    | map("quote")
+    | join(" \\\n  ")
+  }}
+
+User={{ bbcrd_vault_auth_user }}
+Group={{ bbcrd_vault_auth_group }}
+
+Environment=VAULT_ADDR={{ bbcrd_vault_public_url | quote }}
+{% if bbcrd_vault_ca_path %}
+Environment=VAULT_CAPATH={{ bbcrd_vault_ca_path | quote }}
+{% endif %}
+
+Restart=on-failure
+RestartSec={{ bbcrd_vault_auth_restart_delay }}

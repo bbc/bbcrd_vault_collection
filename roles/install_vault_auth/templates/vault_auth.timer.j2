@@ -1,0 +1,10 @@
+[Unit]
+Description=Run vault_auth.py on a regular basis
+
+[Timer]
+OnCalendar={{ bbcrd_vault_auth_schedule }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
