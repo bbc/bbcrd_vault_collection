@@ -1,7 +1,7 @@
 ---
 
 # In this simpler test deployment we forego the complexities of clustered vault
-# with PGP based authentication. Instead we store the unesal key and root token
+# with PGP based authentication. Instead we store the unseal key and root token
 # unencrypted in `/vault_credentials` on the vault host to be loaded as
 # required.
 
