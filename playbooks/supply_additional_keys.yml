@@ -142,7 +142,7 @@
             tasks_from: clear.yml
           tags:
             - always
-            - bbcrd_vault_clear_unesal_keys
+            - bbcrd_vault_clear_unseal_keys
         
         - name: Clean up ephemeral GnuPG environment
           import_role:

@@ -2,7 +2,7 @@
 =====================================================
 
 > **Hint:** If you're looking for a high-level role for unsealing Vault nodes,
-> see the [`bbcrd.vault.unseal`](../unesal) role instead.
+> see the [`bbcrd.vault.unseal`](../unseal) role instead.
 
 Low-level role which implements the generic workflow whereby unseal keys are
 supplied one-by-one to Vault to achieve some goal. This might be for basic

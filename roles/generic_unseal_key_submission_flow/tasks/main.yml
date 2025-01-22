@@ -1,13 +1,13 @@
 ---
 
-# All of vault's unesal key submission APIs follow almost exactly the same
+# All of vault's unseal key submission APIs follow almost exactly the same
 # pattern. Unfortunately there are a few minor differences which make the
 # implementation below slightly scruffier.  Those differences are:
 # 
 # * The unseal API doesn't use a nonce (but the others do).
 # * The generate-root API reports the number of unseal keys required via the
 #   'required' key (others use the 't' key).
-# * The unesal API indicates completeness by setting 'sealed' to false (others
+# * The unseal API indicates completeness by setting 'sealed' to false (others
 #   report completion by setting 'complete' to true.
 
 - name: Fetch unseal key submission state
