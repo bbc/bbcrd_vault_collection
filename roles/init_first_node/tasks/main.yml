@@ -62,92 +62,130 @@
         quiet: true
         fail_msg: "All cluster members must be up (and uninitialised)."
     
-    - name: Initialise a single node
-      run_once: true
+    - name: Initialise a single member of the cluster (and reset the whole cluster if this fails)
       block:
-        # NB: We initialise with a temporary singular, unencrypted unseal key so
-        # that we can use that key to unseal the vault then immediately revoke the
-        # root token generated during initialisation. We do this because later
-        # parts of this playbook will assume that no root tokens exist and we
-        # can't request initialisation without creating a root token.
-        - name: Initialise first cluster member with temporary unseal key
-          uri:
-            # vault operator init
-            url: "{{ bbcrd_vault_public_url }}/v1/sys/init"
-            method: POST
-            body_format: json
-            body:
-              secret_shares: 1
-              secret_threshold: 1
-            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-          changed_when: true
-          register: vault_init
+        - name: Try and initialise a single member of the cluster
+          run_once: true
+          block:
+            # NB: We initialise with a temporary singular, unencrypted unseal key so
+            # that we can use that key to unseal the vault then immediately revoke the
+            # root token generated during initialisation. We do this because later
+            # parts of this playbook will assume that no root tokens exist and we
+            # can't request initialisation without creating a root token.
+            - name: Initialise first cluster member with temporary unseal key
+              uri:
+                # vault operator init
+                url: "{{ bbcrd_vault_public_url }}/v1/sys/init"
+                method: POST
+                body_format: json
+                body:
+                  secret_shares: 1
+                  secret_threshold: 1
+                ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+              changed_when: true
+              register: vault_init
+            
+            - name: Unseal vault with temporary unseal key
+              uri:
+                # vault operator unseal
+                url: "{{ bbcrd_vault_public_url }}/v1/sys/unseal"
+                method: POST
+                body_format: json
+                body:
+                  key: "{{ vault_init.json.keys_base64[0] }}"
+                ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+              changed_when: true
+              register: vault_unseal
+              failed_when: vault_unseal.json.sealed
+            
+            - name: Revoke the root token created during initialisation
+              uri:
+                # vault token revoke
+                url: "{{ bbcrd_vault_public_url }}/v1/auth/token/revoke-self"
+                method: POST
+                headers:
+                  "X-Vault-Token": "{{ vault_init.json.root_token }}"
+                status_code: [200, 204]  # OK or No Content
+                ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+              changed_when: true
+            
+            # NB: During the initial keying we do not verify the key is readable.
+            # This saves bothering other keyholders whilst the database is still
+            # empty. Since a later step in this playbook will involve using the
+            # unseal keys to unseal other cluster nodes and obtain root tokens,
+            # we'll be using (and implicitly verifying) these new unseal keys
+            # before we put anything of value in the vault!
+            - name: Begin rekeying with PGP-encrypted keys
+              uri:
+                # vault operator rekey -init ...
+                url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/init"
+                method: POST
+                body_format: json
+                body: |-
+                  {{
+                    {
+                      "secret_threshold": (bbcrd_vault_unseal_key_threshold | int),
+                      "secret_shares": (pgp_keys_base64 | length),
+                      "pgp_keys": pgp_keys_base64,
+                      "require_verification": False
+                    } | to_json
+                  }}
+                ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+              changed_when: true
+              register: vault_rekey_init
+            
+            - name: Supply temporary unseal key
+              uri:
+                # vault operator rekey ...
+                url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/update"
+                method: POST
+                body_format: json
+                body:
+                  nonce: "{{ vault_rekey_init.json.nonce }}"
+                  key: "{{ vault_init.json.keys_base64[0] }}"
+                ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+              changed_when: true
+              failed_when: not vault_rekey_update.json.complete
+              register: vault_rekey_update
+            
+            - name: Create encrypted unseal key bundle
+              import_role:
+                name: bbcrd.vault.save_encrypted_unseal_keys
+              vars:
+                encrypted_unseal_keys_base64: "{{ vault_rekey_update.json.keys_base64 }}"
+      
+      rescue:
+        # If node initialisation fails, we must delete any initialised state
+        # since the unseal keys may not have been saved anywhere and so the
+        # only way to recover is to delete the Vault state and start again.
+        #
+        # NB: Unlike the steps above which are 'run_once', we run everywhere
+        # below since the other cluster nodes may have talked to the initial
+        # node and picked up on the initialisation. We must erase these too.
+        - name: Abandoning initialisation; shutting down part-initialised cluster
+          systemd:
+            name: "{{ bbcrd_vault_systemd_unit }}"
+            state: stopped
         
-        - name: Unseal vault with temporary unseal key
-          uri:
-            # vault operator unseal
-            url: "{{ bbcrd_vault_public_url }}/v1/sys/unseal"
-            method: POST
-            body_format: json
-            body:
-              key: "{{ vault_init.json.keys_base64[0] }}"
-            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-          changed_when: true
-          register: vault_unseal
-          failed_when: vault_unseal.json.sealed
+        - name: Deleting part-intialised Vault state
+          file:
+            path: "{{ bbcrd_vault_data_dir }}/data"
+            state: absent
         
-        - name: Revoke the root token created during initialisation
-          uri:
-            # vault token revoke
-            url: "{{ bbcrd_vault_public_url }}/v1/auth/token/revoke-self"
-            method: POST
-            headers:
-              "X-Vault-Token": "{{ vault_init.json.root_token }}"
-            status_code: [200, 204]  # OK or No Content
-            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-          changed_when: true
+        - name: Creating empty data directory
+          file:
+            path: "{{ bbcrd_vault_data_dir }}/data"
+            state: directory
+            mode: 0700
+            owner: "{{ bbcrd_vault_user }}"
+            group: "{{ bbcrd_vault_group }}"
         
-        # NB: During the initial keying we do not verify the key is readable.
-        # This saves bothering other keyholders whilst the database is still
-        # empty. Since a later step in this playbook will involve using the
-        # unseal keys to unseal other cluster nodes and obtain root tokens,
-        # we'll be using (and implicitly verifying) these new unseal keys
-        # before we put anything of value in the vault!
-        - name: Begin rekeying with PGP-encrypted keys
-          uri:
-            # vault operator rekey -init ...
-            url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/init"
-            method: POST
-            body_format: json
-            body: |-
-              {{
-                {
-                  "secret_threshold": (bbcrd_vault_unseal_key_threshold | int),
-                  "secret_shares": (pgp_keys_base64 | length),
-                  "pgp_keys": pgp_keys_base64,
-                  "require_verification": False
-                } | to_json
-              }}
-            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-          changed_when: true
-          register: vault_rekey_init
+        - name: Starting vault servers back in uninitialised state
+          systemd:
+            name: "{{ bbcrd_vault_systemd_unit }}"
+            state: started
         
-        - name: Supply temporary unseal key
-          uri:
-            # vault operator rekey ...
-            url: "{{ bbcrd_vault_public_url }}/v1/sys/rekey/update"
-            method: POST
-            body_format: json
-            body:
-              nonce: "{{ vault_rekey_init.json.nonce }}"
-              key: "{{ vault_init.json.keys_base64[0] }}"
-            ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
-          changed_when: true
-          failed_when: not vault_rekey_update.json.complete
-          register: vault_rekey_update
-        
-        - name: Create encrypted unseal key bundle
-          import_role:
-            name: bbcrd.vault.save_encrypted_unseal_keys
-          vars:
-            encrypted_unseal_keys_base64: "{{ vault_rekey_update.json.keys_base64 }}"
+        - name: Give up
+          run_once: true
+          fail:
+            msg: "Vault initialisation (or post-initialisation unseal key storage step) failed."
