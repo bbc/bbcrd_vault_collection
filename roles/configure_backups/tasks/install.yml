@@ -1,7 +1,15 @@
+# See: https://www.jeffgeerling.com/blog/2024/fixing-curl-install-failures-ansible-on-red-hat-derivative-oses
+- name: Ensure curl-minimal doesn't conflict with curl on RHEL
+  when: ansible_os_family == "RedHat"
+  dnf:
+    name: curl
+    allowerasing: true
+    state: present
+
 - name: Install backup script dependencies
   package:
     name:
-      - '{{ "curl-minimal" if ansible_os_family == "RedHat" else "curl" }}'
+      - curl
       - jq
       - zip
 
