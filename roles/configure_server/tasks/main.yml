@@ -2,6 +2,23 @@
 
 # Create the vault server configuration
 
+# We specifically create the config directory first on the off chance that the
+# config and data directories share any not-yet-created ancestor directories. This
+# ensures that when Ansible creates these directories they are created with the
+# (more lienient) permissions used by the config directory rather than the
+# restrictive permissions used by the data directory. A typical symptom of
+# getting this wrong is that the backup script installed by the
+# configure_backups role is unable to read the encrypted unseal keys.
+#
+# Whilst in an ideal world all parent directories would already have been
+# created by the administrator (or some task outside this role), this specific
+# ordering will make things generally more likely to work when they don't!
+- name: Create config directory
+  file:
+    path: "{{ bbcrd_vault_config_dir }}"
+    state: directory
+    mode: 0755
+
 - name: Create data directory
   file:
     path: "{{ bbcrd_vault_data_dir }}"
@@ -17,12 +34,6 @@
     mode: 0700
     owner: "{{ bbcrd_vault_user }}"
     group: "{{ bbcrd_vault_group }}"
-
-- name: Create config directory
-  file:
-    path: "{{ bbcrd_vault_config_dir }}"
-    state: directory
-    mode: 0755
 
 # This check is required due to a shortcoming of Ansible whereby
 # hostvars[...]["bbcrd_vault_public_url"] does not exist if the variable
