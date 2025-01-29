@@ -5,12 +5,30 @@ Occasionally, you will not be able to access your Vault hosts directly from the 
 
 There are two approaches that can make this work. The first is to configure Ansible to use your bastion host when it executes SSH commands. This is simpler and arguably more secure in the sense that you are not exposing your GPG agent to the remote host. It does, however, have a drawback in that each command will execute considerably slower. _Unless you need to run the playbooks from a shared Ansible control node, this is the approach you should prefer._
 
-The second approach is to forward your GPG agent on to your bastion host, and then on again from there to the machine where you will be running Ansible. This is considerably more complex, and requires configuration on both the client and remote sides to work properly. It also means that the ephemeral GPG agent that this collection sets up by default **will not work**, and you'll need to modify the playbooks appropriately.
+The second approach is to forward your GPG agent on to your bastion host, and then on again from there to the machine where you will be running Ansible. This is more complex, and requires configuration on both the client and remote sides to work properly. It also means that the ephemeral GPG agent that this collection sets up by default **will not work**, and you'll need to modify the playbooks appropriately.
 
 
 Method 1 - SSH jumping
 ----------------------
-WIP
+SSH jumping is probably the easiest way of dealing with this issue. You'll run `ansible-playbook` on your local machine, and tunnel SSH commands through your bastion host.
+
+**IMPORTANT NOTE:** We have found that CLI `pinentry` does not behave when invoked from an Ansible run. Thankfully, a graphical version exists and is available in Homebrew.
+
+    brew install pinentry-mac
+
+Setting up Ansible to use a bastion host is quite simple. First, make sure that you are running an SSH agent on your machine with your private key added. If you're not sure how to do this, Linode have a [pretty good guide on getting things running](https://www.linode.com/docs/guides/using-ssh-agent/).
+
+Next, make sure you are forwarding your agent to your bastion host. You'll need an entry in your `~/.ssh/config` like this:
+
+    Host BASTION_HOSTNAME
+        ForwardAgent yes
+
+Then, simply add a new block to your inventory file (where `vault` is the group containing your Vault nodes, and `BASTION_HOSTNAME` is the name of your bastion host entry):
+
+    [vault:vars] 
+    ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q BASTION_HOSTNAME"'
+
+You should then be able to run ansible-playbook as normal, and be able to communicate with your Vault nodes.
 
 Method 2 - GnuPG agent forwarding
 ---------------------------------
