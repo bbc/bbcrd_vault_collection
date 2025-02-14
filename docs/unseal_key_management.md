@@ -298,3 +298,11 @@ directory. For example:
 
 Note that only unseal keys for which you have the matching private key will be
 decrypted and shown.
+
+
+YubiKeys and remote access
+--------------------------
+
+See the [documentation on dealing with bastion
+hosts/jumpboxes](./bastion_hosts.md) which explains how you can use a Yubikey
+connected to your local machine even when Ansible is run on a remote host.

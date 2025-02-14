@@ -1,105 +1,189 @@
 Dealing with bastion hosts/jumpboxes
 ====================================
 
-Occasionally, you will not be able to access your Vault hosts directly from the machine you are plugging your YubiKey into. One of the most likely reasons for this is because you need to hop through a bastion host, otherwise known as a jumpbox. Unfortunately this means that you'll need to go through a few more hoops to get this collection up and running.
+In some scenarios you may not be able to access your Vault hosts directly from
+the machine you are plugging your YubiKey into. One of the most likely reasons
+for this is because you need to hop through a bastion host (a.k.a. a jumpbox).
+There are two ways to handle this situation.
 
-There are two approaches that can make this work. The first is to configure Ansible to use your bastion host when it executes SSH commands. This is simpler and arguably more secure in the sense that you are not exposing your GPG agent to the remote host. It does, however, have a drawback in that each command will execute considerably slower. _Unless you need to run the playbooks from a shared Ansible control node, this is the approach you should prefer._
+1. Run Ansible on your local machine (i.e. where the YubiKey is connected) and
+   configure SSH forwarding to allow it to connect to your remote machines.
 
-The second approach is to forward your GPG agent on to your bastion host, and then on again from there to the machine where you will be running Ansible. This is more complex, and requires configuration on both the client and remote sides to work properly. It also means that the ephemeral GPG agent that this collection sets up by default **will not work**, and you'll need to modify the playbooks appropriately.
+2. Use GPG agent forwarding to allow Ansible running on a remote machine to use
+   your YubiKey.
+
+The first option is easier to set up and lets the collection handle all
+GPG-related details for you. The second option is necessary only if your
+environment requires the use of a single, shared Ansible deployment environment
+(e.g. OpenStack Ansible).
 
 
-Method 1 - SSH jumping
-----------------------
-SSH jumping is probably the easiest way of dealing with this issue. You'll run `ansible-playbook` on your local machine, and tunnel SSH commands through your bastion host.
+Method 1: SSH forwarding (preferred)
+------------------------------------
 
-**IMPORTANT NOTE:** We have found that CLI `pinentry` does not behave when invoked from an Ansible run. Thankfully, a graphical version exists and is available in Homebrew.
+When running Ansible on your local machine you need to configure SSH to connect
+to all remote hosts via the relevant bastions/jump boxes. This can be done in
+either your Ansible or SSH configurations.
 
-    brew install pinentry-mac
+To configure SSH forwarding from your Ansible inventory, set the following for
+your hosts:
 
-Setting up Ansible to use a bastion host is quite simple. First, make sure that you are running an SSH agent on your machine with your private key added. If you're not sure how to do this, Linode have a [pretty good guide on getting things running](https://www.linode.com/docs/guides/using-ssh-agent/).
+    ansible_ssh_common_args: '-J my-basiton.example.com'
 
-Next, make sure you are forwarding your agent to your bastion host. You'll need an entry in your `~/.ssh/config` like this:
+To configure SSH forwarding from your `~/.ssh/config`:
 
-    Host BASTION_HOSTNAME
-        ForwardAgent yes
+    Match final host *.my-project.example.com
+        ProxyJump my-bastion.example.com
 
-Then, simply add a new block to your inventory file (where `vault` is the group containing your Vault nodes, and `BASTION_HOSTNAME` is the name of your bastion host entry):
+You should then be able to run `ansible-playbook` as normal, and be able to
+communicate with your Vault nodes.
 
-    [vault:vars] 
-    ansible_ssh_common_args='-o ProxyCommand="ssh -W %h:%p -q BASTION_HOSTNAME"'
-
-You should then be able to run ansible-playbook as normal, and be able to communicate with your Vault nodes.
 
 Method 2 - GnuPG agent forwarding
 ---------------------------------
-Before we begin, let's be clear. This is more complex and unreliable than the first method we described above. It requires you to add configuration to the SSH client on your local machine and on the bastion host, and requires modifications to `sshd_config` on the bastion host and Ansible control node. If you do not have root access to both remote machines, this will not work reliably for you. 
 
-Let's begin! We'll assume that you are running macOS on your local machine, and a flavour of Red Hat Enterprise Linux on the remotes. 
+If, for whatever reason, you must run Ansible on a remote host, you can enable
+GnuPG running on the remote host to use your YubiKey by forwarding a connection
+from a GnuPG agent running on your local machine.
 
-### Preparing your local machine
-We have found that CLI `pinentry` does not behave when invoked from an Ansible run. Thankfully, a graphical version exists and is available in Homebrew.
+> [!WARNING]
+> This approach is much more complex and also precludes the use of this
+> collection's [automatic GnuPG environment
+> management](../roles/ephemeral_gnupg_home).
 
-    brew install pinentry-mac
+> [!TIP]
+> On MacOS, GnuPG doesn't usually come with a graphical PIN entry tool which
+> will be necessary when using GnuPG agent forwarding. You can download one
+> using:
+>
+>     $ brew install gpg pinentry-mac
+>
+> And configure GnuPG to use it by putting the following line into
+> `/usr/local/etc/gnupg/gpg-agent.conf` (creating it if necessary):
+>
+>     pinentry-program /usr/local/bin/pinentry-mac
 
-The next thing we need to do is find out the path to our GnuPG agent socket. The best practice is to use the "extra" socket, which is better suited for forwarding as it enables the decryption/signing functions, but doesn't expose the private keys to the remote host.
+To allow the remote host to use your local GnuPG agent, we must forward the
+UNIX domain socket of our local `gpg-agent` into the expected location on the
+remote host using SSH's `RemoteForward` option.
 
-    $ gpgconf --list-dir agent-extra-socket
-    /Users/XXXXX/.gnupg/S.gpg-agent.extra
+**Steps:**
 
-Make note of this, we'll need it in the next step.
+0. It is convenient to add the following option to `/etc/ssh/sshd_config` on
+   the remote host (and then restart the SSH server):
 
-Next, we'll set up our SSH configuration to forward the socket file to the bastion host. This involves modifying your `~/.ssh/config` file to add a new `RemoteForward` directive. The first parameter is the desired path on the remote machine, and the second is the path to the socket we found in the previous step.
+       StreamLocalBindUnlink yes
+   
+   This is necessary to allow SSH to replace any existing (stale) sockets on
+   the remote host with our new one when connecting.
 
-    Host accessXXX  # Change me as required - you might already have a Host block
+1. Discover the location of your local gpg-agent's socket:
 
-	    RemoteForward /home/XXXXX/.gnupg/S.gpg-agent-local /Users/XXXXX/.gnupg/S.gpg-agent.extra
+       $ gpgconf --list-dir agent-extra-socket
+       /Users/XXXXX/.gnupg/S.gpg-agent.extra
+   
+   > [!INFO]
+   > The 'extra' socket is a special additional socket opened by `gpg-agent`
+   > which exposes a slightly more restricted set of functions than the regular
+   > socket intended for forwarding.
 
-You might notice that I have selected an arbitrary filename in my user's `.gnupg` directory, rather than the typical location of the socket in `/run/user`. In this case I don't necessarily want or need the bastion host to use my forwarded GPG agent. Choosing a unique path therefore limits the potential for confusion in debugging the forwarding.
+2. Discover the expected SSH agent socket location on the remote host.
 
-### Preparing the bastion host
-**IMPORTANT:** In order for our forwarded socket to work reliably, we need to set `StreamLocalBindUnlink yes` in `/etc/ssh/sshd_config`. This allows sshd to automatically clean up a stale socket from a previous connection before forwarding on the new one.
+       $ ssh my-remote-host
+       my-remote-host$ gpgconf --list-dir agent-socket
+       /run/user/XXXXX/gnupg/S.gpg-agent
 
-Assuming you've set everything up as described above, connecting to your bastion host should now yield you a socket file at the location you chose (e.g. `/home/XXXXX/.gnupg/S.gpg-agent-local`). If this doesn't happen, jump to the troubleshooting section below. You can give this a go to see the forwarding in action.
+3. Make sure no `gpg-agent` is already running on the remote host:
 
-    gpg-connect-agent -S /home/XXXXX/.gnupg/S.gpg-agent-local
+       my-remote-host$ killall gpg-agent
 
-If this command doesn't immediately throw an error, congrats, it's working!
+4. Connect to the remote host, forwarding your GnuPG agent socket like so:
 
-We now need to set up the SSH client config on the bastion host. The first step is to determine the socket on the Ansible control node that we need to forward to. This will ensure that when we call `gpg` from the playbooks, we're actually talking to your forwarded agent.
+       $ ssh -o "RemoteForward <REMOTE SOCKET PATH> <LOCAL SOCKET PATH>" my-remote-host
 
-**On your Ansible control node:**
-    
-    gpgconf --list-dir agent-socket
+   Using the example outputs above, that would mean:
 
-Note down the output - it'll probably be something like `/run/user/XXXX/gnupg/S.gpg-agent`.
+       $ ssh -o "RemoteForward /run/user/XXXXX/gnupg/S.gpg-agent /Users/XXXXX/.gnupg/S.gpg-agent.extra" my-remote-host
 
-Next, in `~/.ssh/config` on the **bastion host**:
+   > [!IMPORTANT]
+   > The paths used by GnuPG vary depending on the system and user accounts in
+   > use.
+   
+   Alternativley, you can add add this option to your `~/.ssh/config` to make
+   it the default:
+   
+       Host my-remote-host
+           RemoteForward <REMOTE SOCKET PATH> <LOCAL SOCKET PATH>
 
-    Host ansible??? # Again - change the hostname as required!
-	    RemoteForward /run/user/XXXX/gnupg/S.gpg-agent /home/XXXXX/.gnupg/S.gpg-agent-local
 
-Pay careful attention to the ordering. The first parameter is the socket path you're creating on the **Ansible control node** - that is, the output of the `gpgconf` command we just did. The second parameter is the path to the forwarded socket on the **bastion host**. 
+### Verifying GnuPG agent forwarding is working
 
-### Preparing the Ansible control node
-Just like before, we need to set `StreamLocalBindUnlink yes` in `/etc/ssh/sshd_config`. If this isn't in place, sshd cannot clean up the stale socket in preparation for forwarding on the new one.
+**Steps:**
 
-With all that in place, you can now try `gpg-connect-agent` and maybe even `gpg --list-secret-keys`. See if your key turns up! If it doesn't, something has gone wrong somewhere, so check out the troubleshooting section below.
+0. Import your public key into the GnuPG home on the remote host:
 
-### Troubleshooting - when it just doesn't work
-GnuPG agent forwarding is complicated, and there's a lot of moving pieces. If just one thing is missing or there's a subtle typo, the whole thing can collapse.
+       my-remote-host$ gpg --import /path/to/my_public_key.gpg
 
-The best approach is to look at things logically, start at your local machine, and work through the chain to your Ansible host.
+1. Verify that your private key is listed as available for use:
+   
+       my-remote-host$ gpg --list-secret-keys
+       /home/example/.gnupg/pubring.kbx
+       ------------------------
+       sec>  rsa4096 2000-01-01 [SC]
+             XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+             Card serial no. = 0000 00000000
+       uid           [ unknown] John Doe (card serial 00000000) <john@example.com>
+       ssb>  rsa4096 2000-01-01 [A]
+       ssb>  rsa4096 2000-01-01 [E]
+   
+   > [!IMPORTANT]
+   > SSH agent forwarding only provides remote access to secret keys, it
+   > doesn't make your local GnuPG environment available from the remote host.
+   > This is why it is necessary to import your public key into the remote
+   > host's GnuPG home.
 
-#### Your local machine
-First big question - **is the GPG agent running on your local machine?** Try `gpg-connect-agent`. Does it connect immediately, or does it suggest the agent wasn't running or is encountering an error?
+2. Verify PIN entry and decryption are working correctly by encrypting and
+   decrypting some dummy data:
 
-#### The bastion host
-Then move on and check the bastion host. Open up an SSH connection and pay careful attention. Do you see a warning that the forwarding failed? It's quite likely that your `StreamLocalBindUnlink` setting isn't working, if so. Check this, try removing the socket, closing the SSH connection, and try again.
+       my-remote-host$ echo "Hello world" | gpg --encrypt --recipient john@example.com -o /tmp/encrypted.gpg
+       my-remote-host$ gpg --decrypt /tmp/encrypted.gpg
+       gpg: encrypted with 4096-bit RSA key, ID XXXXXXXXXXXXXXXX, created 2000-01-01
+             "John Doe (card serial 00000000) <john@example.com>"
+       Hello world
 
-If you can't spot an error, Try `gpg-connect-agent -S /home/XXXXX/.gnupg/S.gpg-agent-local` (or whatever path you selected for the bastion host). Does this throw an error? The most likely cause is that there's a mistake in your SSH client configuration on your local machine. Maybe the `Host` block isn't matching? Have you typo'd the path to the extra socket?
 
-Check all of this - once you can talk to the agent from the bastion, move on.
+### Troubleshooting suggestions
 
-#### The Ansible control node
-The process for checking this is much the same as the bastion host. Check for warnings when opening the SSH connection, and that your client/sshd configs are correct. Verify that you can communicate with the agent with `gpg-connect-agent`.
+* Make sure `gpg-agent` is running on your local system. The following command
+  should should exit successfully without any errors:
 
+     $ echo /bye | gpg-connect-agent
+
+* Make sure GnuPG is working in your local environment and has a *graphical*
+  PIN entry program set up. Use the example `gpg --encrypt`/`gpg --decrypt`
+  commands above to check this.
+
+* Make sure you have the correct socket locations (that see `gpgconf --list-dir
+  agent-extra-socket` on your local machine and `gpgconf --list-dir
+  agent-socket` on the remote machine).
+
+* Make sure the forwarded gpg-agent socket is working by running the following
+  on the remote machine:
+
+      my-remote-host$ echo /bye | gpg-connect-agent -S /run/user/XXXXX/gnupg/S.gpg-agent
+
+* Make sure SSH is able to overwrite any existing sockets on the remote
+  machine. Look out for the following warning indicating that it was not able
+  to do so:
+
+      Warning: remote port forwarding failed for listen path /run/user/XXXXX/gnupg/S.gpg-agent
+
+  If this is failing, check that the `StreamLocalBindUnlink yes` server option has been configured. Make sure no `gpg-agent` instances are running on the remote host and try deleting the errant socket and reconnecting.
+
+* Make sure you're skipping the [`bbcrd.vault.ephemeral_gnupg_home`
+  role](../roles/ephemeral_gnupg_home), e.g. by using `--skip-tags
+  bbcrd_vault_ephemeral_gnupg_home` with the provided playbooks. This will
+  prevent the collection spawning its own ephemeral GnuPG environent.
+
+* Make sure your remote GnuPG environment has your public key installed,
+  without it, it won't be able to find the private key on your YubiKey.

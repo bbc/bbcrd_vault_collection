@@ -101,6 +101,10 @@ illustrated in the playbook. Note that the ordering of these roles is often
 significant -- for example, initialising and unsealing the cluster must come
 before most other tasks!
 
+> [!TIP]
+> If your Vault instances are only reachable via a bastion, see the
+> [documentation on dealing with bastion hosts/jumpboxes](./bastion_hosts.md)
+
 
 Installation and ongoing cluster management
 -------------------------------------------
