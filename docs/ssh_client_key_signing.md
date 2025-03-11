@@ -29,20 +29,29 @@ existing one provided to it (see the
 [defaults](../roles/configure_ssh_client_signer/defaults/main.yml) for
 details).
 
-The following default variables control the validity and access granted by the
-generated signed certificates:
+The Vault SSH signing service supports the definition of many 'roles', each of
+these can produce certificates signed with the same keys but with different
+properties (e.g. TTLs, principals or extensions) specified.
 
-* `bbcrd_vault_ssh_client_signer_ttl`: How long signed certificates remain
+The `bbcrd_vault_ssh_client_signer_roles` dictionary maps from 'role' names to a
+set of configuration options including:
+
+* `bbcrd_vault_ssh_client_signer_roles.*.ttl`: How long signed certificates remain
   valid.
 
-* `bbcrd_vault_ssh_client_signer_users`: The set of principals (i.e. user
+* `bbcrd_vault_ssh_client_signer_roles.*.users`: The set of principals (i.e. user
   accounts) the certificate grants access to.
 
-* `bbcrd_vault_ssh_client_signer_extensions`: The set of SSH extensions
+* `bbcrd_vault_ssh_client_signer_roles.*.extensions`: The set of SSH extensions
   permitted.
 
-By default a policy named `ssh_admin` is created which permits the holder to
-sign SSH public keys.
+If a policy name is given in `bbcrd_vault_ssh_client_signer_roles.*.policy`, a
+policy will be created which permits the older to use that role to sign their
+SSH key.
+
+See
+[`defaults/main.yml`](../roles/configure_ssh_client_signer/defaults/main.yml)
+for full details.
 
 
 ### Signing SSH public keys
@@ -52,10 +61,11 @@ own `id_rsa.pub` SSH key as follows:
 
     $ vault write \
         -field=signed_key \
-        ssh_client_signer/sign/admin \
+        ssh_client_signer/sign/role_name_here \
         public_key=@$HOME/.ssh/id_rsa.pub \
           > ~/.ssh/id_rsa-cert.pub
 
 Alternatively, the [`utils/vault_auth.py` script](../utils/vault_auth.py)
 included in this collection will automatically perform this task after
-authenticating with Vault.
+authenticating with Vault. The `--ssh-signer-role`/`-r` argument may be used to
+specify the role to use for signing.

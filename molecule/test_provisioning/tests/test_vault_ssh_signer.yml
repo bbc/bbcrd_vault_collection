@@ -189,3 +189,30 @@
           X-Vault-Token: "{{ bbcrd_vault_root_token }}"
         status_code: 404
       register: role
+    
+    - name: Check bbcrd.vault.configure_ssh_client_signer role also works
+      vars:
+        bbcrd_vault_ssh_client_signer_roles:
+          foo:
+            policy: "ssh-foo-policy"
+          bar:
+            ttl: 9001
+      include_role:
+        name: bbcrd.vault.configure_ssh_client_signer
+    
+    - name: Sanity check role configuration
+      uri:
+        url: "{{ bbcrd_vault_public_url }}/v1/ssh_client_signer/roles/bar"
+        headers:
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+      register: role
+      failed_when: role.json.data.ttl != 9001  # Sanity check
+    
+    - name: Check created a policy
+      uri:
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/policy/ssh-foo-policy"
+        headers:
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+      register: read_policy
+      failed_when: |-
+        "ssh_client_signer/sign/foo" not in read_policy.json.data.rules

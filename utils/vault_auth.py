@@ -28,7 +28,7 @@ This script is a wrapper around the following commands:
     $ # For SSH key signing
     $ vault write \
         -field=signed_key \
-        ssh_signer_mount/sign/default \
+        ssh_signer_mount/sign/ssh_signer_role \
         public_key=@$HOME/.ssh/id_rsa.pub \
         > $HOME/.ssh/id_rsa-cert.pub
 """
@@ -82,6 +82,7 @@ def ssh_sign(
     vault_command: str,
     ssh_public_key: Path,
     ssh_signer_mount: str,
+    ssh_signer_role: str,
     verbose: bool,
 ) -> None:
     """Sign the users' SSH key using Vault."""
@@ -100,7 +101,7 @@ def ssh_sign(
                 vault_command,
                 "write",
                 "-field=signed_key",
-                f"{ssh_signer_mount}/sign/default",
+                f"{ssh_signer_mount}/sign/{ssh_signer_role}",
                 f"public_key=@{ssh_public_key}",
             ],
             stdout=f,
@@ -209,6 +210,14 @@ def main() -> None:
             %(default)s.
         """,
     )
+    ssh_group.add_argument(
+        "--ssh-signer-role",
+        "-r",
+        default="default",
+        help="""
+            The SSH signer role name to use. Defaults to %(default)s.
+        """,
+    )
     args = parser.parse_args()
 
     try:
@@ -230,6 +239,7 @@ def main() -> None:
                 vault_command=args.vault_command,
                 ssh_public_key=Path(args.ssh_public_key),
                 ssh_signer_mount=args.ssh_signer_mount.rstrip("/"),
+                ssh_signer_role=args.ssh_signer_role,
                 verbose=args.verbose,
             )
     except CalledProcessError as exc:

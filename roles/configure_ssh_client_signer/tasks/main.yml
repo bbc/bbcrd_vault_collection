@@ -24,34 +24,48 @@
             }
           }}
         state: "{{ 'replaced' if bbcrd_vault_ssh_client_signer_replace_key else 'present' }}"
-        roles:
-          default:
-            key_type: ca
-            allow_user_certificates: true
-            algorithm_signer: "{{ bbcrd_vault_ssh_client_signer_algorithm }}"
-            default_user: "{{ bbcrd_vault_ssh_client_signer_users | join(',') }}"
-            allowed_users:  "{{ bbcrd_vault_ssh_client_signer_users | join(',') }}"
-            default_extensions: |-
-              {{
-                dict(
-                  bbcrd_vault_ssh_client_signer_extensions
-                    | zip(bbcrd_vault_ssh_client_signer_extensions
-                          | map('regex_replace', '.*', ''))
-                )
-              }}
-            ttl: "{{ bbcrd_vault_ssh_client_signer_ttl }}"
-            max_ttl: "{{ bbcrd_vault_ssh_client_signer_ttl }}"
+        # NB: Since we don't specify allowed_extensions, the user is not
+        # allowed to specify the extensions they want. Instead they'll
+        # always get the 'default_extensions'.
+        roles: >-
+            {%- set roles = {} -%}
+            {%- for name, options in bbcrd_vault_ssh_client_signer_roles.items() -%}
+            {%-     set options = bbcrd_vault_configure_ssh_client_signer_default_role_options | combine(options) -%}
+            {%-
+                    set _ = roles.__setitem__(
+                        name,
+                        {
+                            "key_type": "ca",
+                            "allow_user_certificates": True,
+                            "algorithm_signer": options["algorithm"],
+                            "default_user": options["users"] | join(","),
+                            "allowed_users": options["users"] | join(","),
+                            "default_extensions": (
+                                options["extensions"]
+                                | bbcrd.vault.vault_ssh_allowed_extensions_dict
+                            ),
+                            "ttl": options["ttl"],
+                            "max_ttl": options["ttl"],
+                        }
+                    )
+            -%}
+            {%- endfor -%}
+            {{ roles }}
         vault_url: "{{ bbcrd_vault_public_url }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
     - name: Create policy to grant access for SSH key signing
       bbcrd.vault.vault_policy:
-        name: "{{ bbcrd_vault_ssh_client_signer_policy }}"
+        name: "{{ item.value.policy }}"
         policy: |-
-          path "{{ bbcrd_vault_ssh_client_signer_mount }}/sign/default" {
+          path "{{ bbcrd_vault_ssh_client_signer_mount }}/sign/{{ item.key }}" {
             capabilities = ["create", "update"]
           }
         vault_url: "{{ bbcrd_vault_public_url }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
+      loop: "{{ bbcrd_vault_ssh_client_signer_roles | dict2items }}"
+      when: "item.value.policy | default(False)"
+      loop_control:
+        label: "{{ item.key }}"

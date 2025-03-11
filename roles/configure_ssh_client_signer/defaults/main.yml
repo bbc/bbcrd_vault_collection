@@ -13,8 +13,11 @@
 # no trailing slash.
 bbcrd_vault_ssh_client_signer_mount: "ssh_client_signer"
 
+# **DEPRECATED** -- Use `bbcrd_vault_ssh_client_signer_roles.*.policy` instead.
+#
 # The name of the Vault policy to create which permits the signing of SSH keys
-# by this secrets engine.
+# by this secrets engine using the 'default' role (see 'Signing options'
+# below).
 bbcrd_vault_ssh_client_signer_policy: "ssh_admin"
 
 
@@ -38,14 +41,61 @@ bbcrd_vault_ssh_client_signer_replace_key: false
 # Signing options
 ################################################################################
 
-# The lifetime of the certificate (seconds)
+# The Vault SSH signing service supports the definition of many 'roles',
+# each of these can produce certificates signed with the same keys but with
+# different properties (e.g. TTLs, principals or extensions) specified.
+#
+# The bbcrd_vault_ssh_client_signer_roles dictionary maps from role names to a
+# set of configuration options from the following list:
+#
+# * ttl -- The lifetime of the certificate (in seconds). Defaults to
+#          bbcrd_vault_ssh_client_signer_ttl if omitted.
+# * users -- A list of users (principals) to permit. Defaults to
+#            bbcrd_vault_ssh_client_signer_users if omitted.
+# * extensions -- A list of SSH extensions to permit. Defaults to
+#                 bbcrd_vault_ssh_client_signer_extensions if omitted.
+# * algorithm -- The algorithm to use for signing public keys. Defaults to
+#                bbcrd_vault_ssh_client_signer_algorithm if omitted.
+# * policy -- The name of the Vault policy to create which grants the ability
+#             to sign your SSH key using this role. If omitted, no policy will
+#             be created.
+#
+# An example configuraiton might look like:
+#
+#     bbcrd_vault_ssh_client_signer_roles:
+#       # The 'administrators' role grants root access to hosts e.g. for human
+#       # administrators running Ansible playbooks
+#       administrators:
+#         users:
+#           - root
+#         policy: "ssh_admin"
+#       # The 'backup' role might be used by a backup host to log into remote
+#       # systems as a (non-privileged) 'backup' user, and has a much shorter
+#       # TTL since it is automatically renewed regularly.
+#       backup:
+#         ttl: 3600  # 1 hour
+#         users:
+#           - backup
+#         policy: "ssh_backup"
+#
+# The default configuration (creating a 'default' role) is there for backward
+# compatibility with versions of the bbcrd.vault collection prior to 1.3.0.
+bbcrd_vault_ssh_client_signer_roles:
+  default:
+    policy: "{{ bbcrd_vault_ssh_client_signer_policy }}"
+
+
+# Default the lifetime of the certificate (seconds) for roles in
+# bbcrd_vault_ssh_client_signer_roles which don't specify 'ttl'.
 bbcrd_vault_ssh_client_signer_ttl: 43200  # 12h
 
-# The list of users (principals) to permit
+# Default list of users (principals) to permit for roles in
+# bbcrd_vault_ssh_client_signer_roles which don't specify 'users'.
 bbcrd_vault_ssh_client_signer_users:
   - root
 
-# The extensions to permit
+# Default extensions to permit for roles in
+# bbcrd_vault_ssh_client_signer_roles which don't specify 'extensions'.
 bbcrd_vault_ssh_client_signer_extensions:
   - permit-X11-forwarding
   - permit-agent-forwarding
@@ -53,5 +103,7 @@ bbcrd_vault_ssh_client_signer_extensions:
   - permit-pty
   - permit-user-rc
 
-# The algorithm to use for signing public keys.
+# Default algorithm to use for signing public keys for roles in
+# bbcrd_vault_ssh_client_signer_roles which don't specify 'algorithm'.
 bbcrd_vault_ssh_client_signer_algorithm: "rsa-sha2-512"
+

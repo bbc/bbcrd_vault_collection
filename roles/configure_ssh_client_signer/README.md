@@ -1,27 +1,22 @@
 `bbcrd.vault.configure_ssh_client_signer` role
 ==============================================
 
-This role configures a simple SSH client key signing service.
-
-Add the policy named in `bbcrd_vault_ssh_client_signer_policy` (defaulting to
-`ssh_admin`) to any Vault user whom you wish to be able to sign their SSH keys.
+This role configures a simple SSH client key signing service and, optionally,
+policies to go with it.
 
 Once configured, an SSH key can be signed using a command such as:
 
     $ vault write \
         -field=signed_key \
-        ssh_client_signer/sign/admin \
+        ssh_client_signer/sign/role_name_here \
         public_key=@$HOME/.ssh/id_rsa.pub \
           > ~/.ssh/id_rsa-cert.pub
 
 Vault also provides an unauthenticated API endpoint for obtaining the public
 key used for signing:
 
-    $ curl {{ bbcrd_vault_public_url }}/v1/ssh-client-signer/public_key
-
-For now, anything beyond a single class of users is out of scope. You should
-instead use the [`bbcrd.vault.vault_ssh_signer`
-module](../../plugins/modules/vault_ssh_signer.py) directly.
+    $ curl {{ bbcrd_vault_public_url }}/v1/ssh_client_signer/public_key
 
 See the [SSH client key signing with Vault
-documentation](../../docs/ssh_client_key_signing.md) for more details.
+documentation](../../docs/ssh_client_key_signing.md) and
+[`defaults/main.yml`](./defaults/main.yml) for more details.
