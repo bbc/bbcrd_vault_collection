@@ -6,7 +6,7 @@ authors:
   - "Jonathan Heathcote <jonathan.heathcote@bbc.co.uk>"
 license-file: LICENSE
 tags:
-  - collection,
-  - vault,
+  - collection
+  - vault
   - hashicorp
 repository: "https://www.github.com/bbc/bbcrd_vault_collection"
