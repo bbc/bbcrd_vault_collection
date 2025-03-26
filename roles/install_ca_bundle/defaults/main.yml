@@ -1,0 +1,7 @@
+---
+
+# The PEM formatted certificate bundle contents to write to
+# bbcrd_vault_ca_path.
+#
+# If not truthy, this role will do nothing
+bbcrd_vault_ca_certificate_bundle: null

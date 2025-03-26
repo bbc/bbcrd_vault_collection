@@ -1,0 +1,11 @@
+---
+
+- name: Create CA bundle file parent directory
+  file:
+    path: "{{ bbcrd_vault_ca_path | dirname }}"
+    state: directory
+
+- name: Install CA bundle for use by Vault
+  copy:
+    content: "{{ bbcrd_vault_ca_certificate_bundle }}"
+    dest: "{{ bbcrd_vault_ca_path }}"

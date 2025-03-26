@@ -29,6 +29,12 @@
             name: bbcrd.vault.install
           tags:
             - bbcrd_vault_install
+        
+        - name: Install CA bundle for Vault
+          import_role:
+            name: bbcrd.vault.install_ca_bundle
+          tags:
+            - bbcrd_vault_install_ca_bundle
 
         - name: Write Vault server configuration files
           import_role:
