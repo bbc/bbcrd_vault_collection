@@ -27,7 +27,7 @@ Group={{ bbcrd_vault_auth_group }}
 
 Environment=VAULT_ADDR={{ bbcrd_vault_public_url | quote }}
 {% if bbcrd_vault_ca_path %}
-Environment=VAULT_CAPATH={{ bbcrd_vault_ca_path | quote }}
+Environment=VAULT_CACERT={{ bbcrd_vault_ca_path | quote }}
 {% endif %}
 
 Restart=on-failure

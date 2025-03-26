@@ -12,7 +12,10 @@ bbcrd_vault_token: "{{ lookup('pipe', 'vault print token') }}"
 
 # The location of a PEM file from which to read the CA to trust when
 # connecting to the Vault server.
-bbcrd_vault_ca_path: "{{ lookup('env', 'VAULT_CAPATH') | default(None, True) }}"
+#
+# Note: This variable is named inconsistently with respect to the corresponding
+# Vault environment variable!
+bbcrd_vault_ca_path: "{{ lookup('env', 'VAULT_CACERT') | default(None, True) }}"
 
 # The Anisble host to defer all Vault API accesses to.
 bbcrd_vault_api_delegate_host: localhost

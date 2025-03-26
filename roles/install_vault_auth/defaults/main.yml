@@ -36,7 +36,10 @@ bbcrd_vault_public_url: "{{ lookup('env', 'VAULT_ADDR', default='https://localho
 
 # The location of a PEM file from which to read the CA to trust when
 # connecting to the Vault server.
-bbcrd_vault_ca_path: "{{ lookup('env', 'VAULT_CAPATH') | default(None, True) }}"
+#
+# Note: This variable is named inconsistently with respect to the corresponding
+# Vault environment variable!
+bbcrd_vault_ca_path: "{{ lookup('env', 'VAULT_CACERT') | default(None, True) }}"
 
 # The filename containing AppRole credentials to use.
 #
