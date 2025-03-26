@@ -1,8 +1,5 @@
 ---
-# Install the Vault binary and server systemd configuration.
-#
-# Defers the task of (re)starting the server to later in the role since this is
-# a complex process where unsealing is necessary.
+# Install the Vault binary
 
 - name: Install system package dependencies for Vault
   package:
@@ -46,43 +43,3 @@
         dest: "{{ bbcrd_vault_install_dir }}/{{ bbcrd_vault_binary }}"
         mode: "0755"
 
-- name: Ensure Vault groups exists
-  group:
-    name: "{{ bbcrd_vault_group }}"
-    state: present
-
-- name: Ensure Vault user exists
-  user:
-    name: "{{ bbcrd_vault_user }}"
-    groups:
-      - "{{ bbcrd_vault_group }}"
-    append: true
-    state: present
-
-- name: Install Vault systemd service
-  template:
-    src: "vault.service.j2"
-    dest: "/etc/systemd/system/{{ bbcrd_vault_systemd_unit }}.service"
-  register: write_systemd_service
-
-- name: Workaround Ansible issue 83013
-  when: write_systemd_service.changed
-  file:
-    path: "/etc/systemd/system/{{ bbcrd_vault_systemd_unit }}.service"
-    state: touch
-
-- name: Enable Vault systemd service
-  systemd:
-    name: vault
-    daemon_reload: true
-    enabled: yes
-
-- name: Ensure needrestart config directory exists
-  file:
-    path: "/etc/needrestart/conf.d/"
-    state: directory
-
-- name: Prevent needrestart from restarting Vault
-  template:
-    src: "needrestart.conf.j2"
-    dest: "/etc/needrestart/conf.d/{{ bbcrd_vault_systemd_unit }}.conf"
