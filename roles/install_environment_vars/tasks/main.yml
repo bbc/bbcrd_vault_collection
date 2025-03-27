@@ -1,0 +1,15 @@
+---
+
+- name: Configure global environment variables for Vault
+  lineinfile:
+    path: "/etc/environment"
+    line: "{{ item.variable | quote }}={{ item.value | quote }}"
+    regexp: "^{{ item.variable | quote | regex_escape }}=.*"
+    state: "{{ item.value | default(False) | ternary('present', 'absent') }}"
+  loop:
+    - variable: "VAULT_ADDR"
+      value: "{{ bbcrd_vault_public_url }}"
+    - variable: "VAULT_CACERT"
+      value: "{{ bbcrd_vault_ca_path | default(False) }}"
+  loop_control:
+    label: "{{ item.variable }}"
