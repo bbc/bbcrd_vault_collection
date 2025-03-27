@@ -16,6 +16,22 @@ deployments this collection does not attempt to tackle them. However, a
 possible architecture is suggested below.
 
 
+> [!NOTE]
+>
+> **On using non-public CAs**
+>
+> You may choose to use a non-public certificate authority to sign the TLS
+> certificate used the Vault API. In this case, you must either ensure that
+> this certificate is installed into your system's trust store or use the
+> `bbcrd_vault_ca_path` variable to explicitly specify the CA root(s) to trust.
+>
+> Relying on the system trust store is convenient since it makes rotating
+> certificates a standardised process independent of your Vault configuration.
+> However, explicitly configuring Vault to trust only your certificates adds a
+> layer of protection against MITM attacks involving impropperly issued public
+> certificates.
+
+
 Example architecture based on `ansible-keepalived` and `openstack-ansible-haproxy_server`
 -----------------------------------------------------------------------------------------
 

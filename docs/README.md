@@ -77,6 +77,17 @@ collection is defined in the documentation pages below:
   * [Key-Value (KV) secrets engine](./kv.md)
 
 
+Vault client installation
+-------------------------
+
+Whislt this collection is mostly concerned with setting up Vault servers, a
+subset of the roles can be used to deploy the Vault CLI and associated
+configuration:
+
+* [Installing the Vault Client](./vault_client.md)
+
+
+
 Collection Test Suite
 ---------------------
 
