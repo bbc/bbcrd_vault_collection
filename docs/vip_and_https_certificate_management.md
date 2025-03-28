@@ -43,7 +43,7 @@ As an example of one possible architecture, we can use:
 * [certbot](https://certbot.eff.org/) to handle HTTPS certificate renewal
 
 These services can be deployed using a combination of the
-[`ansible-keepalived`](https://github.com/bbc/rd-ansible-keepalived-role) and
+[`ansible-keepalived`](https://github.com/evrardjp/ansible-keepalived) and
 [`openstack-ansible-haproxy_server`](https://opendev.org/openstack/openstack-ansible-haproxy_server)
 Ansible roles.
 
