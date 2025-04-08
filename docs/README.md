@@ -40,6 +40,7 @@ implemented by this collection for cluster management.
 * [Ansible conventions for Vault cluster management playbooks and
   roles](./ansible_cluster_management_conventions.md)
 * [Dealing with bastion hosts/jumpboxes](./bastion_hosts.md)
+* [Upgrading Vault](./upgrades.md)
 
 
 Vault service provisioning and configuration
