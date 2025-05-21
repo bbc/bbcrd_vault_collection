@@ -1,0 +1,27 @@
+name: Run test suite
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        suite:
+          - test_deployment
+          - test_provisioning
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"  # Latest
+      - name: Install test dependencies
+        run: |
+          sudo apt-get remove -y containerd.io
+          sudo apt-get install -y docker.io
+          pip install -r requirements_test.txt
+      - name: Run the test suite
+        run: |
+          molecule test -s ${{ matrix.suite }}
