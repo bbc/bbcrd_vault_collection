@@ -3,10 +3,10 @@ name: Run test suite
 on: [push]
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: false  # Tests suites are independent
       matrix:
         suite:
           - test_deployment
