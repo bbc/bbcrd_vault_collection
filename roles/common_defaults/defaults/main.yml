@@ -13,8 +13,8 @@ bbcrd_vault_cluster_ansible_group_name: vault
 # Installation-related variables
 ################################################################################
 
-# The version of vault to be installed
-bbcrd_vault_version: "1.17.1"
+# The version of vault to be installed (required)
+#bbcrd_vault_version: "X.Y.Z"
 
 # The name (not path) of the vault server systemd service
 bbcrd_vault_systemd_unit: vault

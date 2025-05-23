@@ -230,6 +230,9 @@ A sample set of variables for configuring this setup is shown below:
     # (trusting haproxy to HTTPS termination).
     # ------------------------------------------------------------------------------
     
+    # The version of Vault to install
+    bbcrd_vault_version: "1.17.1"
+    
     # The public hostname of this host (on the other side of the haproxy HTTPS
     # termination).
     bbcrd_vault_public_url: "https://{{ host_domain }}:8200"

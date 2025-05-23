@@ -43,6 +43,9 @@ From the [`bbcrd.vault.common_defaults`
 role](../roles/common_defaults/defaults/main.yml) inherited by most roles in
 this playbook:
 
+* `bbcrd_vault_version`: The complete version number of the version of Vault to
+  install (as a string like "1.17.1").
+
 * `bbcrd_vault_cluster_ansible_group_name`: This must be set to the name of the
   Ansible group identifying the set of hosts which will make up your Vault
   cluster.
