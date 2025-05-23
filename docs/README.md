@@ -19,7 +19,7 @@ Vault cluster deployment and management
 ---------------------------------------
 
 Vault is an enormously flexible tool and can be deployed in a huge number of
-different ways. This collection delibrately focuses on one particular
+different ways. This collection deliberately focuses on one particular
 architecture based on Vault's raft integrated storage and PGP unseal key
 encryption.
 
@@ -56,7 +56,7 @@ Given the enormous flexibility and breadth of features in Vault, only a subset
 of the possible functions and design patterns are implemented in this
 collection.  Likewise, these implementations may be relatively limited to a
 specific type of application to avoid enormous complexity. In short, you may
-not find everything you need here -- so please feel free to contribute!
+not find everything you need here!
 
 Before diving in, it may be helpful to begin with a discussion of the
 conventions followed by these non-cluster-management related roles and modules:
@@ -81,7 +81,7 @@ collection is defined in the documentation pages below:
 Vault client installation
 -------------------------
 
-Whislt this collection is mostly concerned with setting up Vault servers, a
+Whilst this collection is mostly concerned with setting up Vault servers, a
 subset of the roles can be used to deploy the Vault CLI and associated
 configuration:
 
