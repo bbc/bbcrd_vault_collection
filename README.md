@@ -1,8 +1,9 @@
 `bbcrd.vault` Ansible Collection
 ================================
 
-An Ansible collection for deploying and managing [Hashicorp
-Vault](https://www.vaultproject.io/)/[OpenBao](https://openbao.org/) clusters.
+An Ansible collection developed by BBC Research & Development for deploying and
+managing [Hashicorp Vault](https://www.vaultproject.io/) and
+[OpenBao](https://openbao.org/) clusters.
 
 This collection provides two major facilities:
 

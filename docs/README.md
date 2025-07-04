@@ -1,6 +1,10 @@
 `bbcrd.vault` Ansible collection documentation
 ==============================================
 
+An Ansible collection developed by BBC Research & Development for deploying and
+managing [Hashicorp Vault](https://www.vaultproject.io/) and
+[OpenBao](https://openbao.org/) clusters.
+
 This collection provides two major facilities:
 
 1. Playbooks and roles for deploying and maintaining a high-availability Vault
@@ -13,6 +17,16 @@ This collection provides two major facilities:
 
 This documentation (and indeed the collection itself) is broadly divided
 according to which of these two categories it deals with.
+
+> [!IMPORTANT]
+>
+> Deploying, operating and using centralised secrets management systems such as
+> Vault or OpenBao carries a certain degree of risk. Ultimately you must
+> exercise due care when using this collection (and the software it installs).
+>
+> This collection is unaffiliated with both Hashicorp Vault and OpenBao and is
+> licensed independently. Be sure to understand the license terms of the
+> software you choose to install with this collection.
 
 
 Vault cluster deployment and management
