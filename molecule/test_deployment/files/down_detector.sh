@@ -11,7 +11,7 @@ while sleep 1; do
   rm -rf "$TMPDIR/success" 
   for url in "$@"; do
     (
-      if timeout 1 curl "$url" --fail --silent -o /dev/null; then
+      if timeout 3 curl "$url" --fail --silent -o /dev/null; then
         echo "UP   $url"
         touch "$TMPDIR/success"
       else
