@@ -23,7 +23,7 @@ options:
         required: true
         type: dict
     roles:
-        description:
+        description: |-
             A mapping from role-name to role configuration parameters as
             defined in the vault docs:
             https://developer.hashicorp.com/vault/api-docs/secret/ssh#parameters
@@ -50,13 +50,15 @@ options:
         type: str
         default: "ssh"
     vault_url:
-        description: The base URL of the vault server. Defaults to the contents
-        of the VAULT_ADDR environment variable.
+        description: |-
+          The base URL of the vault server. Defaults to the contents of the
+          VAULT_ADDR environment variable.
         required: false
         type: str
     vault_token:
-        description: Token to use for Vault API calls. Defaults to the contents
-        of the VAULT_TOKEN environment variable.
+        description: |-
+          Token to use for Vault API calls. Defaults to the contents of the
+          VAULT_TOKEN environment variable.
         required: false
         type: str
     vault_ca_path:

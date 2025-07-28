@@ -35,7 +35,7 @@ options:
             As a convenience, if 'metadata' is provided as a dict, not a
             JSON-string, it will be automatically converted as required by the
             API.
-        required:
+        required: false
         type: dict
     mount:
         description: |-
@@ -59,13 +59,15 @@ options:
         type: str
         default: "present"
     vault_url:
-        description: The base URL of the vault server. Defaults to the contents
-        of the VAULT_ADDR environment variable.
+        description: |-
+          The base URL of the vault server. Defaults to the contents of the
+          VAULT_ADDR environment variable.
         required: false
         type: str
     vault_token:
-        description: Token to use for Vault API calls. Defaults to the contents
-        of the VAULT_TOKEN environment variable.
+        description: |-
+          Token to use for Vault API calls. Defaults to the contents of the
+          VAULT_TOKEN environment variable.
         required: false
         type: str
     vault_ca_path:
