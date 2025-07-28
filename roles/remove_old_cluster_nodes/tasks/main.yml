@@ -50,7 +50,7 @@
     - name: Check that removing nodes won't cause the cluster to lose quorum
       when: not bbcrd_vault_allow_loss_of_quorum_on_cluster_node_removal
       assert:
-        that: "{{ (healthy_to_keep | length) > (unhealthy_to_keep | length) }}"
+        that: "(healthy_to_keep | length) > (unhealthy_to_keep | length)"
         fail_msg: >-
           After removing old nodes, the ratio of healthy to unhealthy nodes
           will become {{ healthy_to_keep | length }}:{{ unhealthy_to_keep | length }}

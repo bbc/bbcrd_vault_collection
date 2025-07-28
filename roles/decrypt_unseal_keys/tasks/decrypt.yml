@@ -25,7 +25,7 @@
 - name: Check we can use at least one unseal key
   run_once: true
   assert:
-    that: "{{ decryptable_unseal_keys | length >= 1 }}"
+    that: "decryptable_unseal_keys | length >= 1"
     fail_msg: "No unseal keys can be decrypted."
     quiet: true
 
