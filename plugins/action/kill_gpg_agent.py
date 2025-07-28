@@ -2,7 +2,7 @@ from ansible.plugins.action import ActionBase
 from ansible.errors import AnsibleError
 
 from ansible_collections.bbcrd.vault.plugins.module_utils.pgp import (
-    in_specified_gnupg_home
+    in_specified_gnupg_home,
     kill_gpg_agent,
 )
 
