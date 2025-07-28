@@ -3,5 +3,5 @@
 - name: Install CA bundle
   include_tasks: install_ca_bundle.yml
   when:
-    - bbcrd_vault_ca_certificate_bundle
+    - bbcrd_vault_ca_certificate_bundle is not none
     - bbcrd_vault_ca_path | default(False)

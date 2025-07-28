@@ -19,6 +19,7 @@
       | selectattr("vault_sealed", "defined")
       | selectattr("vault_sealed", "true")
       | length
+    > 0
   block:
     # Before unsealing a sealed host, we always restart it since its configuration
     # or binary *could* have changed. There are two reasons for doing this right

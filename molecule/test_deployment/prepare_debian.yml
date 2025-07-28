@@ -4,7 +4,7 @@
     regexp: '^Acquire::{{ item | regex_escape }}::Proxy .*'
     line: 'Acquire::{{ item | regex_escape }}::Proxy "{{ ansible_env[item ~ "_proxy"] }}";'
     create: true
-  when: 'ansible_env[item ~ "_proxy"] | default("")'
+  when: 'ansible_env[item ~ "_proxy"] | default("") != ""'
   loop:
     - http
     - https

@@ -5,4 +5,4 @@
     insertafter: '^\[main\]$'
     line: 'proxy={{ ansible_env["http_proxy"] }}'
     create: true
-  when: 'ansible_env["http_proxy"] | default("")'
+  when: 'ansible_env["http_proxy"] | default("") != ""'

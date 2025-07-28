@@ -80,7 +80,7 @@
   failed_when: >-
     status.status != 200
     or (nonce is not none and status.json.nonce != nonce)
-  loop: "{{ range((remaining | int) - 1) }}"
+  loop: "{{ range((remaining | int) - 1) | list }}"
   loop_control:
     label: "Received {{ item + 1 }} of {{ (remaining | int) - 1 }}"
   register: status
