@@ -46,3 +46,5 @@ cluster_addr = "{{ bbcrd_vault_clustering_url }}"
 disable_mlock = true
 
 ui = {{ "true" if bbcrd_vault_enable_ui else "false" }}
+
+{{ bbcrd_vault_server_extra_config | default("") }}

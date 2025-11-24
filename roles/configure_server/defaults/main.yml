@@ -68,3 +68,10 @@ bbcrd_vault_x_forwarded_for_authorized_addrs: null
 ################################################################################
 
 bbcrd_vault_enable_ui: true
+
+################################################################################
+# Extra config
+################################################################################
+
+# Arbitrary extra configuration file content
+bbcrd_vault_server_extra_config: ""
