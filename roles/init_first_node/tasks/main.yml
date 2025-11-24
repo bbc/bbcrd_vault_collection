@@ -6,7 +6,7 @@
 
 - name: Ensure Vault servers are started
   systemd:
-    name: vault
+    name: "{{ bbcrd_vault_systemd_unit }}"
     state: started
 
 # NB: We retry with a generous delay here in case we're accessing Vault via

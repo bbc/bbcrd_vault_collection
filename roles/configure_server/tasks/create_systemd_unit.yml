@@ -29,7 +29,7 @@
 
 - name: Enable Vault systemd service
   systemd:
-    name: vault
+    name: "{{ bbcrd_vault_systemd_unit }}"
     daemon_reload: true
     enabled: yes
 
