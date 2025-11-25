@@ -66,6 +66,6 @@
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
       loop: "{{ bbcrd_vault_ssh_client_signer_roles | dict2items }}"
-      when: "item.value.policy | default(False)"
+      when: "(item.value.policy | default(None)) is not none"
       loop_control:
         label: "{{ item.key }}"
