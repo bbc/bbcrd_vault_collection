@@ -168,16 +168,15 @@ provisioner:
   env:
     # Run in an custom ephemeral GnuPG environment
     GNUPGHOME: $MOLECULE_EPHEMERAL_DIRECTORY/gnupghome
+    
+    # Don't accidentally use any ambient Vault environment variables
+    VAULT_ADDR: ""
+    VAULT_CACERT: ""
+    VAULT_TOKEN: ""
   
   config_options:
     connection:
       pipelining: true
-  
-  # Don't accidentally use any ambient Vault environment variables
-  env:
-    VAULT_ADDR: ""
-    VAULT_CACERT: ""
-    VAULT_TOKEN: ""
   
   inventory:
     group_vars:
