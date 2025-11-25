@@ -173,6 +173,12 @@ provisioner:
     connection:
       pipelining: true
   
+  # Don't accidentally use any ambient Vault environment variables
+  env:
+    VAULT_ADDR: ""
+    VAULT_CACERT: ""
+    VAULT_TOKEN: ""
+  
   inventory:
     group_vars:
       vault_all:
