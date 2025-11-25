@@ -100,7 +100,7 @@ subset of the roles can be used to deploy the Vault CLI and associated
 configuration:
 
 * [Installing the Vault Client](./vault_client.md)
-
+* [Vault Token Helper](./token_helper.md)
 
 
 Collection Test Suite
