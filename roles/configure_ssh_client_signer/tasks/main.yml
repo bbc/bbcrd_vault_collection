@@ -32,20 +32,21 @@
             {%- for name, options in bbcrd_vault_ssh_client_signer_roles.items() -%}
             {%-     set options = bbcrd_vault_configure_ssh_client_signer_default_role_options | combine(options) -%}
             {%-
-                    set _ = roles.__setitem__(
-                        name,
+                    set _ = roles.update(
                         {
-                            "key_type": "ca",
-                            "allow_user_certificates": True,
-                            "algorithm_signer": options["algorithm"],
-                            "default_user": options["users"] | join(","),
-                            "allowed_users": options["users"] | join(","),
-                            "default_extensions": (
-                                options["extensions"]
-                                | bbcrd.vault.vault_ssh_allowed_extensions_dict
-                            ),
-                            "ttl": options["ttl"],
-                            "max_ttl": options["ttl"],
+                            name: {
+                                "key_type": "ca",
+                                "allow_user_certificates": True,
+                                "algorithm_signer": options["algorithm"],
+                                "default_user": options["users"] | join(","),
+                                "allowed_users": options["users"] | join(","),
+                                "default_extensions": (
+                                    options["extensions"]
+                                    | bbcrd.vault.vault_ssh_allowed_extensions_dict
+                                ),
+                                "ttl": options["ttl"],
+                                "max_ttl": options["ttl"],
+                            }
                         }
                     )
             -%}
