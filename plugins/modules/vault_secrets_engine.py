@@ -52,6 +52,12 @@ options:
           via envrionment variables.
         required: false
         type: str
+    vault_namespace:
+        description: |-
+          The vault namespace to issue the command to. Overrides any namespace
+          configured via envrionment variables.
+        required: false
+        type: str
     vault_token:
         description: |-
           Token to use for Vault API calls. Overrides tokens configured in the

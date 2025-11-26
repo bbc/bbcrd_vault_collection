@@ -7,6 +7,9 @@
 # The Vault server URL.
 bbcrd_vault_public_url: "{{ lookup('env', 'VAULT_ADDR', default='https://localhost:8200') }}"
 
+# The namespace to execute commands in. Defaults to the root namespace.
+bbcrd_vault_namespace: ""
+
 # The Vault binary name (used for default value of bbcrd_vault_token only)
 bbcrd_vault_binary: vault
 

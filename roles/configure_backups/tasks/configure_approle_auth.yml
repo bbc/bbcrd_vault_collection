@@ -11,6 +11,7 @@
         type: approle
         mount: "{{ bbcrd_vault_backup_approle_mount }}"
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
     
@@ -22,6 +23,7 @@
             capabilities = ["read"]
           }
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
@@ -36,6 +38,7 @@
             | items2dict
           }}
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
       vars:
@@ -70,6 +73,7 @@
         mount: "{{ bbcrd_vault_backup_approle_mount }}"
         approle_name: "{{ inventory_hostname }}"
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
       register: backup_approle_secret

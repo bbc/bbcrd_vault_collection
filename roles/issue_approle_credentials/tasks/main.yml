@@ -7,6 +7,7 @@
     url: "{{ bbcrd_vault_public_url }}/v1/auth/{{ bbcrd_vault_approle_mount }}/role/{{ inventory_hostname }}/role-id"
     headers:
       X-Vault-Token: "{{ bbcrd_vault_token }}"
+      X-Vault-Namespace: "{{ bbcrd_vault_namespace }}"
     ca_path: "{{ bbcrd_vault_ca_path | default(omit, True) }}"
   register: get_approle_id
 
@@ -42,6 +43,7 @@
           secret_id_accessor: "{{ current_credentials.secret_id_accessor }}"
         headers:
           X-Vault-Token: "{{ bbcrd_vault_token }}"
+          X-Vault-Namespace: "{{ bbcrd_vault_namespace }}"
         ca_path: "{{ bbcrd_vault_ca_path | default(omit, True) }}"
         status_code: [200, 204, 404]
       register: secret_id_lookup
@@ -61,6 +63,7 @@
         approle_name: "{{ inventory_hostname }}"
         state: singular  # Delete any previously existing secrets
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit, True) }}"
       register: secret_id

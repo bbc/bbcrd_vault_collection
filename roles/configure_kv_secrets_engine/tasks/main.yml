@@ -7,6 +7,7 @@
         options:
           version: "{{ bbcrd_vault_kv_version | string }}"
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
@@ -18,6 +19,7 @@
             capabilities = ["create", "read", "update", "delete", "list"]
           }
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
@@ -29,5 +31,6 @@
             capabilities = ["read", "list"]
           }
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"

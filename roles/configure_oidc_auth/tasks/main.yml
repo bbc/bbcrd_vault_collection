@@ -6,6 +6,7 @@
         type: oidc
         mount: "{{ bbcrd_vault_oidc_mount }}"
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
@@ -20,6 +21,7 @@
         state: "{{ 'updated' if bbcrd_vault_oidc_force_update else 'present' }}"
         mount: "{{ bbcrd_vault_oidc_mount }}"
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
@@ -34,6 +36,7 @@
             oidc_scopes: "{{ bbcrd_vault_oidc_extra_scopes }}"
         mount: "{{ bbcrd_vault_oidc_mount }}"
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
@@ -42,5 +45,6 @@
         mount: "{{ bbcrd_vault_oidc_mount }}"
         entity_aliases: "{{ bbcrd_vault_oidc_user_claim_to_entity_name_mapping }}"
         vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "{{ bbcrd_vault_namespace }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"

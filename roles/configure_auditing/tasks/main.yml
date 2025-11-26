@@ -8,6 +8,7 @@
     options: "{{ bbcrd_vault_audit_options }}"
     description: "{{ bbcrd_vault_audit_description }}"
     vault_url: "{{ bbcrd_vault_public_url }}"
+    vault_namespace: "{{ bbcrd_vault_namespace }}"
     vault_token: "{{ bbcrd_vault_root_token }}"
     vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
@@ -20,5 +21,6 @@
         capabilities = ["create", "update"]
       }
     vault_url: "{{ bbcrd_vault_public_url }}"
+    vault_namespace: "{{ bbcrd_vault_namespace }}"
     vault_token: "{{ bbcrd_vault_root_token }}"
     vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"

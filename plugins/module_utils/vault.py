@@ -110,6 +110,7 @@ def get_vault_api_request_argument_spec() -> dict:
     """
     return dict(
         vault_url=dict(type="str", required=False),
+        vault_namespace=dict(type="str", required=False),
         vault_token=dict(type="str", required=False),
         vault_ca_path=dict(type="str", required=False),
         vault_implementation=dict(type="str", required=False, default="vault"),
@@ -146,6 +147,13 @@ def vault_api_request(
             "ADDR", vault_implementation, "https://localhost:8200"
         )
 
+    if "vault_namespace" in module.params:
+        vault_namespace = module.params["vault_namespace"]
+    else:
+        vault_namespace = get_token_from_environment(
+            "NAMESPACE", vault_implementation
+        )
+
     if "vault_token" in module.params:
         vault_token = module.params["vault_token"]
     else:
@@ -160,6 +168,8 @@ def vault_api_request(
         vault_ca_path = get_token_from_environment("CACERT", vault_implementation)
 
     headers = {"X-Vault-Token": vault_token}
+    if vault_namespace:
+        headers["X-Vault-Namespace"] = vault_namespace
 
     if data is not None:
         data = json.dumps(data)
