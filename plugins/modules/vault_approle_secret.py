@@ -60,24 +60,30 @@ options:
         default: "present"
     vault_url:
         description: |-
-          The base URL of the vault server. Defaults to the contents of the
-          VAULT_ADDR environment variable.
+          The base URL of the vault server. Overrides any address configured
+          via envrionment variables.
         required: false
         type: str
     vault_token:
         description: |-
-          Token to use for Vault API calls. Defaults to the contents of the
-          VAULT_TOKEN environment variable.
+          Token to use for Vault API calls. Overrides tokens configured in the
+          environment, token helpers or .vault-token file.
         required: false
         type: str
     vault_ca_path:
         description: |-
-            The filename of the CA PEM file to use. Leave blank to use the
-            built in certificate store. Defaults to the the VAULT_CACERT
-            environment variable.
+            The filename of the CA PEM file to use. Set to null to use the
+            built in certificate store. Overrides any CA path configured in the
+            environment.
         required: false
         type: str
         default: null
+    vault_implementation:
+        description: |-
+          The name of the Vault implementation whose conventions for default
+          values of 'vault_url', 'vault_token' and 'vault_ca_path' will be
+          used. Defaults to 'vault'. E.g. for OpenBao specify 'bao' to try
+          'BAO_*' variables before 'VAULT_*'.
 """
 
 RETURN = r"""
