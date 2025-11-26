@@ -7,8 +7,11 @@
 # The Vault server URL.
 bbcrd_vault_public_url: "{{ lookup('env', 'VAULT_ADDR', default='https://localhost:8200') }}"
 
+# The Vault binary name (used for default value of bbcrd_vault_token only)
+bbcrd_vault_binary: vault
+
 # The Vault token to use.
-bbcrd_vault_token: "{{ lookup('pipe', 'vault print token') }}"
+bbcrd_vault_token: "{{ lookup('pipe', bbcrd_vault_binary ~ ' print token') }}"
 
 # The location of a PEM file from which to read the CA to trust when
 # connecting to the Vault server.
