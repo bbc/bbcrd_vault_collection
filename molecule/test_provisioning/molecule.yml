@@ -82,7 +82,21 @@ provisioner:
         bbcrd_vault_public_url: "http://vault:8200"
       
       vault:
-        bbcrd_vault_version: "1.17.1"
+        # Install OpenBao (not Hashicorp Vault) to include namespace support
+        bbcrd_vault_binary: bao
+        bbcrd_vault_version: "2.4.3"
+        bbcrd_vault_download_url: "https://github.com/openbao/openbao/releases/download/v{{ bbcrd_vault_version }}/bao_{{ bbcrd_vault_version }}_Linux_{{ bbcrd_vault_architecture_name }}.tar.gz"
+        bbcrd_vault_required_packages: []
+        bbcrd_vault_architecture_name: |-
+          {{
+            "x86_64" if ansible_architecture == "x86_64" else
+            "arm64" if ansible_architecture == "aarch64" else
+            ansible_architecture
+          }}
+        
+        bbcrd_vault_server_extra_config: |-
+          # Required to test audit device creation
+          unsafe_allow_api_audit_creation=true
         
         # No real secrets in the test suite!
         bbcrd_vault_no_log_sensitive: false

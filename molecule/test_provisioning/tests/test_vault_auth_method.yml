@@ -15,8 +15,8 @@
     
     - name: Create auth method
       bbcrd.vault.vault_auth_method:
-        type: github
-        mount: my_github
+        type: approle
+        mount: my_auth
         vault_url: "{{ bbcrd_vault_public_url }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
@@ -31,14 +31,14 @@
       register: initial_method
       failed_when: |-
         not (
-            "my_github/" in initial_method.json.data and
-            initial_method.json.data["my_github/"]["type"] == "github"
+            "my_auth/" in initial_method.json.data and
+            initial_method.json.data["my_auth/"]["type"] == "approle"
         )
     
     - name: No change if left same
       bbcrd.vault.vault_auth_method:
-        type: github
-        mount: my_github
+        type: approle
+        mount: my_auth
         vault_url: "{{ bbcrd_vault_public_url }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
       register: result
@@ -46,8 +46,8 @@
     
     - name: Make non-destructive change
       bbcrd.vault.vault_auth_method:
-        type: github
-        mount: my_github
+        type: approle
+        mount: my_auth
         description: "Newly added description!"
         vault_url: "{{ bbcrd_vault_public_url }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
@@ -62,13 +62,13 @@
           X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: updated_method
       failed_when: |-
-        updated_method.json.data["my_github/"]["description"] != "Newly added description!"
-        or updated_method.json.data["my_github/"]["accessor"] != initial_method.json.data["my_github/"]["accessor"]
+        updated_method.json.data["my_auth/"]["description"] != "Newly added description!"
+        or updated_method.json.data["my_auth/"]["accessor"] != initial_method.json.data["my_auth/"]["accessor"]
     
     - name: Make destructive change
       bbcrd.vault.vault_auth_method:
         type: userpass
-        mount: my_github
+        mount: my_auth
         description: "Newly added description!"
         vault_url: "{{ bbcrd_vault_public_url }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
@@ -83,11 +83,11 @@
           X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: updated_method
       failed_when: |-
-        updated_method.json.data["my_github/"]["accessor"] == initial_method.json.data["my_github/"]["accessor"]
+        updated_method.json.data["my_auth/"]["accessor"] == initial_method.json.data["my_auth/"]["accessor"]
     
     - name: Delete
       bbcrd.vault.vault_auth_method:
-        mount: my_github
+        mount: my_auth
         state: absent
         vault_url: "{{ bbcrd_vault_public_url }}"
         vault_token: "{{ bbcrd_vault_root_token }}"
@@ -101,7 +101,7 @@
         headers:
           X-Vault-Token: "{{ bbcrd_vault_root_token }}"
       register: auth_methods
-      failed_when: '"my_github/" in auth_methods.json.data'
+      failed_when: '"my_auth/" in auth_methods.json.data'
     
     - name: Check auto-fill mount
       bbcrd.vault.vault_auth_method:
