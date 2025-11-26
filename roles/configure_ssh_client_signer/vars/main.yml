@@ -3,5 +3,6 @@
 bbcrd_vault_configure_ssh_client_signer_default_role_options:
   ttl: "{{ bbcrd_vault_ssh_client_signer_ttl }}"
   users: "{{ bbcrd_vault_ssh_client_signer_users }}"
+  users_template: "{{ bbcrd_vault_ssh_client_signer_users_template }}"
   extensions: "{{ bbcrd_vault_ssh_client_signer_extensions }}"
   algorithm: "{{ bbcrd_vault_ssh_client_signer_algorithm }}"

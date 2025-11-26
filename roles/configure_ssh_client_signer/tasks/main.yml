@@ -40,6 +40,8 @@
                                 "algorithm_signer": options["algorithm"],
                                 "default_user": options["users"] | join(","),
                                 "allowed_users": options["users"] | join(","),
+                                "default_user_template": options["users_template"],
+                                "allowed_users_template": options["users_template"],
                                 "default_extensions": (
                                     options["extensions"]
                                     | bbcrd.vault.vault_ssh_allowed_extensions_dict

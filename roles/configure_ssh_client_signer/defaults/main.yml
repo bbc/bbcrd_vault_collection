@@ -52,6 +52,9 @@ bbcrd_vault_ssh_client_signer_replace_key: false
 #          bbcrd_vault_ssh_client_signer_ttl if omitted.
 # * users -- A list of users (principals) to permit. Defaults to
 #            bbcrd_vault_ssh_client_signer_users if omitted.
+# * users_template -- If True, enables Vault template expansion of user names.
+#                     Defaults to bbcrd_vault_ssh_client_signer_users_template
+#                     if omitted.
 # * extensions -- A list of SSH extensions to permit. Defaults to
 #                 bbcrd_vault_ssh_client_signer_extensions if omitted.
 # * algorithm -- The algorithm to use for signing public keys. Defaults to
@@ -93,6 +96,9 @@ bbcrd_vault_ssh_client_signer_ttl: 43200  # 12h
 # bbcrd_vault_ssh_client_signer_roles which don't specify 'users'.
 bbcrd_vault_ssh_client_signer_users:
   - root
+
+# If true, allows Vault will expand templates in user (principal) names.
+bbcrd_vault_ssh_client_signer_users_template: false
 
 # Default extensions to permit for roles in
 # bbcrd_vault_ssh_client_signer_roles which don't specify 'extensions'.
