@@ -150,9 +150,7 @@ def vault_api_request(
     if "vault_namespace" in module.params:
         vault_namespace = module.params["vault_namespace"]
     else:
-        vault_namespace = get_token_from_environment(
-            "NAMESPACE", vault_implementation
-        )
+        vault_namespace = get_token_from_environment("NAMESPACE", vault_implementation)
 
     if "vault_token" in module.params:
         vault_token = module.params["vault_token"]
@@ -173,7 +171,10 @@ def vault_api_request(
 
     if data is not None:
         data = json.dumps(data)
-        headers["Content-Type"] = "application/json"
+        if method != "PATCH":
+            headers["Content-Type"] = "application/json"
+        else:
+            headers["Content-Type"] = "application/merge-patch+json"
 
     response, info = fetch_url(
         module,

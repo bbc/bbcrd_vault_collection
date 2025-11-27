@@ -1,0 +1,149 @@
+---
+
+- hosts: vault
+  tasks:
+    - import_tasks: ../load_credentials_and_reset_vault.yml
+    
+    - name: Delete nothing
+      bbcrd.vault.vault_namespace:
+        name: foo
+        state: absent
+      register: result
+      failed_when: result.changed
+    
+    - name: Create namespace
+      bbcrd.vault.vault_namespace:
+        name: foo
+        custom_metadata:
+          foo: bar
+          baz: boz
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check created as expected
+      uri:
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/namespaces"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+      register: namespaces
+      failed_when: |-
+        not (
+            namespaces.json.data["keys"]|sort == ["foo/"]|sort and
+            namespaces.json.data.key_info["foo/"].custom_metadata == {"foo": "bar", "baz": "boz"}
+        )
+    
+    - name: Create child namespace
+      bbcrd.vault.vault_namespace:
+        name: child
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: "foo"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check child namespace now exists
+      uri:
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/namespaces"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+          X-Vault-Namespace: "foo"
+      register: namespaces
+      failed_when: namespaces.json.data["keys"]|sort != ["child/"]|sort
+    
+    - name: Check no new top-level namespaces created
+      uri:
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/namespaces"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+      register: namespaces
+      failed_when: namespaces.json.data["keys"]|sort != ["foo/"]|sort
+    
+    - name: No change if top namespace left same
+      bbcrd.vault.vault_namespace:
+        name: foo
+        custom_metadata:
+          foo: bar
+          baz: boz
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+      register: result
+      failed_when: result.changed
+    
+    - name: Make non-destructive change to top namespace
+      bbcrd.vault.vault_namespace:
+        name: foo
+        custom_metadata:
+          baz: boz
+          qux: qak
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check change applied
+      uri:
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/namespaces"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+      register: namespaces
+      failed_when: |-
+        not (
+            namespaces.json.data["keys"]|sort == ["foo/"]|sort and
+            namespaces.json.data.key_info["foo/"].custom_metadata == {"baz": "boz", "qux": "qak"}
+        )
+    
+    - name: Check child namespace wasn't deleted
+      uri:
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/namespaces"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+          X-Vault-Namespace: "foo"
+      register: namespaces
+      failed_when: namespaces.json.data["keys"]|sort != ["child/"]|sort
+    
+    - name: Delete child namespace
+      bbcrd.vault.vault_namespace:
+        name: child
+        state: absent
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_namespace: foo
+        vault_token: "{{ bbcrd_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check deleted
+      uri:
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/namespaces"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+          X-Vault-Namespace: foo
+      register: namespaces
+      # Listing namespaces when non are configured gives a 404
+      failed_when: "namespaces.status != 404"
+    
+    - name: Delete top namespace
+      bbcrd.vault.vault_namespace:
+        name: foo
+        state: absent
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+      register: result
+      failed_when: not result.changed
+    
+    - name: Check deleted
+      uri:
+        url: "{{ bbcrd_vault_public_url }}/v1/sys/namespaces"
+        method: LIST
+        headers:
+          X-Vault-Token: "{{ bbcrd_vault_root_token }}"
+      register: namespaces
+      # Listing namespaces when non are configured gives a 404
+      failed_when: "namespaces.status != 404"
