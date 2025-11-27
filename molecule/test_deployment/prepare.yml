@@ -60,7 +60,7 @@
   hosts: all
   tasks:
     - name: Setup distribution-specific dependencies
-      include_tasks: "prepare_{{ ansible_os_family | lower }}.yml"
+      include_tasks: "prepare_{{ ansible_facts.os_family | lower }}.yml"
     
     - name: Install down_detector.sh script
       copy:

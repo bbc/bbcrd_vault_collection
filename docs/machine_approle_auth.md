@@ -143,16 +143,16 @@ bbcrd_vault_approle:
     # normalised by Vault to not include the `/32` whilst secret_id_bound_cidrs
     # isn't. To avoid spurious change reports, we must match Vault's
     # normalisation...
-    secret_id_bound_cidrs: ["{{ ansible_default_ipv4 }}/32"]
-    token_bound_cidrs: ["{{ ansible_default_ipv4 }}"]
+    secret_id_bound_cidrs: ["{{ ansible_facts.default_ipv4 }}/32"]
+    token_bound_cidrs: ["{{ ansible_facts.default_ipv4 }}"]
 ```
 
 ```
 # In the backup_group group vars:
 bbcrd_vault_approle:
   backup_auth:
-    secret_id_bound_cidrs: ["{{ ansible_default_ipv4 }}/32"]
-    token_bound_cidrs: ["{{ ansible_default_ipv4 }}"]
+    secret_id_bound_cidrs: ["{{ ansible_facts.default_ipv4 }}/32"]
+    token_bound_cidrs: ["{{ ansible_facts.default_ipv4 }}"]
 ```
 
 
@@ -176,7 +176,7 @@ restrict the use of the AppRole and the generated tokens to only the IP address
 of that server. (Note that you must have gathered facts on these servers for
 this specific example to work!)
 
-> **Warning:** The `ansible_default_ipv4` fact used in this exampmle doesn't
+> **Warning:** The `ansible_facts.default_ipv4` fact used in this exampmle doesn't
 > always contain what you think it might -- and if you're using dynamic
 > addressing this approach won't work for you at all! In a real implementation
 > you might choose a variable which you've used to define the hosts' static IP

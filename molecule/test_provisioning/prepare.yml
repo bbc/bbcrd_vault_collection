@@ -12,9 +12,9 @@
       lineinfile:
         path: "/etc/apt/apt.conf.d/50_proxy"
         regexp: '^Acquire::{{ item | regex_escape }}::Proxy .*'
-        line: 'Acquire::{{ item | regex_escape }}::Proxy "{{ ansible_env[item ~ "_proxy"] }}";'
+        line: 'Acquire::{{ item | regex_escape }}::Proxy "{{ ansible_facts["env"][item ~ "_proxy"] }}";'
         create: true
-      when: 'ansible_env[item ~ "_proxy"] | default("") != ""'
+      when: 'ansible_facts["env"][item ~ "_proxy"] | default("") != ""'
       loop:
         - http
         - https

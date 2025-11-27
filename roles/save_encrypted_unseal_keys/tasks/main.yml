@@ -4,7 +4,7 @@
   run_once: true
   set_fact:
     unseal_key_bundle:
-      timestamp: "{{ ansible_date_time.iso8601 }}"
+      timestamp: "{{ ansible_facts.date_time.iso8601 }}"
       shares: |-
         {{
           (unseal_key_shares | map(attribute="user")) | zip(
