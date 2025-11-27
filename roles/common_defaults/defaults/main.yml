@@ -16,6 +16,12 @@ bbcrd_vault_cluster_ansible_group_name: vault
 # The version of vault to be installed (required)
 #bbcrd_vault_version: "X.Y.Z"
 
+# The command to run vault. (e.g. 'bao' for OpenBao)
+bbcrd_vault_binary: vault
+
+# Install dir for vault binary
+bbcrd_vault_install_dir: /usr/local/bin
+
 # The name (not path) of the vault server systemd service
 bbcrd_vault_systemd_unit: vault
 

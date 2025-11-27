@@ -4,12 +4,6 @@
 bbcrd_vault_required_packages:
   - unzip  # To support extracting downloaded binary
 
-# The command to run vault. (e.g. 'bao' for OpenBao)
-bbcrd_vault_binary: vault
-
-# Install dir for vault binary
-bbcrd_vault_install_dir: /usr/local/bin
-
 # Architecture name to use (as used in download URL)
 bbcrd_vault_architecture_name: |-
   {{
