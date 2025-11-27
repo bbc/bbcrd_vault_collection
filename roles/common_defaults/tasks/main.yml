@@ -1,1 +1,5 @@
 ---
+
+- name: Load implementation-specific defaults
+  include_vars:
+    file: "implementations/{{ bbcrd_vault_implementation }}.yml"

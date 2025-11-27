@@ -1,0 +1,13 @@
+---
+# Variables defining OpenBao specific values used in defaults
+
+_bbcrd_vault_binary: bao
+
+_bbcrd_vault_systemd_unit: bao
+
+_bbcrd_vault_user: bao
+_bbcrd_vault_group: bao
+
+_bbcrd_vault_config_dir: /etc/bao
+
+_bbcrd_vault_data_dir: /var/lib/bao

@@ -36,7 +36,7 @@
 
     - name: Start vault
       systemd:
-        name: vault
+        name: bao
         state: started
 
     - name: Check if vault is initialised

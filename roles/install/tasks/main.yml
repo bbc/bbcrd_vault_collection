@@ -1,6 +1,10 @@
 ---
 # Install the Vault binary
 
+- name: Load implementation-specific defaults
+  include_vars:
+    file: "implementations/{{ bbcrd_vault_implementation }}.yml"
+
 - name: Install system package dependencies for Vault
   package:
     name: "{{ bbcrd_vault_required_packages }}"

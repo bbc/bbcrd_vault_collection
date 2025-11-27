@@ -1,19 +1,13 @@
 ---
 
 # Extra distribution packages required alongside vault
-bbcrd_vault_required_packages:
-  - unzip  # To support extracting downloaded binary
+bbcrd_vault_required_packages: "{{ _bbcrd_vault_required_packages }}"
 
 # Architecture name to use (as used in download URL)
-bbcrd_vault_architecture_name: |-
-  {{
-    "amd64" if ansible_architecture == "x86_64" else
-    "arm64" if ansible_architecture == "aarch64" else
-    ansible_architecture
-  }}
+bbcrd_vault_architecture_name: "{{ _bbcrd_vault_architecture_name }}"
 
 # Vault ZIP download URL
-bbcrd_vault_download_url: "https://releases.hashicorp.com/vault/{{ bbcrd_vault_version }}/vault_{{ bbcrd_vault_version }}_linux_{{ bbcrd_vault_architecture_name }}.zip"
+bbcrd_vault_download_url: "{{ _bbcrd_vault_download_url }}"
 
 # Force re-download and reinstall of Vault binary
 bbcrd_vault_force_reinstall: false

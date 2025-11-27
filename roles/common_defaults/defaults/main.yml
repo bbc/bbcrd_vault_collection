@@ -13,21 +13,27 @@ bbcrd_vault_cluster_ansible_group_name: vault
 # Installation-related variables
 ################################################################################
 
+# The implemntation of Vault to use. Valid values are 'vault' (Hashicorp Vault)
+# or 'bao' (OpenBao).  This option controls the default values loaded by roles
+# (e.g. to change binary names or download locations) but doesn't otherwise
+# change their behaviour.
+bbcrd_vault_implementation: vault
+
 # The version of vault to be installed (required)
 #bbcrd_vault_version: "X.Y.Z"
 
-# The command to run vault. (e.g. 'bao' for OpenBao)
-bbcrd_vault_binary: vault
+# The command to run vault. (e.g. 'vault' for Hashicorp Vault or 'bao' for OpenBao)
+bbcrd_vault_binary: "{{ _bbcrd_vault_binary }}"
 
 # Install dir for vault binary
 bbcrd_vault_install_dir: /usr/local/bin
 
 # The name (not path) of the vault server systemd service
-bbcrd_vault_systemd_unit: vault
+bbcrd_vault_systemd_unit: "{{ _bbcrd_vault_systemd_unit }}"
 
 # User and group to run the vault service as
-bbcrd_vault_user: "vault"
-bbcrd_vault_group: "vault"
+bbcrd_vault_user: "{{ _bbcrd_vault_user }}"
+bbcrd_vault_group: "{{ _bbcrd_vault_group }}"
 
 
 ################################################################################
@@ -41,13 +47,13 @@ bbcrd_vault_group: "vault"
 # * encrypted_unseal_keys.json -- PGP encrypted unseal keys
 # * encrypted_unseal_keys.json.candidate -- Candidate PGP encrypted unseal
 #   keys, subject to verification during rekeying.
-bbcrd_vault_config_dir: "/etc/vault"
+bbcrd_vault_config_dir: "{{ _bbcrd_vault_config_dir }}"
 
 # Location of the Vault server data directory
 #
 # Within this directory, the following are used
 # * data/ -- The on-disk Raft storage location
-bbcrd_vault_data_dir: "/var/lib/vault"
+bbcrd_vault_data_dir: "{{ _bbcrd_vault_data_dir }}"
 
 # The base URL the server's API is reachable from publicly.
 #

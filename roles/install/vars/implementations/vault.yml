@@ -1,0 +1,14 @@
+---
+# Variables defining Hashicorp Vault specific values used in defaults
+
+_bbcrd_vault_required_packages:
+  - unzip  # Vault is Distributed in zip files
+
+_bbcrd_vault_architecture_name: |-
+  {{
+    "amd64" if ansible_facts["architecture"] == "x86_64" else
+    "arm64" if ansible_facts["architecture"] == "aarch64" else
+    ansible_facts["architecture"]
+  }}
+
+_bbcrd_vault_download_url: "https://releases.hashicorp.com/vault/{{ bbcrd_vault_version }}/vault_{{ bbcrd_vault_version }}_linux_{{ bbcrd_vault_architecture_name }}.zip"
