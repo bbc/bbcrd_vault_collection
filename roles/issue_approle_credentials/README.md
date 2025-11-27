@@ -8,7 +8,7 @@ responsible for configuring the AppRole auth endpoint and roles.
 
 This role should be run against the host on which the credentials are to be
 written. By default, Vault commands will be issued from the Ansible control
-node using your current Vault credentials.
+node using Vault credentials found in the environment.
 
 Once a credentials file has been created, you could use the
 `utils/vault_auth.py` utility script to authenticate with Vault like so:

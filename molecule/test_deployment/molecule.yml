@@ -169,10 +169,13 @@ provisioner:
     # Run in an custom ephemeral GnuPG environment
     GNUPGHOME: $MOLECULE_EPHEMERAL_DIRECTORY/gnupghome
     
-    # Don't accidentally use any ambient Vault environment variables
-    VAULT_ADDR: ""
-    VAULT_CACERT: ""
-    VAULT_TOKEN: ""
+    # Deliberately set 'decoy' Vault environment variables to ensure they're
+    # not picked up inadvertently
+    VAULT_ADDR: "https://fail-vault.example.com:8200"
+    VAULT_TOKEN: "vault-fail"
+    VAULT_CACERT: "/dev/null"
+    BAO_ADDR: "https://fail-bao.example.com:8200"
+    BAO_TOKEN: "bao-fail"
   
   config_options:
     connection:
@@ -195,6 +198,8 @@ provisioner:
         bbcrd_vault_listen_protocol: http
         
         bbcrd_vault_public_url: "http://{{ ansible_host | default(inventory_hostname) }}:8200"
+        bbcrd_vault_ca_path: null
+        bbcrd_vault_namespace: ""
         
         bbcrd_vault_unseal_key_threshold: 2
         

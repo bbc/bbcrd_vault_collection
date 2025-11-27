@@ -4,24 +4,25 @@
 # Vault API related config
 ################################################################################
 
+# The Vault implementation name (e.g. 'vault' or 'bao'). Used to control which
+# environment variables are used for Vault settings.
+bbcrd_vault_implementation: vault
+
 # The Vault server URL.
-bbcrd_vault_public_url: "{{ lookup('env', 'VAULT_ADDR', default='https://localhost:8200') }}"
+bbcrd_vault_public_url: "{{ query('bbcrd.vault.env', 'ADDR', bbcrd_vault_implementation, 'https://localhost:8200')[0] }}"
 
 # The namespace to execute commands in. Defaults to the root namespace.
 bbcrd_vault_namespace: ""
 
-# The Vault binary name (used for default value of bbcrd_vault_token only)
-bbcrd_vault_binary: vault
-
 # The Vault token to use.
-bbcrd_vault_token: "{{ lookup('pipe', bbcrd_vault_binary ~ ' print token') }}"
+bbcrd_vault_token: "{{ query('bbcrd.vault.token', bbcrd_vault_implementation, bbcrd_vault_public_url)[0] }}"
 
 # The location of a PEM file from which to read the CA to trust when
 # connecting to the Vault server.
 #
 # Note: This variable is named inconsistently with respect to the corresponding
 # Vault environment variable!
-bbcrd_vault_ca_path: "{{ lookup('env', 'VAULT_CACERT') | default(None, True) }}"
+bbcrd_vault_ca_path: "{{ query('bbcrd.vault.env', 'CACERT', bbcrd_vault_implementation)[0] }}"
 
 # The Anisble host to defer all Vault API accesses to.
 bbcrd_vault_api_delegate_host: localhost

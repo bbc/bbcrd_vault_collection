@@ -1,0 +1,68 @@
+---
+- name: Test bbcrd.vault.env
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Test default just VAULT_ADDR used by default
+      assert:
+        that: query('bbcrd.vault.env', 'ADDR')[0] == "https://fail-vault.example.com:8200"
+    
+    - name: Test default BAO_ADDR value preferred when implementation set to bao
+      assert:
+        that: query('bbcrd.vault.env', 'ADDR', 'bao')[0] == "https://fail-bao.example.com:8200"
+    
+    - name: Test unspecified default values
+      assert:
+        that: query('bbcrd.vault.env', 'I_HOPE_THIS_IS_NEVER_DEFINED_ON_THE_TEST_HOST', 'bao')[0] is none
+    
+    - name: Test custom default values
+      assert:
+        that: query('bbcrd.vault.env', 'I_HOPE_THIS_IS_NEVER_DEFINED_ON_THE_TEST_HOST', 'bao', 'default')[0] == 'default'
+
+- name: Test bbcrd.vault.token
+  hosts: localhost
+  gather_facts: false
+  vars:
+    test_config_dir: "{{ lookup('env', 'MOLECULE_EPHEMERAL_DIRECTORY') }}/mock_vault_config"
+  tasks:
+    - name: Test default just VAULT_TOKEN used by default
+      assert:
+        that: query('bbcrd.vault.token')[0] == "vault-fail"
+    
+    - name: Test default BAO_TOKEN value preferred when implementation set to bao
+      assert:
+        that: query('bbcrd.vault.token', 'bao')[0] == "bao-fail"
+    
+    - name: Test token helper functionality
+      block:
+        - name: Create mock config dir
+          file:
+            path: "{{ test_config_dir }}"
+            state: directory
+        
+        - name: Create mock token helper
+          copy:
+            content: |-
+              #!/bin/bash
+              echo -n "TOKEN-${1}-${VAULT_ADDR}-END"
+            dest: "{{ test_config_dir }}/token_helper"
+            mode: "755"
+        
+        - name: Create mock vault implementation config
+          copy:
+            content: |-
+              token_helper = {{ (test_config_dir ~ "/token_helper") | to_json }}
+            dest: "{{ test_config_dir }}/.bao"
+        
+        - name: Test vault token helper ignored if environment setup
+          assert:
+            that: query('bbcrd.vault.token', 'bao', 'https://vault.example.com:8200', test_config_dir)[0] == "bao-fail"
+        
+        - name: Test vault token helper used when environment not set
+          assert:
+            that: query('bbcrd.vault.token', 'bao', 'https://vault.example.com:8200', test_config_dir, True)[0] == "TOKEN-get-https://vault.example.com:8200-END"
+      always:
+        - name: Delete mock config dir
+          file:
+            path: "{{ test_config_dir }}"
+            state: absent
