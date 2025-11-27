@@ -20,6 +20,7 @@ jobs:
           python-version: "3.x"  # Latest
       - name: Install test dependencies
         run: |
+          sudo apt-get update -y
           sudo apt-get remove -y containerd.io
           sudo apt-get install -y docker.io
           pip install -r requirements_test.txt
