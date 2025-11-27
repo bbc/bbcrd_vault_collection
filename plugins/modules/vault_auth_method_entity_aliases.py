@@ -44,36 +44,30 @@ options:
         type: dict
     vault_url:
         description: |-
-          The base URL of the vault server. Overrides any address configured
-          via envrionment variables.
+          the base url of the vault server.
         required: false
+        default: https://localhost:8200
         type: str
     vault_namespace:
         description: |-
-          The vault namespace to issue the command to. Overrides any namespace
-          configured via envrionment variables.
+          the vault namespace to issue the command to.
         required: false
+        default: ""
         type: str
     vault_token:
         description: |-
-          Token to use for Vault API calls. Overrides tokens configured in the
-          environment, token helpers or .vault-token file.
+          token to use for vault api calls.
         required: false
+        default: ""
         type: str
     vault_ca_path:
         description: |-
-            The filename of the CA PEM file to use. Set to null to use the
-            built in certificate store. Overrides any CA path configured in the
-            environment.
+            the filename of the ca pem file to use. set to none to use the
+            built in certificate store.
         required: false
+        default: none
         type: str
         default: null
-    vault_implementation:
-        description: |-
-          The name of the Vault implementation whose conventions for default
-          values of 'vault_url', 'vault_token' and 'vault_ca_path' will be
-          used. Defaults to 'vault'. E.g. for OpenBao specify 'bao' to try
-          'BAO_*' variables before 'VAULT_*'.
 """
 
 EXAMPLES = r"""
