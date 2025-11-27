@@ -1,0 +1,12 @@
+---
+
+- hosts: vault
+  tasks:
+    - import_tasks: ../load_credentials_and_reset_vault.yml
+    
+    - name: Lookup token
+      bbcrd.vault.vault_token_lookup:
+        vault_url: "{{ bbcrd_vault_public_url }}"
+        vault_token: "{{ bbcrd_vault_root_token }}"
+      register: result
+      failed_when: result.token.id != bbcrd_vault_root_token
