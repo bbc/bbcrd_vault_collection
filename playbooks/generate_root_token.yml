@@ -41,11 +41,11 @@
             argv:
               - "{{ bbcrd_vault_binary | default('vault') }}"
               - login
-              - "-"
+              - "-address={{ bbcrd_vault_public_url }}"
+              - "-ca-cert={{ bbcrd_vault_ca_path | default('') }}"
+              - "-"  # Read token from stdin
             stdin: "{{ bbcrd_vault_root_token }}"
           environment:
-            VAULT_ADDR: "{{ bbcrd_vault_public_url }}"
-            VAULT_CACERT: "{{ bbcrd_vault_ca_path | default(omit) }}"
           register: vault_login
         
         - name: Display vault login response
