@@ -41,6 +41,7 @@
         vault_ca_path: "{{ bbcrd_vault_ca_path | default(omit) }}"
 
     - name: Map OIDC end-users to Vault entities
+      when: bbcrd_vault_oidc_user_claim_to_entity_name_mapping is not none
       bbcrd.vault.vault_auth_method_entity_aliases:
         mount: "{{ bbcrd_vault_oidc_mount }}"
         entity_aliases: "{{ bbcrd_vault_oidc_user_claim_to_entity_name_mapping }}"

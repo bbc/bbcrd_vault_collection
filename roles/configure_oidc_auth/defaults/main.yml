@@ -79,6 +79,8 @@ bbcrd_vault_oidc_force_update: false
 # bbcrd_vault_oidc_user_claim_to_entity_name_mapping) to Vault entity names
 # (i.e. users).
 #
+# May be set to null to disable configuration of entity aliases.
+#
 # You should add policies or groups to these named entities in some later step
 # to grant them useful abilities.
 #
