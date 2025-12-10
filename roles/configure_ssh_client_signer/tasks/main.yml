@@ -64,6 +64,12 @@
       bbcrd.vault.vault_policy:
         name: "{{ item.value.policy }}"
         policy: |-
+          # Allow enumerating roles (to enable the use of the Vault web UI)
+          path "{{ bbcrd_vault_ssh_client_signer_mount }}/roles" {
+            capabilities = ["list"]
+          }
+          
+          # Allow signing SSH keys
           path "{{ bbcrd_vault_ssh_client_signer_mount }}/sign/{{ item.key }}" {
             capabilities = ["create", "update"]
           }
