@@ -46,6 +46,8 @@
               - "-"  # Read token from stdin
             stdin: "{{ bbcrd_vault_root_token }}"
           environment:
+            # Required to be an environment variable too by token helpers
+            VAULT_ADDR: "{{ bbcrd_vault_public_url }}"
           register: vault_login
         
         - name: Display vault login response
