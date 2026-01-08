@@ -69,6 +69,18 @@ bbcrd_vault_x_forwarded_for_authorized_addrs: null
 
 bbcrd_vault_enable_ui: true
 
+
+################################################################################
+# Monitoring
+################################################################################
+
+# If set to true, sets the telemetry.unauthenticated_metrics_access option to
+# true in the TCP listener. This allows anauthenticated access to the metrics
+# endpoint. If you use this option it is recommended consider using a reverse
+# proxy to limit access to the /v1/sys/metrics endpoint.
+bbcrd_vault_unauthenticated_metrics_access: false
+
+
 ################################################################################
 # Extra config
 ################################################################################

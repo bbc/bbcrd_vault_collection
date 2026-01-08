@@ -33,6 +33,13 @@ listener "tcp" {
   # Obtain true client address from reverse proxy X-Forwarded-For headers
   x_forwarded_for_authorized_addrs = "{{ bbcrd_vault_x_forwarded_for_authorized_addrs | join(',') }}"
   {%- endif +%}
+  
+  {%- if bbcrd_vault_unauthenticated_metrics_access +%}
+  # Allow unauthenticated access to /v1/sys/metrics
+  telemetry {
+    unauthenticated_metrics_access = true
+  }
+  {%- endif +%}
 }
 
 api_addr = "{{ bbcrd_vault_public_url }}"
