@@ -26,16 +26,16 @@
       template:
         src: vault_auth.service.j2
         dest: "/etc/systemd/system/{{ bbcrd_vault_auth_systemd_unit }}.service"
-      register: service
+      register: vault_auth_service
     
     - name: Install systemd timer
       template:
         src: vault_auth.timer.j2
         dest: "/etc/systemd/system/{{ bbcrd_vault_auth_systemd_unit }}.timer"
-      register: timer
+      register: vault_auth_timer
     
     - name: Enable timer
-      when: service.changed or timer.changed
+      when: vault_auth_service.changed or vault_auth_timer.changed
       systemd:
         name: "{{ bbcrd_vault_auth_systemd_unit }}.timer"
         enabled: true
@@ -43,7 +43,7 @@
         daemon_reload: true
     
     - name: Run now, and on startup
-      when: service.changed
+      when: vault_auth_service.changed
       systemd:
         name: "{{ bbcrd_vault_auth_systemd_unit }}.service"
         state: restarted
