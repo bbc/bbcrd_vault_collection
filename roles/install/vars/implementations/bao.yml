@@ -5,9 +5,9 @@ _bbcrd_vault_required_packages: []
 
 _bbcrd_vault_architecture_name: |-
   {{
-    "x86_64" if ansible_facts["architecture"] == "x86_64" else
+    "amd64" if ansible_facts["architecture"] == "x86_64" else
     "arm64" if ansible_facts["architecture"] == "aarch64" else
     ansible_facts["architecture"]
   }}
 
-_bbcrd_vault_download_url: "https://github.com/openbao/openbao/releases/download/v{{ bbcrd_vault_version }}/bao_{{ bbcrd_vault_version }}_Linux_{{ bbcrd_vault_architecture_name }}.tar.gz"
+_bbcrd_vault_download_url: "https://github.com/openbao/openbao/releases/download/v{{ bbcrd_vault_version }}/openbao_{{ bbcrd_vault_version }}_linux_{{ bbcrd_vault_architecture_name }}.tar.gz"
